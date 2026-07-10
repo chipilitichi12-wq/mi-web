@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rayito ⚡️</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="contenedor-volumen">
+        <button onclick="toggleMute()" id="btn-mute-toggle" style="background:none; border:none; cursor:pointer;">
+            <svg id="icon-sound" viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+            <svg id="icon-mute" viewBox="0 0 24 24" fill="white" width="20" height="20" style="display:none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71z"/></svg>
+        </button>
+        <input type="range" id="volumen-slider" min="0" max="1" step="0.1" value="1" oninput="ajustarVolumen(this.value)">
+    </div>
+
+    <div id="pantalla-entrada">
+    <div class="flechas-animadas">
+        <p>Presiona aquí</p>
+        <span>▼</span>
+    </div>
+    
+    <button onclick="entrar()">Entrar</button>
+</div>
+
+    <video autoplay muted loop id="video-fondo">
+        <source src="fondo.mp4" type="video/mp4">
+    </video>
+
+    <div class="caja-estilo">
+        <img src="avatar.jpg" alt="Perfil" class="foto-perfil">
+        <h1>Rayito ⚡️</h1>
+        <p>¡Bienvenido a mi sitio!</p>
+        <a href="https://www.tiktok.com/@el_metralletas.1" class="boton-red">
+    TikTok <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;">
+</a>
+<a href="https://www.youtube.com/@El_Metralletas" class="boton-red">
+    Youtube <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;">
+</a>
+<a href="#" class="boton-red">
+    Spotify <img src="https://cdn-icons-png.flaticon.com/512/174/174872.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;">
+</a>
+        
+        <div class="contenedor-reproductor">
+            <img src="avatar.jpg" class="img-mini">
+            <div class="info-track">
+                <p style="margin: 0; font-size: 14px;">Mi Canción</p>
+                <div class="barra-progreso" onclick="setPos(event)">
+                    <div id="progreso-actual"></div>
+                </div>
+                <div class="controles">
+                    <span id="tiempo-actual">0:00</span>
+                    <button onclick="togglePlay()" class="btn-audio">
+                        <svg id="icon-play" viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
+                        <svg id="icon-pause" viewBox="0 0 24 24" fill="white" width="20" height="20" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+                    <span id="duracion">3:12</span>
+                </div>
+            </div>
+        </div>
+
+        <audio id="mi-musica" loop>
+            <source src="tu-cancion.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <script>
+        const audio = document.getElementById('mi-musica');
+        const barra = document.getElementById('progreso-actual');
+        const playIcon = document.getElementById('icon-play');
+        const pauseIcon = document.getElementById('icon-pause');
+
+        function entrar() {
+            document.getElementById('pantalla-entrada').style.display = 'none';
+            audio.play();
+            playIcon.style.display = 'none';
+            pauseIcon.style.display = 'block';
+        }
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+            } else {
+                audio.pause();
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+            }
+        }
+
+        function ajustarVolumen(valor) {
+            audio.volume = valor;
+            const iconSound = document.getElementById('icon-sound');
+            const iconMute = document.getElementById('icon-mute');
+            if (valor == 0) { iconSound.style.display = 'none'; iconMute.style.display = 'block'; }
+            else { iconSound.style.display = 'block'; iconMute.style.display = 'none'; }
+        }
+
+        function toggleMute() {
+            audio.muted = !audio.muted;
+            const iconSound = document.getElementById('icon-sound');
+            const iconMute = document.getElementById('icon-mute');
+            iconSound.style.display = audio.muted ? 'none' : 'block';
+            iconMute.style.display = audio.muted ? 'block' : 'none';
+        }
+
+        audio.addEventListener('timeupdate', () => {
+            let porcentaje = (audio.currentTime / audio.duration) * 100;
+            barra.style.width = porcentaje + "%";
+            let m = Math.floor(audio.currentTime / 60);
+            let s = Math.floor(audio.currentTime % 60);
+            document.getElementById('tiempo-actual').innerText = m + ":" + (s < 10 ? "0" + s : s);
+        });
+    </script>
+</body>
+</html>
