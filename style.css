@@ -60,3 +60,22 @@ body { margin: 0; padding: 0; display: flex; justify-content: center; align-item
 h1 { margin: 10px 0; color: white; font-size: 28px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5); }
 .flechas-animadas { position: absolute; margin-top: -180px; text-align: center; color: white; font-size: 18px; font-weight: bold; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); animation: flotar 1.5s infinite ease-in-out; }
 @keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+.caja-fecha {
+    position: fixed;
+    bottom: 20px; /* Un poco arriba de la esquina */
+    right: 20px;  /* Un poco a la izquierda de la esquina */
+    padding: 10px 20px;
+    border-radius: 15px;
+    z-index: 1000; /* Para que esté encima de todo */
+
+    /* Reutiliza tus estilos de vidrio */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    /* Estilo del texto */
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    margin: 0;
+}
