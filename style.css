@@ -79,3 +79,39 @@ h1 { margin: 10px 0; color: white; font-size: 28px; text-shadow: 0 0 10px rgba(2
     font-size: 12px;
     margin: 0;
 }
+
+/* --- ESTILO PARA EL MONITOR DE SISTEMA --- */
+.system-monitor {
+    background: rgba(0, 0, 0, 0.6); /* Fondo negro semitransparente */
+    border-left: 4px solid #FFD700; /* Borde amarillo (tipo Rayito) */
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 8px;
+    font-family: 'Courier New', Courier, monospace; /* Fuente de código */
+    color: #ffffff;
+    text-align: left;
+    backdrop-filter: blur(5px); /* Un pequeño desenfoque para que se vea pro */
+}
+
+.system-monitor h3 {
+    color: #FFD700; /* Amarillo para el título */
+    font-size: 16px;
+    margin: 0 0 15px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.specs-section {
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+.system-monitor ul {
+    margin: 5px 0 0 0;
+    padding-left: 20px;
+}
+
+.system-monitor li {
+    margin-bottom: 5px;
+    color: #cccccc; /* Gris claro para los componentes */
+}
