@@ -18,13 +18,12 @@
     </div>
 
     <div id="pantalla-entrada">
-    <div class="flechas-animadas">
-        <p>Presiona aquí</p>
-        <span>▼</span>
+        <div class="flechas-animadas">
+            <p>Presiona aquí</p>
+            <span>▼</span>
+        </div>
+        <button onclick="entrar()">Entrar</button>
     </div>
-    
-    <button onclick="entrar()">Entrar</button>
-</div>
 
     <video autoplay muted loop id="video-fondo">
         <source src="fondo.mp4" type="video/mp4">
@@ -34,15 +33,10 @@
         <img src="avatar.jpg" alt="Perfil" class="foto-perfil">
         <h1>Rayito ⚡️</h1>
         <p>¡Bienvenido a mi sitio!</p>
-        <a href="https://www.tiktok.com/@el_metralletas.1" class="boton-red">
-    TikTok <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;">
-</a>
-<a href="https://www.youtube.com/@El_Metralletas" class="boton-red">
-    Youtube <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;">
-</a>
-<a href="#" class="boton-red">
-    Spotify <img src="https://cdn-icons-png.flaticon.com/512/174/174872.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;">
-</a>
+        
+        <a href="https://www.tiktok.com/@el_metralletas.1" class="boton-red">TikTok <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;"></a>
+        <a href="https://www.youtube.com/@El_Metralletas" class="boton-red">Youtube <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;"></a>
+        <a href="#" class="boton-red">Spotify <img src="https://cdn-icons-png.flaticon.com/512/174/174872.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;"></a>
         
         <div class="contenedor-reproductor">
             <img src="avatar.jpg" class="img-mini">
@@ -62,34 +56,32 @@
             </div>
         </div>
 
+        <div class="system-monitor">
+            <h3>// SYSTEM_SPECS</h3>
+            <div class="specs-section">
+                <p><strong>CPU:</strong> AMD Ryzen 7 5700X</p>
+                <p><strong>GPU:</strong> AMD Radeon RX 7600 XT 16GB</p>
+                <p><strong>Motherboard:</strong> GA-A320M-H</p>
+            </div>
+            <div class="specs-section">
+                <p><strong>Monitors:</strong></p>
+                <ul>
+                    <li>Valkyrie VH2410V2 (200Hz)</li>
+                    <li>ASUS VA24E (75Hz)</li>
+                    <li>Samsung SMB1930N (60Hz)</li>
+                </ul>
+            </div>
+        </div>
+
         <audio id="mi-musica" loop>
             <source src="tu-cancion.mp3" type="audio/mpeg">
-        <audio id="mi-musica" loop>
-        <source src="tu-cancion.mp3" type="audio/mpeg">
-    </audio>
+        </audio>
 
-    <div class="system-monitor">
-        <h3>// SYSTEM_SPECS</h3>
-        <div class="specs-section">
-            <p><strong>CPU:</strong> AMD Ryzen 7 5700X</p>
-            <p><strong>GPU:</strong> AMD Radeon RX 7600 XT 16GB</p>
-            <p><strong>Motherboard:</strong> GA-A320M-H</p>
-        </div>
-        <div class="specs-section">
-            <p><strong>Monitors:</strong></p>
-            <ul>
-                <li>Valkyrie VH2410V2 (200Hz)</li>
-                <li>ASUS VA24E (75Hz)</li>
-                <li>Samsung SMB1930N (60Hz)</li>
-            </ul>
+        <div class="caja-fecha glass">
+            <p>Web actualizada: 10/07/2026</p>
         </div>
     </div>
-    </div>
     
-    
-       
-    </div>
-
     <script>
         const audio = document.getElementById('mi-musica');
         const barra = document.getElementById('progreso-actual');
@@ -140,7 +132,4 @@
         });
     </script>
 </body>
-<div class="caja-fecha glass">
-    <p>Web actualizada: 10/07/2026</p>
-</div>
 </html>
