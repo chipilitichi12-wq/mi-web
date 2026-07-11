@@ -63,21 +63,16 @@ h1 { margin: 10px 0; color: white; font-size: 28px; text-shadow: 0 0 10px rgba(2
 
 .caja-fecha {
     position: fixed;
-    bottom: 20px; /* Un poco arriba de la esquina */
-    right: 20px;  /* Un poco a la izquierda de la esquina */
+    bottom: 20px; /* Distancia del borde inferior */
+    right: 20px;  /* Distancia del borde derecho */
     padding: 10px 20px;
-    border-radius: 15px;
-    z-index: 1000; /* Para que esté encima de todo */
-
-    /* Reutiliza tus estilos de vidrio */
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.5); /* Fondo oscuro semitransparente */
+    backdrop-filter: blur(10px);    /* Efecto de desenfoque */
     border: 1px solid rgba(255, 255, 255, 0.2);
-
-    /* Estilo del texto */
-    color: rgba(255, 255, 255, 0.7);
+    border-radius: 15px;
+    color: white;
     font-size: 12px;
-    margin: 0;
+    z-index: 1000; /* Asegura que esté encima de todo */
 }
 
 /* --- ESTILO PARA EL MONITOR DE SISTEMA --- */
