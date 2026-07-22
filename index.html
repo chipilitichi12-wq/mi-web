@@ -32,14 +32,14 @@
     <div class="caja-estilo">
         <img src="avatar.jpg" alt="Perfil" class="foto-perfil">
         <h1>Rayito ⚡️</h1>
-        <p>¡Bienvenido a mi sitio!</p>
+        <p>¡Bienvenido al sitio oficial!</p>
         
         <a href="https://www.tiktok.com/@el_metralletas.1" class="boton-red">TikTok <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;"></a>
         <a href="https://www.youtube.com/@El_Metralletas" class="boton-red">Youtube <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;"></a>
         <a href="https://open.spotify.com/user/31v4u2rovzppfwizlzg4fagw36pu?si=92824926e8974c2c" class="boton-red">Spotify <img src="https://cdn-icons-png.flaticon.com/512/174/174872.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;"></a>
         
-        <!-- NUEVO BOTÓN PARA ABRIR EL JUEGO -->
-        <button onclick="abrirJuego()" class="boton-red" style="cursor:pointer; width:100%; border:none;">Mini Agar.io ⚡️</button>
+        <!-- BOTÓN DE MINIJUEGOS QUE ABRE EL "LIBRITO" -->
+        <button onclick="abrirMenuLibro()" class="boton-red" style="cursor:pointer; width:100%; border:none;">Minijuegos ⚡️</button>
 
         <div class="contenedor-reproductor">
             <img src="avatar.jpg" class="img-mini">
@@ -85,14 +85,35 @@
         <p>Web actualizada: 22/7/2026</p>
     </div>
 
-    <!-- VENTANA EMERGENTE DEL JUEGO -->
-    <div id="modal-juego" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(15px); z-index:3000; justify-content:center; align-items:center; flex-direction:column;">
-    <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:20px; border:1px solid rgba(255,255,255,0.3); text-align:center; box-shadow:0 0 30px rgba(0,0,0,0.5); width: auto;">    
+    <!-- VENTANA TIPO LIBRITO PARA LA LISTA DE JUEGOS -->
+    <div id="modal-libro" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(15px); z-index:3000; justify-content:center; align-items:center;">
+        <div id="caja-libro" style="background:rgba(255,255,255,0.1); width:400px; padding:30px; border-radius:25px; border:1px solid rgba(255,255,255,0.3); text-align:center; box-shadow:0 0 40px rgba(0,0,0,0.6); transform: scale(0.5); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            <h2 style="color:white; font-family:'Segoe UI', sans-serif; margin-top:0; margin-bottom: 20px;">📖 Biblioteca de Juegos</h2>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- OPCIÓN 1: AGAR.IO -->
+                <button onclick="abrirJuegoAgar()" style="padding: 15px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 15px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                    ⚡️ Mini Agar.io
+                </button>
+
+                <!-- ESPACIO PARA FUTUROS JUEGOS -->
+                <button style="padding: 15px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); border-radius: 15px; color: rgba(255,255,255,0.4); cursor: not-allowed;">
+                    🔒 Próximamente...
+                </button>
+            </div>
+
+            <button onclick="cerrarMenuLibro()" style="margin-top: 25px; padding: 10px 25px; background: rgba(255,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; cursor: pointer; font-weight: bold;">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- VENTANA EMERGENTE DEL JUEGO AGAR.IO (AMPLIADO A 950x600) -->
+    <div id="modal-juego" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(15px); z-index:3100; justify-content:center; align-items:center; flex-direction:column;">
+        <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:20px; border:1px solid rgba(255,255,255,0.3); text-align:center; box-shadow:0 0 30px rgba(0,0,0,0.5); width: auto;">
             <h2 style="color:white; margin-top:0; font-family:'Segoe UI', sans-serif;">Minijuego Agar.io</h2>
             <p style="color:#ccc; font-size:13px; margin-bottom:10px;">Mueve el mouse para guiar tu célula, come puntos brillantes y crece.</p>
             <canvas id="areaJuego" width="950" height="600" style="border:2px solid rgba(255,255,255,0.4); border-radius:10px; background:#111; cursor:crosshair;"></canvas>
             <br>
-            <button onclick="cerrarJuego()" style="margin-top:15px; padding:10px 20px; background:rgba(255,0,0,0.4); color:white; border:1px solid rgba(255,255,255,0.3); border-radius:10px; cursor:pointer; font-weight:bold;">Cerrar Juego</button>
+            <button onclick="cerrarJuegoAgar()" style="margin-top:15px; padding:10px 20px; background:rgba(255,0,0,0.4); color:white; border:1px solid rgba(255,255,255,0.3); border-radius:10px; cursor:pointer; font-weight:bold;">Volver al Menú</button>
         </div>
     </div>
     
@@ -146,13 +167,35 @@
             document.getElementById('tiempo-actual').innerText = m + ":" + (s < 10 ? "0" + s : s);
         });
 
+        // --- ANIMACIÓN DEL LIBRITO DE MINIJUEGOS ---
+        function abrirMenuLibro() {
+            const modal = document.getElementById('modal-libro');
+            const caja = document.getElementById('caja-libro');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                caja.style.transform = 'scale(1)';
+                caja.style.opacity = '1';
+            }, 10);
+        }
+
+        function cerrarMenuLibro() {
+            const modal = document.getElementById('modal-libro');
+            const caja = document.getElementById('caja-libro');
+            caja.style.transform = 'scale(0.5)';
+            caja.style.opacity = '0';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
         // --- LÓGICA DEL MINIJUEGO AGAR.IO ---
         let canvas, ctx;
         let juegoActivo = false;
         let jugador = { x: 350, y: 250, radio: 15, color: '#FFD700', velocidad: 3.5 };
         let comidas = [];
 
-        function abrirJuego() {
+        function abrirJuegoAgar() {
+            cerrarMenuLibro(); // Cierra el librito y abre el juego
             document.getElementById('modal-juego').style.display = 'flex';
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
@@ -162,7 +205,7 @@
             jugador.radio = 15;
             comidas = [];
 
-            for (let i = 0; i < 40; i++) {
+            for (let i = 0; i < 50; i++) {
                 agregarComida();
             }
 
@@ -170,9 +213,10 @@
             bucleJuego();
         }
 
-        function cerrarJuego() {
+        function cerrarJuegoAgar() {
             juegoActivo = false;
             document.getElementById('modal-juego').style.display = 'none';
+            abrirMenuLibro(); // Vuelve a abrir el librito de juegos
         }
 
         function agregarComida() {
