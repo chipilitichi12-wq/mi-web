@@ -38,6 +38,9 @@
         <a href="https://www.youtube.com/@El_Metralletas" class="boton-red">Youtube <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;"></a>
         <a href="https://open.spotify.com/user/31v4u2rovzppfwizlzg4fagw36pu?si=92824926e8974c2c" class="boton-red">Spotify <img src="https://cdn-icons-png.flaticon.com/512/174/174872.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;"></a>
         
+        <!-- NUEVO BOTÓN PARA ABRIR EL JUEGO -->
+        <button onclick="abrirJuego()" class="boton-red" style="cursor:pointer; width:100%; border:none;">Mini Agar.io ⚡️</button>
+
         <div class="contenedor-reproductor">
             <img src="avatar.jpg" class="img-mini">
             <div class="info-track">
@@ -76,11 +79,25 @@
         <audio id="mi-musica" loop>
             <source src="tu-cancion.mp3" type="audio/mpeg">
         </audio>
-    </div> <div class="caja-fecha">
+    </div> 
+
+    <div class="caja-fecha">
         <p>Web actualizada: 10/07/2026</p>
+    </div>
+
+    <!-- VENTANA EMERGENTE DEL JUEGO -->
+    <div id="modal-juego" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(15px); z-index:3000; justify-content:center; align-items:center; flex-direction:column;">
+        <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:20px; border:1px solid rgba(255,255,255,0.3); text-align:center; box-shadow:0 0 30px rgba(0,0,0,0.5);">
+            <h2 style="color:white; margin-top:0; font-family:'Segoe UI', sans-serif;">Minijuego Agar.io</h2>
+            <p style="color:#ccc; font-size:13px; margin-bottom:10px;">Mueve el mouse para guiar tu célula, come puntos brillantes y crece.</p>
+            <canvas id="areaJuego" width="700" height="500" style="border:2px solid rgba(255,255,255,0.4); border-radius:10px; background:#111; cursor:crosshair;"></canvas>
+            <br>
+            <button onclick="cerrarJuego()" style="margin-top:15px; padding:10px 20px; background:rgba(255,0,0,0.4); color:white; border:1px solid rgba(255,255,255,0.3); border-radius:10px; cursor:pointer; font-weight:bold;">Cerrar Juego</button>
+        </div>
     </div>
     
     <script>
+        // --- LÓGICA DE MÚSICA Y REPRODUCTOR ---
         const audio = document.getElementById('mi-musica');
         const barra = document.getElementById('progreso-actual');
         const playIcon = document.getElementById('icon-play');
@@ -128,6 +145,105 @@
             let s = Math.floor(audio.currentTime % 60);
             document.getElementById('tiempo-actual').innerText = m + ":" + (s < 10 ? "0" + s : s);
         });
+
+        // --- LÓGICA DEL MINIJUEGO AGAR.IO ---
+        let canvas, ctx;
+        let juegoActivo = false;
+        let jugador = { x: 350, y: 250, radio: 15, color: '#FFD700', velocidad: 3.5 };
+        let comidas = [];
+
+        function abrirJuego() {
+            document.getElementById('modal-juego').style.display = 'flex';
+            canvas = document.getElementById('areaJuego');
+            ctx = canvas.getContext('2d');
+            
+            jugador.x = canvas.width / 2;
+            jugador.y = canvas.height / 2;
+            jugador.radio = 15;
+            comidas = [];
+
+            for (let i = 0; i < 40; i++) {
+                agregarComida();
+            }
+
+            juegoActivo = true;
+            bucleJuego();
+        }
+
+        function cerrarJuego() {
+            juegoActivo = false;
+            document.getElementById('modal-juego').style.display = 'none';
+        }
+
+        function agregarComida() {
+            comidas.push({
+                x: Math.random() * (canvas.width - 20) + 10,
+                y: Math.random() * (canvas.height - 20) + 10,
+                radio: 4,
+                color: `hsl(${Math.random() * 360}, 100%, 60%)`
+            });
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (!juegoActivo) return;
+            let rect = canvas.getBoundingClientRect();
+            let mouseX = e.clientX - rect.left;
+            let mouseY = e.clientY - rect.top;
+
+            let angulo = Math.atan2(mouseY - jugador.y, mouseX - jugador.x);
+            let distancia = Math.hypot(mouseX - jugador.x, mouseY - jugador.y);
+
+            if (distancia > 2) {
+                jugador.x += Math.cos(angulo) * jugador.velocidad;
+                jugador.y += Math.sin(angulo) * jugador.velocidad;
+            }
+
+            jugador.x = Math.max(jugador.radio, Math.min(canvas.width - jugador.radio, jugador.x));
+            jugador.y = Math.max(jugador.radio, Math.min(canvas.height - jugador.radio, jugador.y));
+        });
+
+        function actualizarJuego() {
+            for (let i = comidas.length - 1; i >= 0; i--) {
+                let c = comidas[i];
+                let dist = Math.hypot(jugador.x - c.x, jugador.y - c.y);
+                if (dist < jugador.radio + c.radio) {
+                    comidas.splice(i, 1);
+                    jugador.radio += 0.15;
+                    agregarComida();
+                }
+            }
+        }
+
+        function dibujarJuego() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let c of comidas) {
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, c.radio, 0, Math.PI * 2);
+                ctx.fillStyle = c.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+
+            ctx.beginPath();
+            ctx.arc(jugador.x, jugador.y, jugador.radio, 0, Math.PI * 2);
+            ctx.fillStyle = jugador.color;
+            ctx.shadowColor = '#FFD700';
+            ctx.shadowBlur = 15;
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.closePath();
+        }
+
+        function bucleJuego() {
+            if (!juegoActivo) return;
+            actualizarJuego();
+            dibujarJuego();
+            requestAnimationFrame(bucleJuego);
+        }
     </script>
 </body>
 </html>
