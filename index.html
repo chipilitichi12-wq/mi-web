@@ -207,6 +207,9 @@
             juegoActivo = false;
             currentGame = null;
             clearInterval(intervaloSnake);
+            if (idAnimacionCohete) {
+                cancelAnimationFrame(idAnimacionCohete);
+            }
             document.getElementById('modal-juego').style.display = 'none';
             abrirMenuLibro();
         }
@@ -402,7 +405,14 @@
 
         // ================= 5. COHETE ESPACIAL (BLOQUEADO HASTA EL PRIMER CLIC) =================
         let coheteY = 300, coheteVel = 0, obstaculosCohete = [], scoreCohete = 0, coheteIniciado = false;
+        let idAnimacionCohete = null; // Variable para controlar el bucle
+
         function abrirJuegoCohete() {
+            // Cancelar cualquier bucle anterior para que no se encierren y aceleren
+            if (idAnimacionCohete) {
+                cancelAnimationFrame(idAnimacionCohete);
+            }
+
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Cohete Espacial";
@@ -410,7 +420,7 @@
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
             
-            // Forzar reinicio total de valores al abrir o reabrir el juego
+            // Reiniciar valores limpios
             coheteIniciado = false; 
             coheteVel = 0; 
             coheteY = canvas.height / 2 - 10; 
@@ -421,6 +431,7 @@
             currentGame = 'cohete';
             bucleCohete();
         }
+
         function bucleCohete() {
             if (!juegoActivo || currentGame !== 'cohete') return;
 
@@ -428,8 +439,7 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             if (coheteIniciado) {
-                // Gravedad súper suave para que caiga lento (bajó a 0.15)
-                coheteVel += 0.15;
+                coheteVel += 0.15; // Gravedad suave
                 coheteY += coheteVel;
                 scoreCohete += 0.1;
 
@@ -440,14 +450,13 @@
 
                 if (obstaculosCohete[obstaculosCohete.length - 1].x < canvas.width - 350) {
                     let topH = Math.floor(Math.random() * 220) + 60;
-                    let gap = 200; // Espacio aún más amplio
+                    let gap = 200; 
                     let bottomH = canvas.height - topH - gap;
                     obstaculosCohete.push({ x: canvas.width, topH: topH, bottomH: bottomH, w: 50 });
                 }
 
                 obstaculosCohete.forEach((obs, index) => {
-                    // Obstáculos lentos para que acompañen la velocidad (2.0)
-                    obs.x -= 2.0;
+                    obs.x -= 2.0; // Obstáculos lentos
                     ctx.fillStyle = '#00FF66';
                     ctx.fillRect(obs.x, 0, obs.w, obs.topH);
                     ctx.fillRect(obs.x, canvas.height - obs.bottomH, obs.w, obs.bottomH);
@@ -480,7 +489,7 @@
             ctx.font = '16px sans-serif';
             ctx.fillText("Puntos: " + Math.floor(scoreCohete), 20, 30);
 
-            requestAnimationFrame(bucleCohete);
+            idAnimacionCohete = requestAnimationFrame(bucleCohete);
         }
 
         // ================= 6. SPACE INVADERS =================
