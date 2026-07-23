@@ -612,10 +612,13 @@
 
         function manejarKeyDownMario(e) {
             if (!juegoActivo || currentGame !== 'mario') return;
+            
             if (e.code === 'ArrowLeft' || e.code === 'KeyA') teclasMario.left = true;
             if (e.code === 'ArrowRight' || e.code === 'KeyD') teclasMario.right = true;
-            if ((e.code === 'ArrowUp' || e.code === 'Space') && mario.enSuelo) {
-                mario.dy = mario.salto;
+            
+            // Impulso de salto optimizado
+            if ((e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') && mario.enSuelo) {
+                mario.dy = -11; // Aumenta este valor si necesitas que salte más alto
                 mario.enSuelo = false;
             }
         }
@@ -643,7 +646,7 @@
             mario.x += mario.dx;
             
             // Gravedad
-            mario.dy += 0.45; // Gravedad suave para mejor control
+            mario.dy += 0.45; 
             mario.y += mario.dy;
 
             mario.enSuelo = false;
