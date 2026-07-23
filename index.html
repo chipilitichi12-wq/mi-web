@@ -187,8 +187,8 @@
             juegoActivo = false;
             currentGame = null;
             clearInterval(intervaloSnake);
-            if (idAnimacionCohete) { cancelAnimationFrame(idAnimacionCohete); }
-            if (idAnimacionMario) { cancelAnimationFrame(idAnimacionMario); }
+            if (idAnimacionCohete) { cancelAnimationFrame(idAnimacionCohete); idAnimacionCohete = null; }
+            if (idAnimacionMario) { cancelAnimationFrame(idAnimacionMario); idAnimacionMario = null; }
             if (canvas) { canvas.onmousemove = null; }
             document.getElementById('modal-juego').style.display = 'none';
             abrirMenuLibro();
@@ -426,6 +426,7 @@
         function abrirJuegoCohete() {
             if (idAnimacionCohete) { 
                 cancelAnimationFrame(idAnimacionCohete); 
+                idAnimacionCohete = null;
             }
 
             cerrarMenuLibro();
@@ -541,6 +542,8 @@
                 let distancia = Math.hypot(cx - obs.x, cy - obs.y);
                 if (distancia < obs.radio + 15) {
                     juegoActivo = false;
+                    cancelAnimationFrame(idAnimacionCohete);
+                    idAnimacionCohete = null;
                     alert("💥 ¡Asteroide impactado! Game Over.\nPuntos: " + scoreCohete);
                     abrirJuegoCohete();
                     return;
@@ -554,7 +557,7 @@
             idAnimacionCohete = requestAnimationFrame(bucleCohete);
         }
 
-        // ================= 6. MINI MARIO BROS (CORREGIDO: VELOCIDAD Y GRAVEDAD SUAVE) =================
+        // ================= 6. MINI MARIO BROS (CORREGIDO: ACELERACIÓN AL MORIR) =================
         let mario = { x: 50, y: 400, w: 30, h: 40, dx: 0, dy: 0, salto: -8.5, enSuelo: false };
         let plataformasMario = [];
         let obstaculosMario = [];
@@ -563,8 +566,11 @@
         let teclasMario = {};
 
         function abrirJuegoMario() {
-            // CORREGIDO: Limpieza de animación previa para evitar acumulación de velocidad al reiniciar
-            if (idAnimacionMario) { cancelAnimationFrame(idAnimacionMario); }
+            // CORREGIDO: Asegurar cancelación limpia del frame anterior para que no se apilen bucles
+            if (idAnimacionMario) { 
+                cancelAnimationFrame(idAnimacionMario); 
+                idAnimacionMario = null;
+            }
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Mini Mario Bros";
@@ -592,7 +598,6 @@
             ctx.fillStyle = '#5C94FC';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // CORREGIDO: Velocidad horizontal reducida para mayor control (de 4.5 a 3.0)
             if (teclasMario['ArrowLeft'] || teclasMario['a']) { mario.dx = -3.0; } 
             else if (teclasMario['ArrowRight'] || teclasMario['d']) { mario.dx = 3.0; } 
             else { mario.dx = 0; }
@@ -601,7 +606,6 @@
             if (mario.x < 0) mario.x = 0;
             if (mario.x > canvas.width - mario.w) mario.x = canvas.width - mario.w;
 
-            // CORREGIDO: Gravedad más suave y ligera para evitar caídas bruscas (de 0.38 a 0.25)
             mario.dy += 0.25;
             mario.y += mario.dy;
 
@@ -628,7 +632,7 @@
             ctx.fillStyle = '#FF0000';
             ctx.fillRect(mario.x, mario.y, mario.w, mario.h);
 
-            // Obstáculos / Tuberías (CORREGIDO: Velocidad de desplazamiento reducida a 2.5)
+            // Obstáculos / Tuberías
             obstaculosMario.forEach(obs => {
                 obs.x -= 2.5;
                 if (obs.x < -50) {
@@ -646,7 +650,11 @@
                     mario.y < obs.y + obs.h &&
                     mario.y + mario.h > obs.y
                 ) {
+                    // CORREGIDO: Desactivar juego y cancelar animación inmediatamente antes del alert
                     juegoActivo = false;
+                    cancelAnimationFrame(idAnimacionMario);
+                    idAnimacionMario = null;
+                    
                     alert("🍄 ¡Te chocaste con la tubería! Game Over. Puntos: " + scoreMario);
                     abrirJuegoMario();
                     return;
