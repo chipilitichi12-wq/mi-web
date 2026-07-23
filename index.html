@@ -463,8 +463,8 @@
             requestAnimationFrame(bucleCohete);
         }
 
-        // ================= 6. SPACE INVADERS (ACTUALIZADO: 20 PUNTOS INICIALES Y -10 POR ERROR) =================
-        let playerX = 450, bullets = [], aliens = [], scoreSpace = 0;
+        // ================= 6. SPACE INVADERS (BLOQUES MÓVILES + 20 PTS + PENALIZACIÓN) =================
+        let playerX = 450, bullets = [], aliens = [], scoreSpace = 0, alienDir = 1;
         function abrirJuegoSpace() {
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
@@ -475,7 +475,8 @@
             playerX = canvas.width / 2 - 20;
             bullets = [];
             aliens = [];
-            scoreSpace = 20; // Empieza con 20 puntos exactos (permite fallar 1 tiro)
+            scoreSpace = 20; 
+            alienDir = 1;
             for(let r=0; r<3; r++) {
                 for(let c=0; c<10; c++) {
                     aliens.push({ x: c * 70 + 80, y: r * 40 + 50, w: 30, h: 20, alive: true });
@@ -495,6 +496,29 @@
             ctx.fillStyle = '#00D2FF';
             ctx.fillRect(playerX, canvas.height - 50, 40, 20);
 
+            // Mover Aliens de izquierda a derecha
+            let tocarBorde = false;
+            aliens.forEach(a => {
+                if (!a.alive) return;
+                a.x += alienDir * 1.2; // Velocidad de movimiento lateral
+                if (a.x + a.w > canvas.width - 20 || a.x < 20) {
+                    tocarBorde = true;
+                }
+            });
+
+            if (tocarBorde) {
+                alienDir *= -1; // Cambiar dirección
+                aliens.forEach(a => {
+                    a.y += 15; // Bajan una línea al tocar el borde
+                    // Si los aliens llegan muy abajo, game over
+                    if (a.alive && a.y >= canvas.height - 100) {
+                        juegoActivo = false;
+                        alert("❌ ¡Los invasores llegaron abajo!");
+                        abrirJuegoSpace();
+                    }
+                });
+            }
+
             // Actualizar y dibujar Balas
             ctx.fillStyle = '#FFD700';
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -502,17 +526,16 @@
                 b.y -= 7;
                 ctx.fillRect(b.x, b.y, 4, 10);
                 
-                // Si la bala llega arriba del todo sin impactar (se erra el tiro)
+                // Si la bala falla (sale arriba)
                 if (b.y < 0) {
                     bullets.splice(i, 1);
-                    scoreSpace -= 10; // Descuenta 10 puntos por errar
+                    scoreSpace -= 10; 
                     
-                    // Comprobar si se quedó sin puntos
                     if (scoreSpace <= 0) {
                         scoreSpace = 0;
                         juegoActivo = false;
                         alert("❌ ¡Perdiste! Te quedaste sin puntos.");
-                        abrirJuegoSpace(); // Reinicia el juego
+                        abrirJuegoSpace(); 
                         return;
                     }
                 }
@@ -531,11 +554,12 @@
                     if (b.x > a.x && b.x < a.x + a.w && b.y > a.y && b.y < a.y + a.h) {
                         a.alive = false;
                         bullets.splice(bIdx, 1);
-                        scoreSpace += 20; // Suma puntos al acertar
+                        scoreSpace += 20; 
                     }
                 });
             });
 
+            // Si matas a todos, se reinicia la oleada más abajo/rápida
             if (allDead) {
                 for(let r=0; r<3; r++) {
                     for(let c=0; c<10; c++) {
