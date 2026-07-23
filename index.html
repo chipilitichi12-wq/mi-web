@@ -557,7 +557,7 @@
             idAnimacionCohete = requestAnimationFrame(bucleCohete);
         }
 
-        // ================= 6. PENALTY SHOOTER (DINÁMICO: TIENE UN PUNTO DÉBIL ALEATORIO) =================
+        // ================= 6. PENALTY SHOOTER (CORREGIDO Y DINÁMICO) =================
         let golesPenalty = 0;
         let tirosPenalty = 0;
         let estadoBalon = 'esperando';
@@ -576,7 +576,7 @@
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Penalty Shooter ⚽";
-            document.getElementById('desc-juego-modal').innerText = "¡El arquero es una muralla pero cambia su punto débil en cada tiro! Busca dónde flaquea.";
+            document.getElementById('desc-juego-modal').innerText = "¡El arquero se mueve y cambia su punto débil en cada tiro! Descubre dónde meterla.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
             
@@ -623,7 +623,7 @@
             balon.z = 0;
             estadoBalon = 'esperando';
             
-            // Cada tiro asigna un comportamiento y un punto débil aleatorio al arquero (1: Izquierda, 2: Centro, 3: Derecha, 4: Muy arriba)
+            // Define una debilidad aleatoria en cada tiro (1: Izquierda, 2: Centro, 3: Derecha, 4: Muy arriba)
             portero.debilidadActual = Math.floor(Math.random() * 4) + 1;
             portero.patronMovimiento = Math.random() * Math.PI * 2;
             portero.x = 450;
@@ -635,7 +635,6 @@
 
             // --- LÓGICA DEL JUEGO ---
             if (estadoBalon === 'esperando') {
-                // El arquero se mueve de un lado a otro creando una pantalla defensiva
                 portero.patronMovimiento += 0.04;
                 portero.x = 475 + Math.sin(portero.patronMovimiento) * 85;
             } 
@@ -644,13 +643,12 @@
                 balon.y += balon.vy;
                 balon.z += balon.vz;
 
-                // El arquero reacciona pero dependiendo de su "debilidad de la ronda" reacciona tarde o deja libre una zona
                 let seMueveHaciaBalon = true;
-                if (portero.debilidadActual === 1 && balon.x < 430) seMueveHancaBalon = false; // Falla cubriendo el lado izquierdo
-                if (portero.debilidadActual === 2 && balon.x >= 430 && balon.x <= 520) seMueveHaciaBalon = false; // Falla cubriendo el centro
-                if (portero.debilidadActual === 3 && balon.x > 520) seMueveHaciaBalon = false; // Falla cubriendo el lado derecho
+                if (portero.debilidadActual === 1 && balon.x < 430) seMueveHaciaBalon = false;
+                if (portero.debilidadActual === 2 && balon.x >= 430 && balon.x <= 520) seMueveHaciaBalon = false;
+                if (portero.debilidadActual === 3 && balon.x > 520) seMueveHancaBalon = false;
                 
-                if (seMueveHancaBalon) {
+                if (seMueveHaciaBalon) {
                     if (portero.x < balon.x - 30) portero.x += 5;
                     else if (portero.x > balon.x - 30) portero.x -= 5;
                 }
@@ -659,12 +657,11 @@
                 let dentroDeLosPalosY = (balon.y >= 130 && balon.y <= 195);
 
                 let colisionArquero = false;
-                // Si la pelota va al sector débil del arquero en esta ronda, NO la ataja (permite el gol)
                 let esZonaDebil = false;
                 if (portero.debilidadActual === 1 && balon.x < 430) esZonaDebil = true;
                 if (portero.debilidadActual === 2 && balon.x >= 430 && balon.x <= 520) esZonaDebil = true;
                 if (portero.debilidadActual === 3 && balon.x > 520) esZonaDebil = true;
-                if (portero.debilidadActual === 4 && balon.y < 150) esZonaDebil = true; // Tiros altos al ángulo
+                if (portero.debilidadActual === 4 && balon.y < 150) esZonaDebil = true;
 
                 if (!esZonaDebil) {
                     colisionArquero = (
@@ -797,7 +794,7 @@
                 ctx.textAlign = 'left';
             }
 
-            // Marcador y pista sutil
+            // Marcador
             ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
             ctx.fillRect(20, 20, 260, 50);
             ctx.strokeStyle = 'rgba(255,255,255,0.3)';
