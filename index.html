@@ -96,7 +96,7 @@
                 <button onclick="abrirJuegoPong()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">🏓 Pong Retro</button>
                 <button onclick="abrirJuegoBreakout()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">🧱 Rompeladrillos</button>
                 <button onclick="abrirJuegoCohete()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">🚀 Cohete Espacial</button>
-                <button onclick="abrirJuegoMario()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">🍄 Mini Mario Bros</button>
+                <button onclick="abrirJuegoPenalty()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">⚽ Penalty Shooter</button>
             </div>
 
             <button onclick="cerrarMenuLibro()" style="margin-top: 15px; padding: 8px 20px; background: rgba(255,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 12px;">Cerrar</button>
@@ -188,8 +188,8 @@
             currentGame = null;
             clearInterval(intervaloSnake);
             if (idAnimacionCohete) { cancelAnimationFrame(idAnimacionCohete); idAnimacionCohete = null; }
-            if (idAnimacionMario) { cancelAnimationFrame(idAnimacionMario); idAnimacionMario = null; }
-            if (canvas) { canvas.onmousemove = null; }
+            if (idAnimacionPenalty) { cancelAnimationFrame(idAnimacionPenalty); idAnimacionPenalty = null; }
+            if (canvas) { canvas.onmousemove = null; canvas.onclick = null; }
             document.getElementById('modal-juego').style.display = 'none';
             abrirMenuLibro();
         }
@@ -526,7 +526,7 @@
                 obs.x -= obs.speed;
 
                 ctx.beginPath();
-                ctx.arc(obs.x, obs.y, obs.obs_radio || obs.radio, 0, Math.PI * 2);
+                ctx.arc(obs.x, obs.y, obs.radio, 0, Math.PI * 2);
                 ctx.fillStyle = '#666';
                 ctx.fill();
                 ctx.strokeStyle = '#444';
@@ -557,243 +557,157 @@
             idAnimacionCohete = requestAnimationFrame(bucleCohete);
         }
 
-        // ================= 6. MINI MARIO BROS =================
-        let mario = { x: 80, y: 350, w: 32, h: 42, dx: 0, dy: 0, salto: -9.2, enSuelo: false, frameAnim: 0 };
-        let plataformasMario = [];
-        let obstaculosMario = [];
-        let nubesMario = [];
-        let scoreMario = 0;
-        let idAnimacionMario = null;
-        let teclasMario = {};
+        // ================= 6. PENALTY SHOOTER =================
+        let golesPenalty = 0;
+        let tirosPenalty = 0;
+        let estadoBalon = 'esperando';
+        let balon = { x: 475, y: 500, radio: 12, vx: 0, vy: 0, destinoX: 475, destinoY: 250 };
+        let portero = { x: 445, y: 180, w: 60, h: 25, vx: 2.5 };
+        let mensajeResultado = "";
+        let tiempoMensaje = 0;
+        let idAnimacionPenalty = null;
 
-        function abrirJuegoMario() {
-            if (idAnimacionMario) { 
-                cancelAnimationFrame(idAnimacionMario); 
-                idAnimacionMario = null;
+        function abrirJuegoPenalty() {
+            if (idAnimacionPenalty) {
+                cancelAnimationFrame(idAnimacionPenalty);
+                idAnimacionPenalty = null;
             }
-            
+
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Mini Mario Bros [HD Deluxe]";
-            document.getElementById('desc-juego-modal').innerText = "Usa las Flechas Izq/Der o A/D para moverte y Espacio o Flecha Arriba para saltar.";
+            document.getElementById('titulo-juego-modal').innerText = "Penalty Shooter ⚽";
+            document.getElementById('desc-juego-modal').innerText = "Haz clic dentro de la cancha para disparar el balón hacia el arco.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
-
-            mario = { x: 80, y: 350, w: 32, h: 42, dx: 0, dy: 0, salto: -9.2, enSuelo: false, frameAnim: 0 };
-            scoreMario = 0;
-
-            plataformasMario = [
-                { x: 0, y: 500, w: 950, h: 100 },
-                { x: 300, y: 380, w: 150, h: 20 },
-                { x: 550, y: 280, w: 180, h: 20 },
-                { x: 200, y: 220, w: 120, h: 20 }
-            ];
-
-            // Velocidad de los obstáculos reducida (propiedad 'dir' para moverse de lado a lado más lento)
-            obstaculosMario = [
-                { x: 450, y: 460, w: 30, h: 40, tipo: 'goomba', speed: 1.0, dir: 1, minX: 320, maxX: 550 },
-                { x: 620, y: 240, w: 30, h: 40, tipo: 'goomba', speed: 1.0, dir: -1, minX: 560, maxX: 720 }
-            ];
             
-            nubesMario = [
-                { x: 100, y: 80, w: 70, h: 30, speed: 0.3 },
-                { x: 400, y: 50, w: 90, h: 35, speed: 0.3 },
-                { x: 750, y: 100, w: 80, h: 30, speed: 0.3 }
-            ];
+            golesPenalty = 0;
+            tirosPenalty = 0;
+            reiniciarTiroPenalty();
 
             juegoActivo = true;
-            currentGame = 'mario';
+            currentGame = 'penalty';
 
-            window.addEventListener('keydown', manejarKeyDownMario);
-            window.addEventListener('keyup', manejarKeyUpMario);
+            canvas.onclick = function(e) {
+                if (!juegoActivo || currentGame !== 'penalty' || estadoBalon !== 'esperando') return;
 
-            bucleMario();
+                const rect = canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+
+                balon.destinoX = clickX;
+                balon.destinoY = Math.max(clickY, 150);
+
+                let dx = balon.destinoX - balon.x;
+                let dy = balon.destinoY - balon.y;
+                let distancia = Math.sqrt(dx * dx + dy * dy);
+
+                let velocidadDisparo = 10;
+                balon.vx = (dx / distancia) * velocidadDisparo;
+                balon.vy = (dy / distancia) * velocidadDisparo;
+
+                estadoBalon = 'disparando';
+                tirosPenalty++;
+            };
+
+            buclePenalty();
         }
 
-        let nivelMario = 1;
-
-        function manejarKeyDownMario(e) {
-            if (!juegoActivo || currentGame !== 'mario') return;
-            if (e.code === 'ArrowLeft' || e.code === 'KeyA') teclasMario.left = true;
-            if (e.code === 'ArrowRight' || e.code === 'KeyD') teclasMario.right = true;
-            
-            // Impulso de salto optimizado y fluido
-            if ((e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') && mario.enSuelo) {
-                mario.dy = -11; 
-                mario.enSuelo = false;
-            }
+        function reiniciarTiroPenalty() {
+            balon.x = canvas ? canvas.width / 2 : 475;
+            balon.y = canvas ? canvas.height - 100 : 500;
+            balon.vx = 0;
+            balon.vy = 0;
+            estadoBalon = 'esperando';
         }
 
-        function manejarKeyUpMario(e) {
-            if (!juegoActivo || currentGame !== 'mario') return;
-            if (e.code === 'ArrowLeft' || e.code === 'KeyA') teclasMario.left = false;
-            if (e.code === 'ArrowRight' || e.code === 'KeyD') teclasMario.right = false;
-        }
+        function buclePenalty() {
+            if (!juegoActivo || currentGame !== 'penalty') return;
 
-        function cambiarNivelMario(nuevoNivel) {
-            nivelMario = nuevoNivel;
-            mario.x = 50;
-            mario.y = 350;
-            mario.dy = 0;
+            if (estadoBalon === 'disparando') {
+                balon.x += balon.vx;
+                balon.y += balon.vy;
 
-            if (nivelMario === 2) {
-                alert("🎉 ¡NIVEL 2 DESBLOQUEADO! Los enemigos ahora son más rápidos.");
-                // Configurar plataformas y enemigos para Nivel 2
-                plataformasMario = [
-                    { x: 0, y: 420, w: 800, h: 80 }, // Suelo
-                    { x: 100, y: 300, w: 150, h: 20 },
-                    { x: 350, y: 220, w: 150, h: 20 },
-                    { x: 550, y: 130, w: 180, h: 20 }
-                ];
-                obstaculosMario = [
-                    { x: 350, y: 190, w: 30, h: 30, speed: 2.5, dir: 1, minX: 350, maxX: 480 },
-                    { x: 100, y: 270, w: 30, h: 30, speed: 2, dir: 1, minX: 100, maxX: 230 }
-                ];
-            } else if (nivelMario === 3) {
-                alert("🔥 ¡NIVEL FINAL (NIVEL 3)! Supera este reto para ganar.");
-                // Configurar plataformas y enemigos para Nivel 3 (Más difícil)
-                plataformasMario = [
-                    { x: 0, y: 420, w: 800, h: 80 },
-                    { x: 50, y: 320, w: 120, h: 20 },
-                    { x: 250, y: 250, w: 120, h: 20 },
-                    { x: 450, y: 180, w: 120, h: 20 },
-                    { x: 300, y: 100, w: 150, h: 20 }
-                ];
-                obstaculosMario = [
-                    { x: 250, y: 220, w: 30, h: 30, speed: 3.2, dir: 1, minX: 250, maxX: 350 },
-                    { x: 450, y: 150, w: 30, h: 30, speed: 3.5, dir: 1, minX: 450, maxX: 550 }
-                ];
-            }
-        }
-
-        function bucleMario() {
-            if (!juegoActivo || currentGame !== 'mario') return;
-
-            // Control de Progresión por Niveles
-            if (scoreMario >= 300 && scoreMario < 600 && nivelMario === 1) {
-                cambiarNivelMario(2);
-            } else if (scoreMario >= 600 && nivelMario === 2) {
-                cambiarNivelMario(3);
-            } else if (scoreMario >= 900) {
-                alert("🏆 ¡FELICIDADES! Has completado todos los niveles de Mini Mario Bros.");
-                abrirJuegoMario();
-                return;
-            }
-
-            // Movimiento horizontal
-            mario.dx = 0;
-            if (teclasMario.left) mario.dx = -4.5;
-            if (teclasMario.right) mario.dx = 4.5;
-
-            mario.x += mario.dx;
-            
-            // Gravedad
-            mario.dy += 0.45; 
-            mario.y += mario.dy;
-
-            mario.enSuelo = false;
-
-            // Colisiones con plataformas
-            plataformasMario.forEach(p => {
-                if (mario.x + mario.w > p.x && mario.x < p.x + p.w &&
-                    mario.y + mario.h >= p.y && mario.y + mario.h - mario.dy <= p.y + 10 && mario.dy >= 0) {
-                    mario.y = p.y - mario.h;
-                    mario.dy = 0;
-                    mario.enSuelo = true;
-                }
-            });
-
-            // Limites de pantalla
-            if (mario.x < 0) mario.x = 0;
-            if (mario.x > canvas.width - mario.w) mario.x = canvas.width - mario.w;
-
-            // Renderizado de fondo dinámico según el nivel
-            let colorCielo = nivelMario === 1 ? '#5C94FC' : (nivelMario === 2 ? '#204080' : '#4a0000');
-            let gradienteCielo = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradienteCielo.addColorStop(0, colorCielo);
-            gradienteCielo.addColorStop(1, '#94BEE5');
-            ctx.fillStyle = gradienteCielo;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Dibujar nubes en movimiento
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-            nubesMario.forEach(n => {
-                n.x -= n.speed;
-                if (n.x + n.w < 0) n.x = canvas.width;
-                ctx.beginPath();
-                ctx.roundRect(n.x, n.y, n.w, n.h, 15);
-                ctx.fill();
-            });
-
-            // Dibujar plataformas
-            plataformasMario.forEach(p => {
-                ctx.fillStyle = nivelMario === 3 ? '#555' : '#C84C0C';
-                ctx.fillRect(p.x, p.y, p.w, p.h);
-                ctx.fillStyle = nivelMario === 3 ? '#888' : '#FC9838';
-                ctx.fillRect(p.x, p.y, p.w, 6); 
-                ctx.strokeStyle = '#000';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(p.x, p.y, p.w, p.h);
-            });
-
-            // Movimiento y lógica de los enemigos (Goombas)
-            obstaculosMario.forEach(obs => {
-                obs.x += obs.speed * obs.dir;
-                if (obs.x < obs.minX || obs.x > obs.maxX) {
-                    obs.dir *= -1; 
+                portero.x += portero.vx;
+                if (portero.x < 330 || portero.x + portero.w > 620) {
+                    portero.vx *= -1;
                 }
 
-                // Dibujar Goomba
-                ctx.fillStyle = '#8B4513';
-                ctx.beginPath();
-                ctx.arc(obs.x + obs.w / 2, obs.y + 15, 14, Math.PI, 0, false);
-                ctx.fill();
-                ctx.fillRect(obs.x + 2, obs.y + 15, obs.w - 4, 15);
-                
-                ctx.fillStyle = '#FFF';
-                ctx.fillRect(obs.x + 6, obs.y + 10, 5, 8);
-                ctx.fillRect(obs.x + 18, obs.y + 10, 5, 8);
-                ctx.fillStyle = '#000';
-                ctx.fillRect(obs.x + 8, obs.y + 12, 2, 4);
-                ctx.fillRect(obs.x + 20, obs.y + 12, 2, 4);
-
-                // Colisión Mario con Enemigos
-                if (mario.x < obs.x + obs.w && mario.x + mario.w > obs.x &&
-                    mario.y < obs.y + obs.h && mario.y + mario.h > obs.y) {
-                    if (mario.dy > 0 && mario.y + mario.h - mario.dy <= obs.y + 10) {
-                        scoreMario += 100;
-                        mario.dy = -8; // Rebote fuerte al eliminar
-                        obs.y = 9999; 
-                        obs.speed = 0;
+                if (balon.y <= 195) {
+                    if (balon.x >= portero.x && balon.x <= portero.x + portero.w && balon.y <= portero.y + portero.h) {
+                        estadoBalon = 'atajado';
+                        mensajeResultado = "❌ ¡ATAJADO POR EL ARQUERO!";
+                        tiempoMensaje = 60;
+                    } else if (balon.x >= 325 && balon.x <= 625) {
+                        estadoBalon = 'gol';
+                        golesPenalty++;
+                        mensajeResultado = "⚽ ¡GOOOOOOL!";
+                        tiempoMensaje = 60;
                     } else {
-                        alert("❌ ¡Game Over! Te alcanzó un enemigo. Puntos: " + scoreMario);
-                        nivelMario = 1;
-                        abrirJuegoMario();
-                        return;
+                        estadoBalon = 'fuera';
+                        mensajeResultado = "OUT 💨 ¡FUERA!";
+                        tiempoMensaje = 60;
                     }
                 }
-            });
+            } else if (tiempoMensaje > 0) {
+                tiempoMensaje--;
+                if (tiempoMensaje === 0) {
+                    reiniciarTiroPenalty();
+                }
+            }
 
-            // Dibujar a Mario
-            ctx.fillStyle = '#E52521'; 
-            ctx.fillRect(mario.x + 4, mario.y + 12, mario.w - 8, 20);
-            ctx.fillStyle = '#0000FA'; 
-            ctx.fillRect(mario.x + 6, mario.y + 24, mario.w - 12, 16);
-            ctx.fillStyle = '#FFCC99'; 
-            ctx.fillRect(mario.x + 8, mario.y + 4, 16, 12);
-            ctx.fillStyle = '#E52521'; 
-            ctx.fillRect(mario.x + 4, mario.y, 22, 6);
+            // Renderizado de la cancha de fútbol
+            ctx.fillStyle = '#2e8b57';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Interfaz de Marcador y Nivel en pantalla
-            ctx.fillStyle = '#FFF';
-            ctx.font = 'bold 18px sans-serif';
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(225, 320, 500, 280);
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, 420, 60, 0, Math.PI);
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, 500, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Dibujar Arco
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.fillRect(325, 70, 300, 130);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(325, 70, 300, 130);
+
+            // Portero
+            ctx.fillStyle = '#ffff00';
+            ctx.fillRect(portero.x, portero.y, portero.w, portero.h);
+            ctx.fillStyle = '#ffcc99';
+            ctx.beginPath();
+            ctx.arc(portero.x + portero.w / 2, portero.y - 8, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Balón
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(balon.x, balon.y, balon.radio, 0, Math.PI * 2);
+            ctx.fill();
             ctx.strokeStyle = '#000';
-            ctx.lineWidth = 4;
-            let textoHUD = `🍄 NIVEL ${nivelMario} | PUNTOS: ${scoreMario}`;
-            ctx.strokeText(textoHUD, 25, 35);
-            ctx.fillText(textoHUD, 25, 35);
+            ctx.lineWidth = 2;
+            ctx.stroke();
 
-            idAnimacionMario = requestAnimationFrame(bucleMario);
+            // Marcador e Interfaz
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillText(`GOLES: ${golesPenalty}  |  TIROS: ${tirosPenalty}`, 30, 40);
+
+            if (tiempoMensaje > 0) {
+                ctx.fillStyle = estadoBalon === 'gol' ? '#00ff00' : '#ff3333';
+                ctx.font = 'bold 32px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(mensajeResultado, canvas.width / 2, 260);
+                ctx.textAlign = 'left';
+            }
+
+            idAnimacionPenalty = requestAnimationFrame(buclePenalty);
         }
     </script>
 </body>
