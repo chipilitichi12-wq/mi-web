@@ -610,15 +610,16 @@
             bucleMario();
         }
 
+        let nivelMario = 1;
+
         function manejarKeyDownMario(e) {
             if (!juegoActivo || currentGame !== 'mario') return;
-            
             if (e.code === 'ArrowLeft' || e.code === 'KeyA') teclasMario.left = true;
             if (e.code === 'ArrowRight' || e.code === 'KeyD') teclasMario.right = true;
             
-            // Impulso de salto optimizado
+            // Impulso de salto optimizado y fluido
             if ((e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') && mario.enSuelo) {
-                mario.dy = -11; // Aumenta este valor si necesitas que salte más alto
+                mario.dy = -11; 
                 mario.enSuelo = false;
             }
         }
@@ -629,19 +630,60 @@
             if (e.code === 'ArrowRight' || e.code === 'KeyD') teclasMario.right = false;
         }
 
+        function cambiarNivelMario(nuevoNivel) {
+            nivelMario = nuevoNivel;
+            mario.x = 50;
+            mario.y = 350;
+            mario.dy = 0;
+
+            if (nivelMario === 2) {
+                alert("🎉 ¡NIVEL 2 DESBLOQUEADO! Los enemigos ahora son más rápidos.");
+                // Configurar plataformas y enemigos para Nivel 2
+                plataformasMario = [
+                    { x: 0, y: 420, w: 800, h: 80 }, // Suelo
+                    { x: 100, y: 300, w: 150, h: 20 },
+                    { x: 350, y: 220, w: 150, h: 20 },
+                    { x: 550, y: 130, w: 180, h: 20 }
+                ];
+                obstaculosMario = [
+                    { x: 350, y: 190, w: 30, h: 30, speed: 2.5, dir: 1, minX: 350, maxX: 480 },
+                    { x: 100, y: 270, w: 30, h: 30, speed: 2, dir: 1, minX: 100, maxX: 230 }
+                ];
+            } else if (nivelMario === 3) {
+                alert("🔥 ¡NIVEL FINAL (NIVEL 3)! Supera este reto para ganar.");
+                // Configurar plataformas y enemigos para Nivel 3 (Más difícil)
+                plataformasMario = [
+                    { x: 0, y: 420, w: 800, h: 80 },
+                    { x: 50, y: 320, w: 120, h: 20 },
+                    { x: 250, y: 250, w: 120, h: 20 },
+                    { x: 450, y: 180, w: 120, h: 20 },
+                    { x: 300, y: 100, w: 150, h: 20 }
+                ];
+                obstaculosMario = [
+                    { x: 250, y: 220, w: 30, h: 30, speed: 3.2, dir: 1, minX: 250, maxX: 350 },
+                    { x: 450, y: 150, w: 30, h: 30, speed: 3.5, dir: 1, minX: 450, maxX: 550 }
+                ];
+            }
+        }
+
         function bucleMario() {
             if (!juegoActivo || currentGame !== 'mario') return;
 
+            // Control de Progresión por Niveles
+            if (scoreMario >= 300 && scoreMario < 600 && nivelMario === 1) {
+                cambiarNivelMario(2);
+            } else if (scoreMario >= 600 && nivelMario === 2) {
+                cambiarNivelMario(3);
+            } else if (scoreMario >= 900) {
+                alert("🏆 ¡FELICIDADES! Has completado todos los niveles de Mini Mario Bros.");
+                abrirJuegoMario();
+                return;
+            }
+
             // Movimiento horizontal
             mario.dx = 0;
-            if (teclasMario.left) {
-                mario.dx = -4.5;
-                mario.frameAnim += 0.2;
-            }
-            if (teclasMario.right) {
-                mario.dx = 4.5;
-                mario.frameAnim += 0.2;
-            }
+            if (teclasMario.left) mario.dx = -4.5;
+            if (teclasMario.right) mario.dx = 4.5;
 
             mario.x += mario.dx;
             
@@ -665,15 +707,16 @@
             if (mario.x < 0) mario.x = 0;
             if (mario.x > canvas.width - mario.w) mario.x = canvas.width - mario.w;
 
-            // Renderizado de fondo y cielo (Estilo HD Deluxe)
+            // Renderizado de fondo dinámico según el nivel
+            let colorCielo = nivelMario === 1 ? '#5C94FC' : (nivelMario === 2 ? '#204080' : '#4a0000');
             let gradienteCielo = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradienteCielo.addColorStop(0, '#5C94FC');
+            gradienteCielo.addColorStop(0, colorCielo);
             gradienteCielo.addColorStop(1, '#94BEE5');
             ctx.fillStyle = gradienteCielo;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Dibujar nubes en movimiento
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
             nubesMario.forEach(n => {
                 n.x -= n.speed;
                 if (n.x + n.w < 0) n.x = canvas.width;
@@ -684,10 +727,10 @@
 
             // Dibujar plataformas
             plataformasMario.forEach(p => {
-                ctx.fillStyle = '#C84C0C';
+                ctx.fillStyle = nivelMario === 3 ? '#555' : '#C84C0C';
                 ctx.fillRect(p.x, p.y, p.w, p.h);
-                ctx.fillStyle = '#FC9838';
-                ctx.fillRect(p.x, p.y, p.w, 6); // Borde superior brillante
+                ctx.fillStyle = nivelMario === 3 ? '#888' : '#FC9838';
+                ctx.fillRect(p.x, p.y, p.w, 6); 
                 ctx.strokeStyle = '#000';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(p.x, p.y, p.w, p.h);
@@ -697,17 +740,16 @@
             obstaculosMario.forEach(obs => {
                 obs.x += obs.speed * obs.dir;
                 if (obs.x < obs.minX || obs.x > obs.maxX) {
-                    obs.dir *= -1; // Cambiar de dirección al llegar al límite
+                    obs.dir *= -1; 
                 }
 
-                // Dibujar Goomba mejorado
+                // Dibujar Goomba
                 ctx.fillStyle = '#8B4513';
                 ctx.beginPath();
                 ctx.arc(obs.x + obs.w / 2, obs.y + 15, 14, Math.PI, 0, false);
                 ctx.fill();
                 ctx.fillRect(obs.x + 2, obs.y + 15, obs.w - 4, 15);
                 
-                // Ojos y detalles
                 ctx.fillStyle = '#FFF';
                 ctx.fillRect(obs.x + 6, obs.y + 10, 5, 8);
                 ctx.fillRect(obs.x + 18, obs.y + 10, 5, 8);
@@ -718,38 +760,38 @@
                 // Colisión Mario con Enemigos
                 if (mario.x < obs.x + obs.w && mario.x + mario.w > obs.x &&
                     mario.y < obs.y + obs.h && mario.y + mario.h > obs.y) {
-                    // Si Mario cae desde arriba, elimina al enemigo y gana puntos
                     if (mario.dy > 0 && mario.y + mario.h - mario.dy <= obs.y + 10) {
                         scoreMario += 100;
-                        mario.dy = -7; // Rebote al eliminar
-                        obs.y = 9999; // Desactivar Goomba temporalmente
+                        mario.dy = -8; // Rebote fuerte al eliminar
+                        obs.y = 9999; 
                         obs.speed = 0;
                     } else {
-                        // Game Over si toca al enemigo de lado
-                        alert("❌ ¡Te ha alcanzado un Goomba! Puntos: " + scoreMario);
+                        alert("❌ ¡Game Over! Te alcanzó un enemigo. Puntos: " + scoreMario);
+                        nivelMario = 1;
                         abrirJuegoMario();
                         return;
                     }
                 }
             });
 
-            // Dibujar a Mario (Silueta mejorada estilo pixel/vector)
-            ctx.fillStyle = '#E52521'; // Campera / Gorra roja
+            // Dibujar a Mario
+            ctx.fillStyle = '#E52521'; 
             ctx.fillRect(mario.x + 4, mario.y + 12, mario.w - 8, 20);
-            ctx.fillStyle = '#0000FA'; // Overol azul
+            ctx.fillStyle = '#0000FA'; 
             ctx.fillRect(mario.x + 6, mario.y + 24, mario.w - 12, 16);
-            ctx.fillStyle = '#FFCC99'; // Cara
+            ctx.fillStyle = '#FFCC99'; 
             ctx.fillRect(mario.x + 8, mario.y + 4, 16, 12);
-            ctx.fillStyle = '#E52521'; // Gorra
+            ctx.fillStyle = '#E52521'; 
             ctx.fillRect(mario.x + 4, mario.y, 22, 6);
 
-            // Texto de Puntuación
+            // Interfaz de Marcador y Nivel en pantalla
             ctx.fillStyle = '#FFF';
-            ctx.font = 'bold 20px sans-serif';
+            ctx.font = 'bold 18px sans-serif';
             ctx.strokeStyle = '#000';
             ctx.lineWidth = 4;
-            ctx.strokeText("🍄 MARIO BROS - PUNTOS: " + scoreMario, 25, 35);
-            ctx.fillText("🍄 MARIO BROS - PUNTOS: " + scoreMario, 25, 35);
+            let textoHUD = `🍄 NIVEL ${nivelMario} | PUNTOS: ${scoreMario}`;
+            ctx.strokeText(textoHUD, 25, 35);
+            ctx.fillText(textoHUD, 25, 35);
 
             idAnimacionMario = requestAnimationFrame(bucleMario);
         }
