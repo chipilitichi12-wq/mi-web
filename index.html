@@ -108,6 +108,14 @@
                 <button onclick="abrirJuegoBreakout()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                     🧱 Rompeladrillos
                 </button>
+                <!-- JUEGO 5 (NUEVO: DINO RUN) -->
+                <button onclick="abrirJuegoDino()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                    🦖 Dino Run
+                </button>
+                <!-- JUEGO 6 (NUEVO: SPACE INVADERS) -->
+                <button onclick="abrirJuegoSpace()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                    👾 Space Invaders
+                </button>
             </div>
 
             <button onclick="cerrarMenuLibro()" style="margin-top: 15px; padding: 8px 20px; background: rgba(255,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 12px;">Cerrar</button>
@@ -392,6 +400,146 @@
             requestAnimationFrame(bucleBreakout);
         }
 
+        // ================= 5. DINO RUN =================
+        let dinoY = 480, dinoV = 0, isJumping = false, cactusList = [], scoreDino = 0;
+        function abrirJuegoDino() {
+            cerrarMenuLibro();
+            document.getElementById('modal-juego').style.display = 'flex';
+            document.getElementById('titulo-juego-modal').innerText = "Dino Run";
+            document.getElementById('desc-juego-modal').innerText = "Presiona la Barra Espaciadora o haz clic para saltar los cactus.";
+            canvas = document.getElementById('areaJuego');
+            ctx = canvas.getContext('2d');
+            dinoY = 480; dinoV = 0; isJumping = false;
+            cactusList = [{ x: 950, w: 20, h: 40 }];
+            scoreDino = 0;
+            juegoActivo = true;
+            currentGame = 'dino';
+            bucleDino();
+        }
+        function bucleDino() {
+            if (!juegoActivo || currentGame !== 'dino') return;
+            
+            // Gravedad del dino
+            dinoV += 0.6;
+            dinoY += dinoV;
+            if (dinoY > 480) {
+                dinoY = 480;
+                dinoV = 0;
+                isJumping = false;
+            }
+
+            scoreDino += 0.1;
+
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Suelo
+            ctx.fillStyle = '#555';
+            ctx.fillRect(0, 520, canvas.width, 4);
+
+            // Dibujar Dino
+            ctx.fillStyle = '#00FF66';
+            ctx.fillRect(100, dinoY, 30, 40);
+
+            // Gestionar Cactus
+            if (cactusList[cactusList.length - 1].x < canvas.width - 300) {
+                cactusList.push({ x: canvas.width, w: 20, h: Math.random() * 30 + 30 });
+            }
+
+            cactusList.forEach((c, index) => {
+                c.x -= 5;
+                ctx.fillStyle = '#FF5733';
+                ctx.fillRect(c.x, 520 - c.h, c.w, c.h);
+
+                if (c.x < -30) cactusList.splice(index, 1);
+
+                // Colisión (Dino en X: 100 a 130)
+                if (100 < c.x + c.w && 130 > c.x && dinoY + 40 > 520 - c.h) {
+                    abrirJuegoDino(); // Reiniciar si choca
+                }
+            });
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px sans-serif';
+            ctx.fillText("Score: " + Math.floor(scoreDino), 20, 30);
+
+            requestAnimationFrame(bucleDino);
+        }
+
+        // ================= 6. SPACE INVADERS =================
+        let playerX = 450, bullets = [], aliens = [], scoreSpace = 0;
+        function abrirJuegoSpace() {
+            cerrarMenuLibro();
+            document.getElementById('modal-juego').style.display = 'flex';
+            document.getElementById('titulo-juego-modal').innerText = "Space Invaders";
+            document.getElementById('desc-juego-modal').innerText = "Mueve el mouse para desplazar la nave y haz clic para disparar.";
+            canvas = document.getElementById('areaJuego');
+            ctx = canvas.getContext('2d');
+            playerX = canvas.width / 2 - 20;
+            bullets = [];
+            aliens = [];
+            scoreSpace = 0;
+            for(let r=0; r<3; r++) {
+                for(let c=0; c<10; c++) {
+                    aliens.push({ x: c * 70 + 80, y: r * 40 + 50, w: 30, h: 20, alive: true });
+                }
+            }
+            juegoActivo = true;
+            currentGame = 'space';
+            bucleSpace();
+        }
+        function bucleSpace() {
+            if (!juegoActivo || currentGame !== 'space') return;
+
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar Nave
+            ctx.fillStyle = '#00D2FF';
+            ctx.fillRect(playerX, canvas.height - 50, 40, 20);
+
+            // Actualizar y dibujar Balas
+            ctx.fillStyle = '#FFD700';
+            bullets.forEach((b, index) => {
+                b.y -= 7;
+                ctx.fillRect(b.x, b.y, 4, 10);
+                if (b.y < 0) bullets.splice(index, 1);
+            });
+
+            // Actualizar y dibujar Aliens
+            let allDead = true;
+            aliens.forEach(a => {
+                if (!a.alive) return;
+                allDead = false;
+                ctx.fillStyle = '#FF5733';
+                ctx.fillRect(a.x, a.y, a.w, a.h);
+
+                // Comprobar colisión bala-alien
+                bullets.forEach((b, bIdx) => {
+                    if (b.x > a.x && b.x < a.x + a.w && b.y > a.y && b.y < a.y + a.h) {
+                        a.alive = false;
+                        bullets.splice(bIdx, 1);
+                        scoreSpace += 20;
+                    }
+                });
+            });
+
+            if (allDead) {
+                // Rellenar de nuevo si los matan a todos
+                for(let r=0; r<3; r++) {
+                    for(let c=0; c<10; c++) {
+                        aliens.push({ x: c * 70 + 80, y: r * 40 + 50, w: 30, h: 20, alive: true });
+                    }
+                }
+            }
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px sans-serif';
+            ctx.fillText("Puntos: " + scoreSpace, 20, 30);
+
+            requestAnimationFrame(bucleSpace);
+        }
+
         // Controles de mouse generales
         document.addEventListener('mousemove', (e) => {
             if (!juegoActivo || !canvas) return;
@@ -415,16 +563,40 @@
             if (currentGame === 'breakout') {
                 xPaleta = Math.max(0, Math.min(canvas.width - 100, mouseX - 50));
             }
+            if (currentGame === 'space') {
+                playerX = Math.max(0, Math.min(canvas.width - 40, mouseX - 20));
+            }
         });
 
-        // Controles de teclado para Snake
+        // Controles de Clic (Disparo en Space Invaders)
+        const areaCanvas = document.getElementById('areaJuego');
+        areaCanvas.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (juegoActivo && currentGame === 'space') {
+                bullets.push({ x: playerX + 18, y: canvas.height - 60 });
+            }
+        });
+
+        // Controles de teclado para Snake y Dino Run
         document.addEventListener('keydown', (e) => {
-            if (!juegoActivo || currentGame !== 'snake') return;
+            if (!juegoActivo) return;
             
-            if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
-            if (e.key === 'ArrowDown' && dirSnake !== 'UP') dirSnake = 'DOWN';
-            if (e.key === 'ArrowLeft' && dirSnake !== 'RIGHT') dirSnake = 'LEFT';
-            if (e.key === 'ArrowRight' && dirSnake !== 'LEFT') dirSnake = 'RIGHT';
+            // Controles de Snake
+            if (currentGame === 'snake') {
+                if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
+                if (e.key === 'ArrowDown' && dirSnake !== 'UP') dirSnake = 'DOWN';
+                if (e.key === 'ArrowLeft' && dirSnake !== 'RIGHT') dirSnake = 'LEFT';
+                if (e.key === 'ArrowRight' && dirSnake !== 'LEFT') dirSnake = 'RIGHT';
+            }
+
+            // Salto exclusivo de Dino Run con la Barra Espaciadora
+            if (currentGame === 'dino' && e.key === ' ') {
+                e.preventDefault();
+                if (!isJumping) {
+                    dinoV = -11;
+                    isJumping = true;
+                }
+            }
         });
     </script>
 </body>
