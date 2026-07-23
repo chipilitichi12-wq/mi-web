@@ -437,10 +437,7 @@
             ctx.fillStyle = '#111';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // --- NUEVA LÓGICA: CONTAR LADRILLOS VIVOS ---
-            let ladrillosVivos = 0;
-
-            // Actualizar y mover cada pelota activa
+            // 1. Mover y verificar colisiones de todas las pelotas activas
             for (let i = pelotasBreakout.length - 1; i >= 0; i--) {
                 let p = pelotasBreakout[i];
                 p.x += p.dx;
@@ -458,21 +455,21 @@
                 // Rebote en la paleta
                 if (p.y + p.radio >= canvas.height - 20 && p.y <= canvas.height - 8 && p.x >= xPaleta && p.x <= xPaleta + 100) {
                     p.dy *= -1;
+                    // Dar un ángulo leve según dónde pegó
                     let centroPaleta = xPaleta + 50;
                     let diferencia = p.x - centroPaleta;
-                    p.dx = diferencia * 0.15; // Efecto según donde pegue
+                    p.dx = diferencia * 0.15;
                 }
 
                 // Si la pelota cae al fondo, se elimina
                 if (p.y > canvas.height + 20) {
                     pelotasBreakout.splice(i, 1);
-                    continue; // Pasa a la siguiente pelota sin verificar colisiones
+                    continue;
                 }
 
                 // Colisiones con los ladrillos
                 ladrillosBreakout.forEach(l => {
                     if (l.estado === 1) {
-                        // Comprobar colisión AABB simple
                         if (p.x > l.x && p.x < l.x + l.w && p.y > l.y && p.y < l.y + l.h) {
                             p.dy *= -1;
                             l.estado = 0; // Romper ladrillo
@@ -487,28 +484,34 @@
                                 pelotasBreakout.push({ x: l.x + (l.w / 2), y: l.y, dx: 0, dy: -3.5, radio: 8 });
                                 pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 3, dy: -3, radio: 8 });
                             }
-                        } else {
-                            // Si el ladrillo sigue vivo, suma al contador
-                            ladrillosVivos++;
                         }
                     }
                 });
             }
 
-            // --- NUEVA LÓGICA: VERIFICAR VICTORIA ---
-            // Si el contador de ladrillos vivos es 0, ¡ganaste!
-            if (ladrillosBreakout.length > 0 && ladrillosVivos === 0) {
+            // 2. CONTAR FRÍAMENTE CUÁNTOS LADRILLOS QUEDAN VIVOS
+            let totalLadrillosVivos = 0;
+            ladrillosBreakout.forEach(l => {
+                if (l.estado === 1) totalLadrillosVivos++;
+            });
+
+            // 3. VERIFICAR CONDICIONES DE FIN DE JUEGO (AHORA SÍ SEPARADAS)
+
+            // A. CONDICIÓN DE VICTORIA: No quedan ladrillos vivos
+            if (ladrillosBreakout.length > 0 && totalLadrillosVivos === 0) {
                 alert("🏆 ¡FELICITACIONES! GANASTE EL NIVEL 🏆\nPuntuación final: " + scoreBreakout);
-                abrirJuegoBreakout(); // Reinicia el juego para volver a jugar
+                abrirJuegoBreakout(); // Reinicia el juego
                 return;
             }
 
-            // Si se quedaron sin pelotas en juego Y todavía quedaban ladrillos, pierden
+            // B. CONDICIÓN DE DERROTA: No quedan pelotas vivas Y todavía quedan ladrillos
             if (pelotasBreakout.length === 0) {
                 alert("❌ ¡Te quedaste sin pelotas! Game Over.\nPuntos: " + scoreBreakout);
                 abrirJuegoBreakout(); // Reinicia el juego
                 return;
             }
+
+            // --- Dibujado (No cambiar) ---
 
             // Dibujar ladrillos
             ladrillosBreakout.forEach(l => {
