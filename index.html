@@ -629,94 +629,124 @@
         function bucleMario() {
             if (!juegoActivo || currentGame !== 'mario') return;
 
-            // Física de movimiento de Mario
+            // Movimiento horizontal
+            mario.dx = 0;
             if (teclasMario.left) {
-                mario.dx = -3;
-                mario.frameAnim += 0.1;
-            } else if (teclasMario.right) {
-                mario.dx = 3;
-                mario.frameAnim += 0.1;
-            } else {
-                mario.dx = 0;
+                mario.dx = -4.5;
+                mario.frameAnim += 0.2;
+            }
+            if (teclasMario.right) {
+                mario.dx = 4.5;
+                mario.frameAnim += 0.2;
             }
 
-            mario.dy += 0.4; // gravedad
             mario.x += mario.dx;
+            
+            // Gravedad
+            mario.dy += 0.45; // Gravedad suave para mejor control
             mario.y += mario.dy;
 
-            // Limites de pantalla
-            if (mario.x < 0) mario.x = 0;
-            if (mario.x > canvas.width - mario.w) mario.x = canvas.width - mario.w;
+            mario.enSuelo = false;
 
             // Colisiones con plataformas
-            mario.enSuelo = false;
             plataformasMario.forEach(p => {
                 if (mario.x + mario.w > p.x && mario.x < p.x + p.w &&
-                    mario.y + mario.h >= p.y && mario.y + mario.h <= p.y + 15 && mario.dy >= 0) {
+                    mario.y + mario.h >= p.y && mario.y + mario.h - mario.dy <= p.y + 10 && mario.dy >= 0) {
                     mario.y = p.y - mario.h;
                     mario.dy = 0;
                     mario.enSuelo = true;
                 }
             });
 
-            // Movimiento de los obstáculos (Goombas más lentos)
+            // Limites de pantalla
+            if (mario.x < 0) mario.x = 0;
+            if (mario.x > canvas.width - mario.w) mario.x = canvas.width - mario.w;
+
+            // Renderizado de fondo y cielo (Estilo HD Deluxe)
+            let gradienteCielo = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradienteCielo.addColorStop(0, '#5C94FC');
+            gradienteCielo.addColorStop(1, '#94BEE5');
+            ctx.fillStyle = gradienteCielo;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar nubes en movimiento
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            nubesMario.forEach(n => {
+                n.x -= n.speed;
+                if (n.x + n.w < 0) n.x = canvas.width;
+                ctx.beginPath();
+                ctx.roundRect(n.x, n.y, n.w, n.h, 15);
+                ctx.fill();
+            });
+
+            // Dibujar plataformas
+            plataformasMario.forEach(p => {
+                ctx.fillStyle = '#C84C0C';
+                ctx.fillRect(p.x, p.y, p.w, p.h);
+                ctx.fillStyle = '#FC9838';
+                ctx.fillRect(p.x, p.y, p.w, 6); // Borde superior brillante
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(p.x, p.y, p.w, p.h);
+            });
+
+            // Movimiento y lógica de los enemigos (Goombas)
             obstaculosMario.forEach(obs => {
                 obs.x += obs.speed * obs.dir;
                 if (obs.x < obs.minX || obs.x > obs.maxX) {
-                    obs.dir *= -1;
+                    obs.dir *= -1; // Cambiar de dirección al llegar al límite
                 }
 
-                // Colisión con Mario (Game Over)
+                // Dibujar Goomba mejorado
+                ctx.fillStyle = '#8B4513';
+                ctx.beginPath();
+                ctx.arc(obs.x + obs.w / 2, obs.y + 15, 14, Math.PI, 0, false);
+                ctx.fill();
+                ctx.fillRect(obs.x + 2, obs.y + 15, obs.w - 4, 15);
+                
+                // Ojos y detalles
+                ctx.fillStyle = '#FFF';
+                ctx.fillRect(obs.x + 6, obs.y + 10, 5, 8);
+                ctx.fillRect(obs.x + 18, obs.y + 10, 5, 8);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(obs.x + 8, obs.y + 12, 2, 4);
+                ctx.fillRect(obs.x + 20, obs.y + 12, 2, 4);
+
+                // Colisión Mario con Enemigos
                 if (mario.x < obs.x + obs.w && mario.x + mario.w > obs.x &&
                     mario.y < obs.y + obs.h && mario.y + mario.h > obs.y) {
-                    juegoActivo = false;
-                    alert("🍄 ¡Te ha alcanzado un Goomba! Game Over.");
-                    abrirJuegoMario();
-                    return;
+                    // Si Mario cae desde arriba, elimina al enemigo y gana puntos
+                    if (mario.dy > 0 && mario.y + mario.h - mario.dy <= obs.y + 10) {
+                        scoreMario += 100;
+                        mario.dy = -7; // Rebote al eliminar
+                        obs.y = 9999; // Desactivar Goomba temporalmente
+                        obs.speed = 0;
+                    } else {
+                        // Game Over si toca al enemigo de lado
+                        alert("❌ ¡Te ha alcanzado un Goomba! Puntos: " + scoreMario);
+                        abrirJuegoMario();
+                        return;
+                    }
                 }
             });
 
-            // Dibujar entorno (Cielo, Nubes, Plataformas, Goombas y Mario)
-            ctx.fillStyle = '#5c94fc';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Dibujar a Mario (Silueta mejorada estilo pixel/vector)
+            ctx.fillStyle = '#E52521'; // Campera / Gorra roja
+            ctx.fillRect(mario.x + 4, mario.y + 12, mario.w - 8, 20);
+            ctx.fillStyle = '#0000FA'; // Overol azul
+            ctx.fillRect(mario.x + 6, mario.y + 24, mario.w - 12, 16);
+            ctx.fillStyle = '#FFCC99'; // Cara
+            ctx.fillRect(mario.x + 8, mario.y + 4, 16, 12);
+            ctx.fillStyle = '#E52521'; // Gorra
+            ctx.fillRect(mario.x + 4, mario.y, 22, 6);
 
-            // Nubes
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            nubesMario.forEach(n => {
-                n.x -= n.speed;
-                if (n.x < -100) n.x = canvas.width + 50;
-                ctx.fillRect(n.x, n.y, n.w, n.h);
-            });
-
-            // Plataformas
-            plataformasMario.forEach(p => {
-                ctx.fillStyle = '#c84c0c';
-                ctx.fillRect(p.x, p.y, p.w, p.h);
-                ctx.fillStyle = '#fcbc32';
-                ctx.fillRect(p.x, p.y, p.w, 4);
-            });
-
-            // Obstáculos (Goombas)
-            obstaculosMario.forEach(obs => {
-                ctx.fillStyle = '#8b4513';
-                ctx.fillRect(obs.x, obs.y + 10, obs.w, obs.h - 10);
-                // Cabeza del Goomba
-                ctx.beginPath();
-                ctx.arc(obs.x + obs.w / 2, obs.y + 10, obs.w / 2, 0, Math.PI * 2);
-                ctx.fillStyle = '#a0522d';
-                ctx.fill();
-                ctx.closePath();
-            });
-
-            // Dibujar a Mario
-            ctx.fillStyle = '#e52521';
-            ctx.fillRect(mario.x, mario.y, mario.w, mario.h);
-
-            // Puntuación
-            scoreMario++;
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 16px sans-serif';
-            ctx.fillText("PUNTOS: " + Math.floor(scoreMario / 10), 25, 35);
+            // Texto de Puntuación
+            ctx.fillStyle = '#FFF';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 4;
+            ctx.strokeText("🍄 MARIO BROS - PUNTOS: " + scoreMario, 25, 35);
+            ctx.fillText("🍄 MARIO BROS - PUNTOS: " + scoreMario, 25, 35);
 
             idAnimacionMario = requestAnimationFrame(bucleMario);
         }
