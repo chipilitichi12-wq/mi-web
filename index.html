@@ -108,11 +108,11 @@
                 <button onclick="abrirJuegoBreakout()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                     🧱 Rompeladrillos
                 </button>
-                <!-- JUEGO 5 (NUEVO: DINO RUN) -->
-                <button onclick="abrirJuegoDino()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
-                    🦖 Dino Run
+                <!-- JUEGO 5 (NUEVO: COHETE FLOTANTE ESTILO FLAPPY) -->
+                <button onclick="abrirJuegoCohete()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                    🚀 Cohete Espacial
                 </button>
-                <!-- JUEGO 6 (NUEVO: SPACE INVADERS) -->
+                <!-- JUEGO 6 -->
                 <button onclick="abrirJuegoSpace()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                     👾 Space Invaders
                 </button>
@@ -400,70 +400,73 @@
             requestAnimationFrame(bucleBreakout);
         }
 
-        // ================= 5. DINO RUN =================
-        let dinoY = 480, dinoV = 0, isJumping = false, cactusList = [], scoreDino = 0;
-        function abrirJuegoDino() {
+        // ================= 5. COHETE ESPACIAL (ESTILO FLAPPY BIRD FLUIDO) =================
+        let coheteY = 300, coheteVel = 0, obstaculosCohete = [], scoreCohete = 0;
+        function abrirJuegoCohete() {
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Dino Run";
-            document.getElementById('desc-juego-modal').innerText = "Presiona la Barra Espaciadora o haz clic para saltar los cactus.";
+            document.getElementById('titulo-juego-modal').innerText = "Cohete Espacial";
+            document.getElementById('desc-juego-modal').innerText = "Haz clic o presiona Espacio para propulsar el cohete y esquivar los obstáculos.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
-            dinoY = 480; dinoV = 0; isJumping = false;
-            cactusList = [{ x: 950, w: 20, h: 40 }];
-            scoreDino = 0;
+            coheteY = 300; coheteVel = 0; scoreCohete = 0;
+            obstaculosCohete = [{ x: 950, topH: 150, bottomH: 150, w: 50 }];
             juegoActivo = true;
-            currentGame = 'dino';
-            bucleDino();
+            currentGame = 'cohete';
+            bucleCohete();
         }
-        function bucleDino() {
-            if (!juegoActivo || currentGame !== 'dino') return;
-            
-            // Gravedad del dino
-            dinoV += 0.6;
-            dinoY += dinoV;
-            if (dinoY > 480) {
-                dinoY = 480;
-                dinoV = 0;
-                isJumping = false;
+        function bucleCohete() {
+            if (!juegoActivo || currentGame !== 'cohete') return;
+
+            // Gravedad y física controlada
+            coheteVel += 0.35;
+            coheteY += coheteVel;
+
+            if (coheteY > canvas.height - 25 || coheteY < 0) {
+                abrirJuegoCohete();
+                return;
             }
 
-            scoreDino += 0.1;
+            scoreCohete += 0.1;
 
             ctx.fillStyle = '#111';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Suelo
-            ctx.fillStyle = '#555';
-            ctx.fillRect(0, 520, canvas.width, 4);
-
-            // Dibujar Dino
-            ctx.fillStyle = '#00FF66';
-            ctx.fillRect(100, dinoY, 30, 40);
-
-            // Gestionar Cactus
-            if (cactusList[cactusList.length - 1].x < canvas.width - 300) {
-                cactusList.push({ x: canvas.width, w: 20, h: Math.random() * 30 + 30 });
+            // Generar obstáculos
+            if (obstaculosCohete[obstaculosCohete.length - 1].x < canvas.width - 320) {
+                let topH = Math.floor(Math.random() * 220) + 60;
+                let gap = 170;
+                let bottomH = canvas.height - topH - gap;
+                obstaculosCohete.push({ x: canvas.width, topH: topH, bottomH: bottomH, w: 50 });
             }
 
-            cactusList.forEach((c, index) => {
-                c.x -= 5;
-                ctx.fillStyle = '#FF5733';
-                ctx.fillRect(c.x, 520 - c.h, c.w, c.h);
+            // Dibujar y mover obstáculos
+            obstaculosCohete.forEach((obs, index) => {
+                obs.x -= 3.5;
+                ctx.fillStyle = '#00FF66';
+                ctx.fillRect(obs.x, 0, obs.w, obs.topH);
+                ctx.fillRect(obs.x, canvas.height - obs.bottomH, obs.w, obs.bottomH);
 
-                if (c.x < -30) cactusList.splice(index, 1);
+                if (obs.x < -60) obstaculosCohete.splice(index, 1);
 
-                // Colisión (Dino en X: 100 a 130)
-                if (100 < c.x + c.w && 130 > c.x && dinoY + 40 > 520 - c.h) {
-                    abrirJuegoDino(); // Reiniciar si choca
+                // Colisiones (Cohete en X: 150, ancho: 30, alto: 20)
+                if (150 + 30 > obs.x && 150 < obs.x + obs.w) {
+                    if (coheteY < obs.topH || coheteY + 20 > canvas.height - obs.bottomH) {
+                        abrirJuegoCohete();
+                    }
                 }
             });
 
+            // Dibujar Cohete
+            ctx.fillStyle = '#00D2FF';
+            ctx.fillRect(150, coheteY, 30, 20);
+
+            // Puntuación
             ctx.fillStyle = '#fff';
             ctx.font = '16px sans-serif';
-            ctx.fillText("Score: " + Math.floor(scoreDino), 20, 30);
+            ctx.fillText("Puntos: " + Math.floor(scoreCohete), 20, 30);
 
-            requestAnimationFrame(bucleDino);
+            requestAnimationFrame(bucleCohete);
         }
 
         // ================= 6. SPACE INVADERS =================
@@ -525,7 +528,6 @@
             });
 
             if (allDead) {
-                // Rellenar de nuevo si los matan a todos
                 for(let r=0; r<3; r++) {
                     for(let c=0; c<10; c++) {
                         aliens.push({ x: c * 70 + 80, y: r * 40 + 50, w: 30, h: 20, alive: true });
@@ -568,20 +570,24 @@
             }
         });
 
-        // Controles de Clic (Disparo en Space Invaders)
+        // Controles de Clic (Disparo en Space o Impulso en Cohete)
         const areaCanvas = document.getElementById('areaJuego');
         areaCanvas.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (juegoActivo && currentGame === 'space') {
+            if (!juegoActivo) return;
+            
+            if (currentGame === 'space') {
                 bullets.push({ x: playerX + 18, y: canvas.height - 60 });
+            }
+            if (currentGame === 'cohete') {
+                coheteVel = -7; // Impulso controlado hacia arriba
             }
         });
 
-        // Controles de teclado para Snake y Dino Run
+        // Controles de teclado para Snake y Cohete
         document.addEventListener('keydown', (e) => {
             if (!juegoActivo) return;
             
-            // Controles de Snake
             if (currentGame === 'snake') {
                 if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
                 if (e.key === 'ArrowDown' && dirSnake !== 'UP') dirSnake = 'DOWN';
@@ -589,13 +595,9 @@
                 if (e.key === 'ArrowRight' && dirSnake !== 'LEFT') dirSnake = 'RIGHT';
             }
 
-            // Salto exclusivo de Dino Run con la Barra Espaciadora
-            if (currentGame === 'dino' && e.key === ' ') {
+            if (currentGame === 'cohete' && e.key === ' ') {
                 e.preventDefault();
-                if (!isJumping) {
-                    dinoV = -11;
-                    isJumping = true;
-                }
+                coheteVel = -7; // Impulso controlado hacia arriba con la barra espaciadora
             }
         });
     </script>
