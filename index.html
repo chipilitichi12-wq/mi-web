@@ -200,13 +200,14 @@
         }
 
         function cerrarTodoJuego() {
-            juegoActivo = false;
+            juegoActivo = currentGame = null;
             clearInterval(intervaloSnake);
             document.getElementById('modal-juego').style.display = 'none';
             abrirMenuLibro();
         }
 
         let juegoActivo = false;
+        let currentGame = null; // Identificador del juego actual para evitar conflictos
         let canvas, ctx;
 
         // ================= 1. AGAR.IO =================
@@ -226,13 +227,14 @@
             comidasAgar = [];
             for (let i = 0; i < 50; i++) agregarComidaAgar();
             juegoActivo = true;
+            currentGame = 'agar';
             bucleAgar();
         }
         function agregarComidaAgar() {
             comidasAgar.push({ x: Math.random() * (canvas.width - 20) + 10, y: Math.random() * (canvas.height - 20) + 10, radio: 4, color: `hsl(${Math.random() * 360}, 100%, 60%)` });
         }
         function bucleAgar() {
-            if (!juegoActivo) return;
+            if (!juegoActivo || currentGame !== 'agar') return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             for (let i = comidasAgar.length - 1; i >= 0; i--) {
                 let c = comidasAgar[i];
@@ -264,6 +266,7 @@
             scoreSnake = 0;
             generarComidaSnake();
             juegoActivo = true;
+            currentGame = 'snake';
             
             clearInterval(intervaloSnake);
             intervaloSnake = setInterval(bucleSnake, 100);
@@ -279,7 +282,7 @@
         }
 
         function bucleSnake() {
-            if (!juegoActivo) return;
+            if (!juegoActivo || currentGame !== 'snake') return;
             let cabeza = { ...snake[0] };
             if (dirSnake === 'RIGHT') cabeza.x++;
             if (dirSnake === 'LEFT') cabeza.x--;
@@ -289,7 +292,6 @@
             const cols = canvas.width / tileSize;
             const rows = canvas.height / tileSize;
 
-            // Verificar colisiones con paredes o consigo mismo
             if (cabeza.x < 0 || cabeza.x >= cols || cabeza.y < 0 || cabeza.y >= rows || snake.some(s => s.x === cabeza.x && s.y === cabeza.y)) {
                 alert("¡Juego terminado! Puntuación: " + scoreSnake);
                 abrirJuegoSnake();
@@ -305,19 +307,15 @@
                 snake.pop();
             }
 
-            // Dibujar
             ctx.fillStyle = '#111'; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Dibujar comida
             ctx.fillStyle = '#FF5733'; 
             ctx.fillRect(comidaSnake.x * tileSize, comidaSnake.y * tileSize, tileSize - 2, tileSize - 2);
             
-            // Dibujar serpiente
             ctx.fillStyle = '#00FF66';
             snake.forEach(s => ctx.fillRect(s.x * tileSize, s.y * tileSize, tileSize - 2, tileSize - 2));
             
-            // Puntuación
             ctx.fillStyle = '#fff'; 
             ctx.font = '16px sans-serif'; 
             ctx.fillText("Puntos: " + scoreSnake, 20, 30);
@@ -334,10 +332,11 @@
             ctx = canvas.getContext('2d');
             bolaPong = {x: 475, y: 300, dx: 5, dy: 3, radio: 8};
             juegoActivo = true;
+            currentGame = 'pong';
             buclePong();
         }
         function buclePong() {
-            if (!juegoActivo) return;
+            if (!juegoActivo || currentGame !== 'pong') return;
             bolaPong.x += bolaPong.dx;
             bolaPong.y += bolaPong.dy;
             if (bolaPong.y < 0 || bolaPong.y > canvas.height) bolaPong.dy *= -1;
@@ -365,31 +364,52 @@
             document.getElementById('desc-juego-modal').innerText = "Haz clic en el área del juego o usa la Barra Espaciadora para volar.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
-            birdY = 300; birdV = 0; pipes = [{x: 950, top: 150, bottom: 400}]; scoreFlappy = 0;
+            birdY = 300; 
+            birdV = 0; 
+            pipes = [{x: 950, top: 150, bottom: 400}]; 
+            scoreFlappy = 0;
             juegoActivo = true;
+            currentGame = 'flappy';
             bucleFlappy();
         }
         function bucleFlappy() {
-            if (!juegoActivo) return;
-            birdV += 0.4; birdY += birdV;
-            if (birdY > canvas.height || birdY < 0) { abrirJuegoFlappy(); return; }
+            if (!juegoActivo || currentGame !== 'flappy') return;
+            birdV += 0.4; 
+            birdY += birdV;
+            
+            if (birdY > canvas.height || birdY < 0) { 
+                abrirJuegoFlappy(); 
+                return; 
+            }
 
-            ctx.fillStyle = '#222'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(150, birdY, 12, 0, Math.PI * 2); ctx.fill(); ctx.closePath();
+            ctx.fillStyle = '#222'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#FFD700'; 
+            ctx.beginPath(); 
+            ctx.arc(150, birdY, 12, 0, Math.PI * 2); 
+            ctx.fill(); 
+            ctx.closePath();
             
             if (pipes[pipes.length - 1].x < canvas.width - 300) {
                 let topH = Math.random() * 250 + 50;
                 pipes.push({x: canvas.width, top: topH, bottom: topH + 160});
             }
+            
             pipes.forEach((p, index) => {
                 p.x -= 3;
                 ctx.fillStyle = '#00FF66';
                 ctx.fillRect(p.x, 0, 60, p.top);
                 ctx.fillRect(p.x, p.bottom, 60, canvas.height - p.bottom);
                 if (p.x < -60) pipes.splice(index, 1);
-                if (150 > p.x && 150 < p.x + 60 && (birdY < p.top || birdY > p.bottom)) { abrirJuegoFlappy(); }
+                if (150 > p.x && 150 < p.x + 60 && (birdY < p.top || birdY > p.bottom)) { 
+                    abrirJuegoFlappy(); 
+                }
             });
-            ctx.fillStyle = '#fff'; ctx.font = '18px sans-serif'; ctx.fillText("Score: " + scoreFlappy, 20, 30);
+            
+            ctx.fillStyle = '#fff'; 
+            ctx.font = '18px sans-serif'; 
+            ctx.fillText("Score: " + scoreFlappy, 20, 30);
             requestAnimationFrame(bucleFlappy);
         }
 
@@ -410,10 +430,11 @@
                 }
             }
             juegoActivo = true;
+            currentGame = 'breakout';
             bucleBreakout();
         }
         function bucleBreakout() {
-            if (!juegoActivo) return;
+            if (!juegoActivo || currentGame !== 'breakout') return;
             xBola += dxB; yBola += dyB;
             if (xBola < 10 || xBola > canvas.width - 10) dxB *= -1;
             if (yBola < 10) dyB *= -1;
@@ -432,14 +453,14 @@
             requestAnimationFrame(bucleBreakout);
         }
 
-        // Controles de mouse
+        // Controles de mouse generales
         document.addEventListener('mousemove', (e) => {
             if (!juegoActivo || !canvas) return;
             let rect = canvas.getBoundingClientRect();
             let mouseX = e.clientX - rect.left;
             let mouseY = e.clientY - rect.top;
 
-            if (typeof jugadorAgar !== 'undefined') {
+            if (currentGame === 'agar') {
                 let angulo = Math.atan2(mouseY - jugadorAgar.y, mouseX - jugadorAgar.x);
                 let distancia = Math.hypot(mouseX - jugadorAgar.x, mouseY - jugadorAgar.y);
                 if (distancia > 2) {
@@ -449,16 +470,20 @@
                 jugadorAgar.x = Math.max(jugadorAgar.radio, Math.min(canvas.width - jugadorAgar.radio, jugadorAgar.x));
                 jugadorAgar.y = Math.max(jugadorAgar.radio, Math.min(canvas.height - jugadorAgar.radio, jugadorAgar.y));
             }
-            yPala1 = Math.max(0, Math.min(canvas.height - 80, mouseY - 40));
-            xPaleta = Math.max(0, Math.min(canvas.width - 100, mouseX - 50));
+            if (currentGame === 'pong') {
+                yPala1 = Math.max(0, Math.min(canvas.height - 80, mouseY - 40));
+            }
+            if (currentGame === 'breakout') {
+                xPaleta = Math.max(0, Math.min(canvas.width - 100, mouseX - 50));
+            }
         });
 
-        // Controles corregidos para Flappy Bird y Snake
+        // Controles de eventos de Clic y Teclado perfectamente acotados a Flappy Bird
         const areaCanvas = document.getElementById('areaJuego');
 
         areaCanvas.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (juegoActivo && typeof birdV !== 'undefined') {
+            if (juegoActivo && currentGame === 'flappy') {
                 birdV = -7;
             }
         });
@@ -467,13 +492,15 @@
             if (!juegoActivo) return;
             
             // Controles de Snake
-            if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
-            if (e.key === 'ArrowDown' && dirSnake !== 'UP') dirSnake = 'DOWN';
-            if (e.key === 'ArrowLeft' && dirSnake !== 'RIGHT') dirSnake = 'LEFT';
-            if (e.key === 'ArrowRight' && dirSnake !== 'LEFT') dirSnake = 'RIGHT';
+            if (currentGame === 'snake') {
+                if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
+                if (e.key === 'ArrowDown' && dirSnake !== 'UP') dirSnake = 'DOWN';
+                if (e.key === 'ArrowLeft' && dirSnake !== 'RIGHT') dirSnake = 'LEFT';
+                if (e.key === 'ArrowRight' && dirSnake !== 'LEFT') dirSnake = 'RIGHT';
+            }
 
-            // Salto de Flappy Bird con la Barra Espaciadora
-            if (e.key === ' ' && typeof birdV !== 'undefined') {
+            // Salto exclusivo de Flappy Bird con la Barra Espaciadora
+            if (currentGame === 'flappy' && e.key === ' ') {
                 e.preventDefault();
                 birdV = -7;
             }
