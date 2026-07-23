@@ -378,7 +378,6 @@
             xPaleta = canvas.width / 2 - 50;
             scoreBreakout = 0;
 
-            // Inicializar con una sola pelota en el centro
             pelotasBreakout = [{
                 x: canvas.width / 2,
                 y: 300,
@@ -387,22 +386,20 @@
                 radio: 8
             }];
 
-            // Crear ladrillos (algunos con x2 o x3 aleatorios)
             ladrillosBreakout = [];
             for (let c = 0; c < 8; c++) {
                 for (let r = 0; r < 4; r++) {
-                    let tipo = 1; // Ladrillo normal por defecto
+                    let tipo = 1; 
                     let color = '#00D2FF';
                     let texto = '';
 
-                    // Darle probabilidad de ser x2 o x3 a algunos bloques
                     let rand = Math.random();
                     if (rand < 0.25) {
-                        tipo = 2; // Multiplicador x2
+                        tipo = 2; 
                         color = '#FFD700';
                         texto = 'x2';
                     } else if (rand < 0.40) {
-                        tipo = 3; // Multiplicador x3
+                        tipo = 3; 
                         color = '#FF5733';
                         texto = 'x3';
                     }
@@ -431,51 +428,41 @@
             ctx.fillStyle = '#111';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Actualizar y mover cada pelota activa
             for (let i = pelotasBreakout.length - 1; i >= 0; i--) {
                 let p = pelotasBreakout[i];
                 p.x += p.dx;
                 p.y += p.dy;
 
-                // Rebote en paredes laterales
                 if (p.x < p.radio || p.x > canvas.width - p.radio) {
                     p.dx *= -1;
                 }
-                // Rebote arriba
                 if (p.y < p.radio) {
                     p.dy *= -1;
                 }
 
-                // Rebote en la paleta
                 if (p.y + p.radio >= canvas.height - 20 && p.y <= canvas.height - 8 && p.x >= xPaleta && p.x <= xPaleta + 100) {
                     p.dy *= -1;
-                    // Dar un ángulo leve según dónde pegó en la paleta
                     let centroPaleta = xPaleta + 50;
                     let diferencia = p.x - centroPaleta;
                     p.dx = diferencia * 0.15;
                 }
 
-                // Si la pelota cae al fondo, se elimina
                 if (p.y > canvas.height + 20) {
                     pelotasBreakout.splice(i, 1);
                     continue;
                 }
 
-                // Colisiones con los ladrillos
                 ladrillosBreakout.forEach(l => {
                     if (l.estado === 1) {
                         if (p.x > l.x && p.x < l.x + l.w && p.y > l.y && p.y < l.y + l.h) {
                             p.dy *= -1;
-                            l.estado = 0; // Romper ladrillo
+                            l.estado = 0; 
                             scoreBreakout += 10;
 
-                            // Si el ladrillo era x2 o x3, spawneamos pelotas extras
                             if (l.tipo === 2) {
-                                // Agrega 2 pelotas nuevas saliendo desde la posición del ladrillo roto
                                 pelotasBreakout.push({ x: l.x, y: l.y, dx: -2.5, dy: -3, radio: 8 });
                                 pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 2.5, dy: -3, radio: 8 });
                             } else if (l.tipo === 3) {
-                                // Agrega 3 pelotas nuevas
                                 pelotasBreakout.push({ x: l.x, y: l.y, dx: -3, dy: -3, radio: 8 });
                                 pelotasBreakout.push({ x: l.x + (l.w / 2), y: l.y, dx: 0, dy: -3.5, radio: 8 });
                                 pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 3, dy: -3, radio: 8 });
@@ -485,14 +472,12 @@
                 });
             }
 
-            // Si se quedaron sin pelotas en juego, se reinicia el nivel
             if (pelotasBreakout.length === 0) {
                 alert("¡Te quedaste sin pelotas! Reiniciando nivel...");
                 abrirJuegoBreakout();
                 return;
             }
 
-            // Dibujar ladrillos
             ladrillosBreakout.forEach(l => {
                 if (l.estado === 1) {
                     ctx.fillStyle = l.color;
@@ -508,11 +493,9 @@
                 }
             });
 
-            // Dibujar Paleta
             ctx.fillStyle = '#fff';
             ctx.fillRect(xPaleta, canvas.height - 20, 100, 12);
 
-            // Dibujar todas las pelotas activas
             pelotasBreakout.forEach(p => {
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radio, 0, Math.PI * 2);
@@ -521,7 +504,6 @@
                 ctx.closePath();
             });
 
-            // Mostrar información en pantalla (Puntos y cantidad de pelotas vivas)
             ctx.fillStyle = '#fff';
             ctx.font = '16px sans-serif';
             ctx.fillText("Puntos: " + scoreBreakout + " | Pelotas: " + pelotasBreakout.length, 20, 30);
@@ -529,7 +511,92 @@
             requestAnimationFrame(bucleBreakout);
         }
 
-        // Controles de mouse generales
+        // ================= 5. COHETE ESPACIAL =================
+        let coheteY = 300, coheteVel = 0, obstaculosCohete = [], scoreCohete = 0, coheteIniciado = false;
+        let idAnimacionCohete = null;
+
+        function abrirJuegoCohete() {
+            if (idAnimacionCohete) {
+                cancelAnimationFrame(idAnimacionCohete);
+            }
+
+            cerrarMenuLibro();
+            document.getElementById('modal-juego').style.display = 'flex';
+            document.getElementById('titulo-juego-modal').innerText = "Cohete Espacial";
+            document.getElementById('desc-juego-modal').innerText = "Haz clic o presiona Espacio para iniciar y propulsar el cohete.";
+            canvas = document.getElementById('areaJuego');
+            ctx = canvas.getContext('2d');
+            
+            coheteIniciado = false; 
+            coheteVel = 0; 
+            coheteY = canvas.height / 2 - 10; 
+            scoreCohete = 0;
+            
+            obstaculosCohete = [{ x: canvas.width + 100, topH: 150, bottomH: 150, w: 50 }];
+            juegoActivo = true;
+            currentGame = 'cohete';
+            bucleCohete();
+        }
+
+        function bucleCohete() {
+            if (!juegoActivo || currentGame !== 'cohete') return;
+
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (coheteIniciado) {
+                coheteVel += 0.15; 
+                coheteY += coheteVel;
+                scoreCohete += 0.1;
+
+                if (coheteY > canvas.height - 25 || coheteY < 0) {
+                    abrirJuegoCohete();
+                    return;
+                }
+
+                if (obstaculosCohete[obstaculosCohete.length - 1].x < canvas.width - 350) {
+                    let topH = Math.floor(Math.random() * 220) + 60;
+                    let gap = 200; 
+                    let bottomH = canvas.height - topH - gap;
+                    obstaculosCohete.push({ x: canvas.width, topH: topH, bottomH: bottomH, w: 50 });
+                }
+
+                obstaculosCohete.forEach((obs, index) => {
+                    obs.x -= 2.0; 
+                    ctx.fillStyle = '#00FF66';
+                    ctx.fillRect(obs.x, 0, obs.w, obs.topH);
+                    ctx.fillRect(obs.x, canvas.height - obs.bottomH, obs.w, obs.bottomH);
+
+                    if (obs.x < -60) obstaculosCohete.splice(index, 1);
+
+                    if (150 + 30 > obs.x && 150 < obs.x + obs.w) {
+                        if (coheteY < obs.topH || coheteY + 20 > canvas.height - obs.bottomH) {
+                            abrirJuegoCohete();
+                        }
+                    }
+                });
+            } else {
+                coheteY = canvas.height / 2 - 10;
+                coheteVel = 0;
+
+                ctx.fillStyle = '#fff';
+                ctx.font = '20px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("¡Haz clic o presiona Espacio para comenzar!", canvas.width / 2, canvas.height / 2 - 60);
+                ctx.textAlign = 'left'; 
+            }
+
+            ctx.fillStyle = '#00D2FF';
+            ctx.fillRect(150, coheteY, 30, 20);
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px sans-serif';
+            ctx.fillText("Puntos: " + Math.floor(scoreCohete), 20, 30);
+
+            idAnimacionCohete = requestAnimationFrame(bucleCohete);
+        }
+
+        // ================= CONTROLES GENERALES =================
         document.addEventListener('mousemove', (e) => {
             if (!juegoActivo || !canvas) return;
             let rect = canvas.getBoundingClientRect();
@@ -557,7 +624,6 @@
             }
         });
 
-        // Controles de Clic (Disparo en Space o Desbloqueo/Impulso en Cohete)
         const areaCanvas = document.getElementById('areaJuego');
         areaCanvas.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -568,15 +634,14 @@
             }
             if (currentGame === 'cohete') {
                 if (!coheteIniciado) {
-                    coheteIniciado = true; // Desbloquea el juego en el primer clic
-                    coheteVel = -4.2;      // Impulso inicial limpio
+                    coheteIniciado = true; 
+                    coheteVel = -4.2;      
                 } else {
-                    coheteVel = -4.2;      // Impulso normal durante la partida
+                    coheteVel = -4.2;      
                 }
             }
         });
 
-        // Controles de teclado para Snake y Cohete
         document.addEventListener('keydown', (e) => {
             if (!juegoActivo) return;
             
@@ -590,31 +655,9 @@
             if (currentGame === 'cohete' && e.key === ' ') {
                 e.preventDefault();
                 if (!coheteIniciado) {
-                    coheteIniciado = true; // Desbloquea con la barra espaciadora
-                    coheteVel = -4.2;      // Impulso inicial limpio
-                } else {
-                    coheteVel = -4.2;      // Impulso normal durante la partida
+                    coheteIniciado = true; 
                 }
-            }
-        });
-
-        // Controles de teclado para Snake y Cohete
-        document.addEventListener('keydown', (e) => {
-            if (!juegoActivo) return;
-            
-            if (currentGame === 'snake') {
-                if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
-                if (e.key === 'ArrowDown' && dirSnake !== 'UP') dirSnake = 'DOWN';
-                if (e.key === 'ArrowLeft' && dirSnake !== 'RIGHT') dirSnake = 'LEFT';
-                if (e.key === 'ArrowRight' && dirSnake !== 'LEFT') dirSnake = 'RIGHT';
-            }
-
-            if (currentGame === 'cohete' && e.key === ' ') {
-                e.preventDefault();
-                if (!coheteIniciado) {
-                    coheteIniciado = true; // Desbloquea con la barra espaciadora también
-                }
-                coheteVel = -7; 
+                coheteVel = -4.2; 
             }
         });
     </script>
