@@ -105,10 +105,6 @@
                     🏓 Pong Retro
                 </button>
                 <!-- JUEGO 4 -->
-                <button onclick="abrirJuegoFlappy()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
-                    🐦 Flappy Bird
-                </button>
-                <!-- JUEGO 5 -->
                 <button onclick="abrirJuegoBreakout()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                     🧱 Rompeladrillos
                 </button>
@@ -200,14 +196,15 @@
         }
 
         function cerrarTodoJuego() {
-            juegoActivo = currentGame = null;
+            juegoActivo = false;
+            currentGame = null;
             clearInterval(intervaloSnake);
             document.getElementById('modal-juego').style.display = 'none';
             abrirMenuLibro();
         }
 
         let juegoActivo = false;
-        let currentGame = null; // Identificador del juego actual para evitar conflictos
+        let currentGame = null;
         let canvas, ctx;
 
         // ================= 1. AGAR.IO =================
@@ -355,65 +352,7 @@
             requestAnimationFrame(buclePong);
         }
 
-        // ================= 4. FLAPPY BIRD =================
-        let birdY = 300, birdV = 0, pipes = [], scoreFlappy = 0;
-        function abrirJuegoFlappy() {
-            cerrarMenuLibro();
-            document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Flappy Bird";
-            document.getElementById('desc-juego-modal').innerText = "Haz clic en el área del juego o usa la Barra Espaciadora para volar.";
-            canvas = document.getElementById('areaJuego');
-            ctx = canvas.getContext('2d');
-            birdY = 300; 
-            birdV = 0; 
-            pipes = [{x: 950, top: 150, bottom: 400}]; 
-            scoreFlappy = 0;
-            juegoActivo = true;
-            currentGame = 'flappy';
-            bucleFlappy();
-        }
-        function bucleFlappy() {
-            if (!juegoActivo || currentGame !== 'flappy') return;
-            birdV += 0.4; 
-            birdY += birdV;
-            
-            if (birdY > canvas.height || birdY < 0) { 
-                abrirJuegoFlappy(); 
-                return; 
-            }
-
-            ctx.fillStyle = '#222'; 
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.fillStyle = '#FFD700'; 
-            ctx.beginPath(); 
-            ctx.arc(150, birdY, 12, 0, Math.PI * 2); 
-            ctx.fill(); 
-            ctx.closePath();
-            
-            if (pipes[pipes.length - 1].x < canvas.width - 300) {
-                let topH = Math.random() * 250 + 50;
-                pipes.push({x: canvas.width, top: topH, bottom: topH + 160});
-            }
-            
-            pipes.forEach((p, index) => {
-                p.x -= 3;
-                ctx.fillStyle = '#00FF66';
-                ctx.fillRect(p.x, 0, 60, p.top);
-                ctx.fillRect(p.x, p.bottom, 60, canvas.height - p.bottom);
-                if (p.x < -60) pipes.splice(index, 1);
-                if (150 > p.x && 150 < p.x + 60 && (birdY < p.top || birdY > p.bottom)) { 
-                    abrirJuegoFlappy(); 
-                }
-            });
-            
-            ctx.fillStyle = '#fff'; 
-            ctx.font = '18px sans-serif'; 
-            ctx.fillText("Score: " + scoreFlappy, 20, 30);
-            requestAnimationFrame(bucleFlappy);
-        }
-
-        // ================= 5. ROMPELADRILLOS =================
+        // ================= 4. ROMPELADRILLOS =================
         let xPaleta = 400, xBola = 475, yBola = 300, dxB = 3, dyB = -3, ladrillos = [];
         function abrirJuegoBreakout() {
             cerrarMenuLibro();
@@ -478,32 +417,14 @@
             }
         });
 
-        // Controles de eventos de Clic y Teclado perfectamente acotados a Flappy Bird
-        const areaCanvas = document.getElementById('areaJuego');
-
-        areaCanvas.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (juegoActivo && currentGame === 'flappy') {
-                birdV = -7;
-            }
-        });
-
+        // Controles de teclado para Snake
         document.addEventListener('keydown', (e) => {
-            if (!juegoActivo) return;
+            if (!juegoActivo || currentGame !== 'snake') return;
             
-            // Controles de Snake
-            if (currentGame === 'snake') {
-                if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
-                if (e.key === 'ArrowDown' && dirSnake !== 'UP') dirSnake = 'DOWN';
-                if (e.key === 'ArrowLeft' && dirSnake !== 'RIGHT') dirSnake = 'LEFT';
-                if (e.key === 'ArrowRight' && dirSnake !== 'LEFT') dirSnake = 'RIGHT';
-            }
-
-            // Salto exclusivo de Flappy Bird con la Barra Espaciadora
-            if (currentGame === 'flappy' && e.key === ' ') {
-                e.preventDefault();
-                birdV = -7;
-            }
+            if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
+            if (e.key === 'ArrowDown' && dirSnake !== 'UP') dirSnake = 'DOWN';
+            if (e.key === 'ArrowLeft' && dirSnake !== 'RIGHT') dirSnake = 'LEFT';
+            if (e.key === 'ArrowRight' && dirSnake !== 'LEFT') dirSnake = 'RIGHT';
         });
     </script>
 </body>
