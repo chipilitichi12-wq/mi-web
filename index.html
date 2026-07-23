@@ -108,7 +108,7 @@
                 <button onclick="abrirJuegoBreakout()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                     🧱 Rompeladrillos
                 </button>
-                <!-- JUEGO 5 (NUEVO: COHETE FLOTANTE ESTILO FLAPPY) -->
+                <!-- JUEGO 5 -->
                 <button onclick="abrirJuegoCohete()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                     🚀 Cohete Espacial
                 </button>
@@ -418,7 +418,6 @@
         function bucleCohete() {
             if (!juegoActivo || currentGame !== 'cohete') return;
 
-            // Gravedad y física controlada
             coheteVel += 0.35;
             coheteY += coheteVel;
 
@@ -432,7 +431,6 @@
             ctx.fillStyle = '#111';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Generar obstáculos
             if (obstaculosCohete[obstaculosCohete.length - 1].x < canvas.width - 320) {
                 let topH = Math.floor(Math.random() * 220) + 60;
                 let gap = 170;
@@ -440,7 +438,6 @@
                 obstaculosCohete.push({ x: canvas.width, topH: topH, bottomH: bottomH, w: 50 });
             }
 
-            // Dibujar y mover obstáculos
             obstaculosCohete.forEach((obs, index) => {
                 obs.x -= 3.5;
                 ctx.fillStyle = '#00FF66';
@@ -449,7 +446,6 @@
 
                 if (obs.x < -60) obstaculosCohete.splice(index, 1);
 
-                // Colisiones (Cohete en X: 150, ancho: 30, alto: 20)
                 if (150 + 30 > obs.x && 150 < obs.x + obs.w) {
                     if (coheteY < obs.topH || coheteY + 20 > canvas.height - obs.bottomH) {
                         abrirJuegoCohete();
@@ -457,11 +453,9 @@
                 }
             });
 
-            // Dibujar Cohete
             ctx.fillStyle = '#00D2FF';
             ctx.fillRect(150, coheteY, 30, 20);
 
-            // Puntuación
             ctx.fillStyle = '#fff';
             ctx.font = '16px sans-serif';
             ctx.fillText("Puntos: " + Math.floor(scoreCohete), 20, 30);
@@ -469,7 +463,7 @@
             requestAnimationFrame(bucleCohete);
         }
 
-        // ================= 6. SPACE INVADERS =================
+        // ================= 6. SPACE INVADERS (ACTUALIZADO CON PENALIZACIÓN Y GAME OVER) =================
         let playerX = 450, bullets = [], aliens = [], scoreSpace = 0;
         function abrirJuegoSpace() {
             cerrarMenuLibro();
@@ -481,7 +475,7 @@
             playerX = canvas.width / 2 - 20;
             bullets = [];
             aliens = [];
-            scoreSpace = 0;
+            scoreSpace = 100; // Puntos iniciales para tener margen antes del Game Over
             for(let r=0; r<3; r++) {
                 for(let c=0; c<10; c++) {
                     aliens.push({ x: c * 70 + 80, y: r * 40 + 50, w: 30, h: 20, alive: true });
@@ -503,11 +497,26 @@
 
             // Actualizar y dibujar Balas
             ctx.fillStyle = '#FFD700';
-            bullets.forEach((b, index) => {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
                 b.y -= 7;
                 ctx.fillRect(b.x, b.y, 4, 10);
-                if (b.y < 0) bullets.splice(index, 1);
-            });
+                
+                // Si la bala llega arriba del todo sin impactar (se erra el tiro)
+                if (b.y < 0) {
+                    bullets.splice(i, 1);
+                    scoreSpace -= 15; // Descuenta 15 puntos por errar
+                    
+                    // Comprobar si se quedó sin puntos
+                    if (scoreSpace <= 0) {
+                        scoreSpace = 0;
+                        juegoActivo = false;
+                        alert("❌ ¡Perdiste! Te quedaste sin puntos.");
+                        abrirJuegoSpace(); // Reinicia el juego
+                        return;
+                    }
+                }
+            }
 
             // Actualizar y dibujar Aliens
             let allDead = true;
@@ -522,7 +531,7 @@
                     if (b.x > a.x && b.x < a.x + a.w && b.y > a.y && b.y < a.y + a.h) {
                         a.alive = false;
                         bullets.splice(bIdx, 1);
-                        scoreSpace += 20;
+                        scoreSpace += 20; // Suma puntos al acertar
                     }
                 });
             });
@@ -580,7 +589,7 @@
                 bullets.push({ x: playerX + 18, y: canvas.height - 60 });
             }
             if (currentGame === 'cohete') {
-                coheteVel = -7; // Impulso controlado hacia arriba
+                coheteVel = -7; 
             }
         });
 
@@ -597,7 +606,7 @@
 
             if (currentGame === 'cohete' && e.key === ' ') {
                 e.preventDefault();
-                coheteVel = -7; // Impulso controlado hacia arriba con la barra espaciadora
+                coheteVel = -7; 
             }
         });
     </script>
