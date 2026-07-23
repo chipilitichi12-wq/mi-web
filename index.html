@@ -189,6 +189,7 @@
             clearInterval(intervaloSnake);
             if (idAnimacionCohete) { cancelAnimationFrame(idAnimacionCohete); }
             if (idAnimacionMario) { cancelAnimationFrame(idAnimacionMario); }
+            if (canvas) { canvas.onmousemove = null; }
             document.getElementById('modal-juego').style.display = 'none';
             abrirMenuLibro();
         }
@@ -415,8 +416,8 @@
             requestAnimationFrame(bucleBreakout);
         }
 
-        // ================= 5. COHETE ESPACIAL (MEJORADO Y DETALLADO) =================
-        let coheteY = 300, coheteVel = 0, coheteIniciado = false;
+        // ================= 5. COHETE ESPACIAL (CONTROLADO POR RATÓN) =================
+        let coheteY = 300;
         let idAnimacionCohete = null;
         let estrellasCohete = [];
         let obstaculosCohete = [];
@@ -426,12 +427,10 @@
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Cohete Espacial";
-            document.getElementById('desc-juego-modal').innerText = "Presiona la Barra Espaciadora para volar y esquivar los asteroides.";
+            document.getElementById('desc-juego-modal').innerText = "Mueve el ratón arriba y abajo para pilotar el cohete y esquivar los asteroides.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
-            coheteY = 300;
-            coheteVel = 0;
-            coheteIniciado = false;
+            coheteY = canvas.height / 2;
             scoreCohete = 0;
             
             estrellasCohete = [];
@@ -443,6 +442,18 @@
 
             juegoActivo = true;
             currentGame = 'cohete';
+
+            // Escuchar el movimiento del mouse dentro del canvas
+            canvas.onmousemove = function(e) {
+                if (!juegoActivo || currentGame !== 'cohete') return;
+                const rect = canvas.getBoundingClientRect();
+                coheteY = e.clientY - rect.top;
+                
+                // Limitar para que no salga del canvas
+                if (coheteY < 20) coheteY = 20;
+                if (coheteY > canvas.height - 20) coheteY = canvas.height - 20;
+            };
+
             bucleCohete();
         }
 
@@ -459,44 +470,30 @@
                 if (s.x < 0) s.x = canvas.width;
             });
 
-            if (coheteIniciado) {
-                coheteVel += 0.35; // Gravedad suave
-                coheteY += coheteVel;
-            }
-
-            // Colisión con bordes
-            if (coheteY > canvas.height - 35 || coheteY < 15) {
-                alert("💥 ¡Game Over! El cohete se estrelló.\nPuntaje: " + scoreCohete);
-                abrirJuegoCohete();
-                return;
-            }
-
             // Dibujar Nave Espacial Detallada
             let cx = 120, cy = coheteY;
             ctx.save();
             ctx.translate(cx, cy);
 
-            // Fuego del motor trasero (si se está moviendo hacia arriba o cayendo)
-            if (coheteIniciado) {
-                ctx.beginPath();
-                ctx.moveTo(-25, 0);
-                ctx.lineTo(-45 - Math.random() * 10, -5);
-                ctx.lineTo(-30, 0);
-                ctx.lineTo(-45 - Math.random() * 10, 5);
-                ctx.fillStyle = '#FF4500';
-                ctx.fill();
-                ctx.closePath();
-            }
+            // Fuego del motor trasero constante por movimiento del ratón
+            ctx.beginPath();
+            ctx.moveTo(-25, 0);
+            ctx.lineTo(-45 - Math.random() * 10, -5);
+            ctx.lineTo(-30, 0);
+            ctx.lineTo(-45 - Math.random() * 10, 5);
+            ctx.fillStyle = '#FF4500';
+            ctx.fill();
+            ctx.closePath();
 
             // Cuerpo principal de la nave
             ctx.beginPath();
-            ctx.moveTo(25, 0); // Punta delantera
-            ctx.lineTo(-15, -12); // Ala superior trasera
+            ctx.moveTo(25, 0); 
+            ctx.lineTo(-15, -12); 
             ctx.lineTo(-20, -5);
             ctx.lineTo(-25, -5);
             ctx.lineTo(-25, 5);
             ctx.lineTo(-20, 5);
-            ctx.lineTo(-15, 12); // Ala inferior trasera
+            ctx.lineTo(-15, 12); 
             ctx.closePath();
             ctx.fillStyle = '#E0E0E0';
             ctx.fill();
@@ -513,7 +510,7 @@
             ctx.fillStyle = '#FF3333';
             ctx.fill();
 
-            // Ventana / Cabina (Cúpula azul brillante)
+            // Ventana / Cabina
             ctx.beginPath();
             ctx.arc(2, -1, 5, 0, Math.PI * 2);
             ctx.fillStyle = '#00D2FF';
@@ -525,8 +522,8 @@
 
             // Manejo de Asteroides / Obstáculos
             let ultimoObs = obstaculosCohete[obstaculosCohete.length - 1];
-            if (ultimoObs.x < canvas.width - 300) {
-                obstaculosCohete.push({ x: canvas.width, y: Math.random() * (canvas.height - 150) + 75, radio: Math.random() * 15 + 20, speed: Math.random() * 2 + 3.5 });
+            if (ultimoObs && ultimoObs.x < canvas.width - 300) {
+                obstaculosCohete.push({ x: canvas.width, y: Math.random() * (canvas.height - 150) + 75, radio: Math.random() * 15 + 20, speed: 4.5 });
             }
 
             obstaculosCohete.forEach((obs, index) => {
@@ -550,6 +547,7 @@
                 // Colisión cohete con asteroide
                 let distancia = Math.hypot(cx - obs.x, cy - obs.y);
                 if (distancia < obs.radio + 15) {
+                    juegoActivo = false;
                     alert("💥 ¡Asteroide impactado! Game Over.\nPuntos: " + scoreCohete);
                     abrirJuegoCohete();
                     return;
@@ -601,7 +599,6 @@
             ctx.fillStyle = '#5C94FC';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Movimiento horizontal fluido
             if (teclasMario['ArrowLeft'] || teclasMario['a']) { mario.dx = -4.5; } 
             else if (teclasMario['ArrowRight'] || teclasMario['d']) { mario.dx = 4.5; } 
             else { mario.dx = 0; }
@@ -610,7 +607,6 @@
             if (mario.x < 0) mario.x = 0;
             if (mario.x > canvas.width - mario.w) mario.x = canvas.width - mario.w;
 
-            // Gravedad optimizada (caída más estable y ligera, no tan violenta)
             mario.dy += 0.38;
             mario.y += mario.dy;
 
@@ -629,106 +625,26 @@
                 }
             });
 
-            if (obstaculosMario[obstaculosMario.length - 1].x < canvas.width - 320) {
-                let hRandom = Math.floor(Math.random() * 40) + 45;
-                obstaculosMario.push({ x: canvas.width, y: 500 - hRandom, w: 40, h: hRandom, pasado: false });
-            }
+            // Dibujar suelo
+            ctx.fillStyle = '#00AA00';
+            plataformasMario.forEach(p => ctx.fillRect(p.x, p.y, p.w, p.h));
 
-            obstaculosMario.forEach((obs, index) => {
-                obs.x -= 3.5;
-
-                // Dibujar Tubería de Mario
-                ctx.fillStyle = '#00AA00'; ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-                ctx.fillStyle = '#00FF00'; ctx.fillRect(obs.x - 4, obs.y, obs.w + 8, 12);
-
-                if (obs.x < -50) { obstaculosMario.splice(index, 1); }
-
-                if (!obs.pasado && obs.x + obs.w < mario.x) {
-                    scoreMario += 100;
-                    obs.pasado = true;
-                }
-
-                // Colisión Mario con tubería
-                if (
-                    mario.x < obs.x + obs.w &&
-                    mario.x + mario.w > obs.x &&
-                    mario.y < obs.y + obs.h &&
-                    mario.y + mario.h > obs.y
-                ) {
-                    alert("🍄 ¡Game Over! Chocaste con una tubería.\nPuntaje total: " + scoreMario);
-                    abrirJuegoMario();
-                    return;
-                }
-            });
-
-            plataformasMario.forEach(p => {
-                ctx.fillStyle = '#D9381E'; ctx.fillRect(p.x, p.y, p.w, p.h);
-                ctx.fillStyle = '#EBB555'; ctx.fillRect(p.x, p.y, p.w, 15);
-            });
-
-            // Dibujar Mario (Gorra y cuerpo rojo/azul)
-            ctx.fillStyle = '#FF0000'; ctx.fillRect(mario.x, mario.y, mario.w, mario.h);
-            ctx.fillStyle = '#0000FF'; ctx.fillRect(mario.x + 4, mario.y + 22, mario.w - 8, mario.h - 22);
-
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 18px sans-serif';
-            ctx.fillText("MARIO  ⚡️  PUNTOS: " + scoreMario, 25, 35);
+            // Dibujar Mario
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(mario.x, mario.y, mario.w, mario.h);
 
             idAnimacionMario = requestAnimationFrame(bucleMario);
         }
 
-        // ================= CONTROLES GENERALES =================
-        document.addEventListener('keydown', (e) => {
-            if (!juegoActivo) return;
-            
-            if (currentGame === 'snake') {
-                if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
-                if (e.key === 'ArrowDown' && dirSnake !== 'UP') dirSnake = 'DOWN';
-                if (e.key === 'ArrowLeft' && dirSnake !== 'RIGHT') dirSnake = 'LEFT';
-                if (e.key === 'ArrowRight' && dirSnake !== 'LEFT') dirSnake = 'RIGHT';
-            }
-
-            if (currentGame === 'cohete' && e.key === ' ') {
-                e.preventDefault();
-                if (!coheteIniciado) { coheteIniciado = true; }
-                coheteVel = -6.5; // Impulso hacia arriba al presionar espacio
-            }
-
-            if (currentGame === 'mario') {
-                teclasMario[e.key] = true;
-                if (e.key === ' ' || e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    if (mario.enSuelo) {
-                        mario.dy = mario.salto;
-                        mario.enSuelo = false;
-                    }
-                }
+        window.addEventListener('keydown', (e) => {
+            teclasMario[e.key] = true;
+            if (currentGame === 'mario' && e.key === ' ' && mario.enSuelo) {
+                mario.dy = mario.salto;
             }
         });
 
-        document.addEventListener('keyup', (e) => {
-            if (currentGame === 'mario') { teclasMario[e.key] = false; }
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!juegoActivo) return;
-            canvas = document.getElementById('areaJuego');
-            if (!canvas) return;
-            const rect = canvas.getBoundingClientRect();
-            let mouseY = e.clientY - rect.top;
-            let mouseX = e.clientX - rect.left;
-
-            if (currentGame === 'pong') {
-                yPala1 = mouseY - 40;
-                if (yPala1 < 0) yPala1 = 0;
-                if (yPala1 > canvas.height - 80) yPala1 = canvas.height - 80;
-            }
-
-            if (currentGame === 'breakout') {
-                xPaleta = mouseX - 50;
-                if (xPaleta < 0) xPaleta = 0;
-                if (xPaleta > canvas.width - 100) xPaleta = canvas.width - 100;
-            }
+        window.addEventListener('keyup', (e) => {
+            teclasMario[e.key] = false;
         });
     </script>
 </body>
