@@ -557,15 +557,16 @@
             idAnimacionCohete = requestAnimationFrame(bucleCohete);
         }
 
-        // ================= 6. PENALTY SHOOTER =================
+        // ================= 6. PENALTY SHOOTER (MODO REALISTA Y DIFÍCIL) =================
         let golesPenalty = 0;
         let tirosPenalty = 0;
         let estadoBalon = 'esperando';
-        let balon = { x: 475, y: 500, radio: 12, vx: 0, vy: 0, destinoX: 475, destinoY: 250 };
-        let portero = { x: 445, y: 180, w: 60, h: 25, vx: 2.5 };
+        let balon = { x: 475, y: 500, radio: 11, vx: 0, vy: 0, vz: 0, z: 0, destinoX: 475, destinoY: 250 };
+        let portero = { x: 450, y: 155, w: 50, h: 22, vx: 4.2, objetivoX: 450, tirarse: false, direccionTirarse: 0 };
         let mensajeResultado = "";
         let tiempoMensaje = 0;
         let idAnimacionPenalty = null;
+        let efectoCurva = 0;
 
         function abrirJuegoPenalty() {
             if (idAnimacionPenalty) {
@@ -575,8 +576,8 @@
 
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Penalty Shooter ⚽";
-            document.getElementById('desc-juego-modal').innerText = "Haz clic dentro de la cancha para disparar el balón hacia el arco.";
+            document.getElementById('titulo-juego-modal').innerText = "Penalty Shooter ⚽ (Modo Realista)";
+            document.getElementById('desc-juego-modal').innerText = "¡Arco chico, arquero rápido e inteligente! Precisión extrema requerida.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
             
@@ -595,15 +596,21 @@
                 const clickY = e.clientY - rect.top;
 
                 balon.destinoX = clickX;
-                balon.destinoY = Math.max(clickY, 150);
+                balon.destinoY = Math.max(clickY, 130);
 
                 let dx = balon.destinoX - balon.x;
                 let dy = balon.destinoY - balon.y;
                 let distancia = Math.sqrt(dx * dx + dy * dy);
 
-                let velocidadDisparo = 10;
+                let velocidadDisparo = 14;
                 balon.vx = (dx / distancia) * velocidadDisparo;
                 balon.vy = (dy / distancia) * velocidadDisparo;
+                balon.vz = -0.35; // Efecto de elevación/vuelo realista hacia el arco
+                balon.z = 0;
+
+                // El arquero lee el disparo y se estira preventivamente hacia el lado del tiro con reflejos
+                portero.tirarse = true;
+                portero.direccionTirarse = clickX < canvas.width / 2 ? -1 : 1;
 
                 estadoBalon = 'disparando';
                 tirosPenalty++;
@@ -614,98 +621,192 @@
 
         function reiniciarTiroPenalty() {
             balon.x = canvas ? canvas.width / 2 : 475;
-            balon.y = canvas ? canvas.height - 100 : 500;
+            balon.y = canvas ? canvas.height - 80 : 520;
             balon.vx = 0;
             balon.vy = 0;
+            balon.vz = 0;
+            balon.z = 0;
             estadoBalon = 'esperando';
+            portero.x = canvas ? canvas.width / 2 - 25 : 450;
+            portero.y = 155;
+            portero.tirarse = false;
+            portero.direccionTirarse = 0;
         }
 
         function buclePenalty() {
             if (!juegoActivo || currentGame !== 'penalty') return;
 
+            // --- LÓGICA DEL JUEGO ---
             if (estadoBalon === 'disparando') {
                 balon.x += balon.vx;
                 balon.y += balon.vy;
+                balon.z += balon.vz;
 
-                portero.x += portero.vx;
-                if (portero.x < 330 || portero.x + portero.w > 620) {
-                    portero.vx *= -1;
-                }
-
-                if (balon.y <= 195) {
-                    if (balon.x >= portero.x && balon.x <= portero.x + portero.w && balon.y <= portero.y + portero.h) {
-                        estadoBalon = 'atajado';
-                        mensajeResultado = "❌ ¡ATAJADO POR EL ARQUERO!";
-                        tiempoMensaje = 60;
-                    } else if (balon.x >= 325 && balon.x <= 625) {
-                        estadoBalon = 'gol';
-                        golesPenalty++;
-                        mensajeResultado = "⚽ ¡GOOOOOOL!";
-                        tiempoMensaje = 60;
-                    } else {
-                        estadoBalon = 'fuera';
-                        mensajeResultado = "OUT 💨 ¡FUERA!";
-                        tiempoMensaje = 60;
+                // Movimiento reactivo y anticipado del arquero (Muy difícil)
+                if (portero.tirarse) {
+                    portero.x += portero.direccionTirarse * 6.5;
+                    // Limitar que el arquero no se salga de la estructura de los palos
+                    if (portero.x < 355) portero.x = 355;
+                    if (portero.x > 545) portero.x = 545;
+                } else {
+                    portero.x += portero.vx;
+                    if (portero.x < 360 || portero.x + portero.w > 590) {
+                        portero.vx *= -1;
                     }
                 }
-            } else if (tiempoMensaje > 0) {
-                tiempoMensaje--;
-                if (tiempoMensaje === 0) {
-                    reiniciarTiroPenalty();
+
+                // Zona del arco realista (Más chico: X entre 360 y 590, Y entre 130 y 195)
+                let dentroDeLosPalosX = (balon.x >= 365 && balon.x <= 585);
+                let dentroDeLosPalosY = (balon.y >= 130 && balon.y <= 195);
+
+                // Colisión con el arquero (¡Es gigante y cubre mucho!)
+                let colisionArquero = (
+                    balon.x >= portero.x - 8 &&
+                    balon.x <= portero.x + portero.w + 8 &&
+                    balon.y >= portero.y - 8 &&
+                    balon.y <= portero.y + portero.h + 8
+                );
+
+                if (colisionArquero) {
+                    estadoBalon = 'atajado';
+                    mensajeResultado = "🧤 ¡PARÓ EL ARQUERO!";
+                    tiempoMensaje = 60;
+                    setTimeout(reiniciarTiroPenalty, 1200);
+                } 
+                else if (balon.y <= 195) {
+                    if (dentroDeLosPalosX && dentroDeLosPalosY) {
+                        golesPenalty++;
+                        estadoBalon = 'gol';
+                        mensajeResultado = "⚽ ¡GOLAZO!";
+                        tiempoMensaje = 60;
+                        setTimeout(reiniciarTiroPenalty, 1200);
+                    } else {
+                        estadoBalon = 'fuera';
+                        mensajeResultado = "❌ ¡AFUERA / AL PALO!";
+                        tiempoMensaje = 60;
+                        setTimeout(reiniciarTiroPenalty, 1200);
+                    }
                 }
             }
 
-            // Renderizado de la cancha de fútbol
-            ctx.fillStyle = '#2e8b57';
+            // --- RENDERIZADO GRÁFICO REALISTA ---
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Césped de la cancha con patrón de franjas realista
+            ctx.fillStyle = '#227722';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#1e6b1e';
+            for (let i = 0; i < canvas.height; i += 40) {
+                ctx.fillRect(0, i, canvas.width, 20);
+            }
 
-            ctx.strokeStyle = '#fff';
+            // 2. Área chica y punto penal
+            ctx.strokeStyle = 'rgba(255,255,255,0.7)';
             ctx.lineWidth = 3;
-            ctx.strokeRect(225, 320, 500, 280);
+            // Área grande
+            ctx.strokeRect(300, 130, 350, 150);
+            // Área chica
+            ctx.strokeRect(390, 130, 170, 65);
+            // Punto penal
             ctx.beginPath();
-            ctx.arc(canvas.width / 2, 420, 60, 0, Math.PI);
-            ctx.stroke();
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.arc(canvas.width / 2, 500, 5, 0, Math.PI * 2);
+            ctx.arc(canvas.width / 2, 420, 4, 0, Math.PI * 2);
+            ctx.fillStyle = 'white';
             ctx.fill();
+            ctx.closePath();
 
-            // Dibujar Arco
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-            ctx.fillRect(325, 70, 300, 130);
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 6;
-            ctx.strokeRect(325, 70, 300, 130);
+            // 3. Arco de Fútbol Realista (Estructura 3D con red mallada)
+            // Sombra de la red
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+            ctx.fillRect(355, 120, 240, 75);
 
-            // Portero
-            ctx.fillStyle = '#ffff00';
+            // Red del fondo del arco (Patrón de rombos/cuadros)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            for (let rx = 360; rx <= 590; rx += 15) {
+                ctx.beginPath(); ctx.moveTo(rx, 130); ctx.lineTo(rx, 195); ctx.stroke();
+            }
+            for (let ry = 130; ry <= 195; ry += 12) {
+                ctx.beginPath(); ctx.moveTo(360, ry); ctx.lineTo(590, ry); ctx.stroke();
+            }
+
+            // Postes y Travesaño (Blancos y sólidos)
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(355, 195); // Poste izquierdo
+            ctx.lineTo(355, 125); // Esquina superior izq
+            ctx.lineTo(595, 125); // Travesaño
+            ctx.lineTo(595, 195); // Poste derecho
+            ctx.stroke();
+            ctx.closePath();
+
+            // 4. Arquero Realista (Con camiseta, guantes y movimiento fluido)
+            ctx.fillStyle = '#222222'; // Short negro
+            ctx.fillRect(portero.x + 12, portero.y + 12, portero.w - 24, portero.h - 12);
+            
+            ctx.fillStyle = '#FF4500'; // Camiseta de arquero llamativa (Naranja flúor)
             ctx.fillRect(portero.x, portero.y, portero.w, portero.h);
-            ctx.fillStyle = '#ffcc99';
-            ctx.beginPath();
-            ctx.arc(portero.x + portero.w / 2, portero.y - 8, 10, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Balón
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.arc(balon.x, balon.y, balon.radio, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#000';
+            ctx.strokeStyle = '#CC3300';
             ctx.lineWidth = 2;
+            ctx.strokeRect(portero.x, portero.y, portero.w, portero.h);
+
+            // Cabeza y Guantes
+            ctx.beginPath();
+            ctx.arc(portero.x + portero.w / 2, portero.y - 8, 8, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffccaa'; // Tono de piel
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+
+            // Guantes blancos de arquero
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(portero.x - 6, portero.y + 4, 8, 8);
+            ctx.fillRect(portero.x + portero.w - 2, portero.y + 4, 8, 8);
+
+            // 5. Balón de Fútbol Realista (Efecto de escala 3D según su profundidad 'z')
+            let escalaBalon = 1 - (balon.y / canvas.height) * 0.4;
+            let radioActual = Math.max(balon.radio * escalaBalon, 6);
+
+            ctx.beginPath();
+            ctx.arc(balon.x, balon.y, radioActual, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#111';
             ctx.stroke();
 
-            // Marcador e Interfaz
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 20px sans-serif';
-            ctx.fillText(`GOLES: ${golesPenalty}  |  TIROS: ${tirosPenalty}`, 30, 40);
+            // Patrón clásico de balón de fútbol (Pentágonos negros)
+            ctx.fillStyle = '#111';
+            ctx.beginPath();
+            ctx.arc(balon.x, balon.y, radioActual * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
 
+            // 6. Mensajes de Resultado en pantalla
             if (tiempoMensaje > 0) {
-                ctx.fillStyle = estadoBalon === 'gol' ? '#00ff00' : '#ff3333';
-                ctx.font = 'bold 32px sans-serif';
+                tiempoMensaje--;
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                ctx.fillRect(canvas.width / 2 - 160, canvas.height / 2 - 40, 320, 65);
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(canvas.width / 2 - 160, canvas.height / 2 - 40, 320, 65);
+
+                ctx.fillStyle = '#FFF';
+                ctx.font = 'bold 22px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(mensajeResultado, canvas.width / 2, 260);
+                ctx.fillText(mensajeResultado, canvas.width / 2, canvas.height / 2);
                 ctx.textAlign = 'left';
             }
+
+            // 7. Panel de Marcador Superior (Goles / Tiros)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(20, 20, 230, 50);
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.strokeRect(20, 20, 230, 50);
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText(`⚽ GOLES: ${golesPenalty} / ${tirosPenalty}`, 35, 51);
 
             idAnimacionPenalty = requestAnimationFrame(buclePenalty);
         }
