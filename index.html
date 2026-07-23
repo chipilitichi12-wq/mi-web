@@ -557,7 +557,7 @@
             idAnimacionCohete = requestAnimationFrame(bucleCohete);
         }
 
-        // ================= 6. MINI MARIO BROS (CORREGIDO: ACELERACIÓN AL MORIR) =================
+        // ================= 6. MINI MARIO BROS (CORREGIDO: PREVENIR ACUMULACIÓN DE INTERVALOS/BUCLES) =================
         let mario = { x: 50, y: 400, w: 30, h: 40, dx: 0, dy: 0, salto: -8.5, enSuelo: false };
         let plataformasMario = [];
         let obstaculosMario = [];
@@ -566,11 +566,14 @@
         let teclasMario = {};
 
         function abrirJuegoMario() {
-            // CORREGIDO: Asegurar cancelación limpia del frame anterior para que no se apilen bucles
+            // CORREGIDO: Asegurar cancelación limpia y estricta del frame anterior
             if (idAnimacionMario) { 
                 cancelAnimationFrame(idAnimacionMario); 
                 idAnimacionMario = null;
             }
+            
+            juegoActivo = false; // Detener temporalmente cualquier bucle previo residual
+            
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Mini Mario Bros";
@@ -589,7 +592,9 @@
 
             juegoActivo = true;
             currentGame = 'mario';
-            bucleMario();
+            
+            // Iniciar un único bucle nuevo de forma limpia
+            idAnimacionMario = requestAnimationFrame(bucleMario);
         }
 
         function bucleMario() {
@@ -650,10 +655,12 @@
                     mario.y < obs.y + obs.h &&
                     mario.y + mario.h > obs.y
                 ) {
-                    // CORREGIDO: Desactivar juego y cancelar animación inmediatamente antes del alert
+                    // CORREGIDO: Desactivar juego y cancelar la animación ANTES de mostrar el alert
                     juegoActivo = false;
-                    cancelAnimationFrame(idAnimacionMario);
-                    idAnimacionMario = null;
+                    if (idAnimacionMario) {
+                        cancelAnimationFrame(idAnimacionMario);
+                        idAnimacionMario = null;
+                    }
                     
                     alert("🍄 ¡Te chocaste con la tubería! Game Over. Puntos: " + scoreMario);
                     abrirJuegoMario();
@@ -666,7 +673,9 @@
             ctx.font = 'bold 18px sans-serif';
             ctx.fillText("🍄 PUNTOS: " + scoreMario, 25, 35);
 
-            idAnimacionMario = requestAnimationFrame(bucleMario);
+            if (juegoActivo && currentGame === 'mario') {
+                idAnimacionMario = requestAnimationFrame(bucleMario);
+            }
         }
 
         // Controles de teclado globales para Mario y Snake
