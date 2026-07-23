@@ -410,10 +410,11 @@
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
             
-            coheteY = canvas.height / 2 - 10; 
-            coheteVel = 0; 
-            scoreCohete = 0;
+            // Forzar reinicio total de valores al abrir o reabrir el juego
             coheteIniciado = false; 
+            coheteVel = 0; 
+            coheteY = canvas.height / 2 - 10; 
+            scoreCohete = 0;
             
             obstaculosCohete = [{ x: canvas.width + 100, topH: 150, bottomH: 150, w: 50 }];
             juegoActivo = true;
@@ -621,12 +622,15 @@
             }
             if (currentGame === 'cohete') {
                 if (!coheteIniciado) {
-                    coheteIniciado = true;
+                    coheteIniciado = true; // Desbloquea el juego en el primer clic
+                    coheteVel = -4.2;      // Impulso inicial limpio
+                } else {
+                    coheteVel = -4.2;      // Impulso normal durante la partida
                 }
-                coheteVel = -4.2; // Salto suave y controlado
             }
         });
 
+        // Controles de teclado para Snake y Cohete
         document.addEventListener('keydown', (e) => {
             if (!juegoActivo) return;
             
@@ -640,9 +644,11 @@
             if (currentGame === 'cohete' && e.key === ' ') {
                 e.preventDefault();
                 if (!coheteIniciado) {
-                    coheteIniciado = true;
+                    coheteIniciado = true; // Desbloquea con la barra espaciadora
+                    coheteVel = -4.2;      // Impulso inicial limpio
+                } else {
+                    coheteVel = -4.2;      // Impulso normal durante la partida
                 }
-                coheteVel = -4.2; // Salto suave con espacio
             }
         });
 
