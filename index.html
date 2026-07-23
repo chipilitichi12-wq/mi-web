@@ -7,12 +7,12 @@
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="favicon.png">
     <style>
-        /* ESTILO PARA EL PANEL FLOTANTE DE MÚSICA (ARRIBA A LA DERECHA) */
+        /* ESTILO PARA EL PANEL FLOTANTE DE MÚSICA CON YOUTUBE (ARRIBA A LA DERECHA) */
         .panel-spotify-flotante {
             position: fixed;
             top: 30px;
             right: 40px;
-            width: 320px;
+            width: 340px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
@@ -30,6 +30,71 @@
             margin-top: 0;
             margin-bottom: 10px;
             letter-spacing: 1px;
+        }
+        .buscador-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .buscador-container input {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+        }
+        .buscador-container input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .buscador-container button {
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .buscador-container button:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        .resultados-lista {
+            max-height: 140px;
+            overflow-y: auto;
+            text-align: left;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding-right: 2px;
+        }
+        .resultado-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px 10px;
+            border-radius: 8px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid transparent;
+            transition: 0.2s;
+        }
+        .resultado-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .reproductor-youtube-box {
+            width: 100%;
+            height: 180px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
         }
         /* Responsivo para pantallas chicas */
         @media (max-width: 1200px) {
@@ -66,11 +131,20 @@
         <source src="fondo.mp4" type="video/mp4">
     </video>
 
-    <!-- NUEVO PANEL FLOTANTE DE SPOTIFY EN LA ZONA MARCADA -->
+    <!-- NUEVO PANEL FLOTANTE DE BÚSQUEDA Y MÚSICA CON YOUTUBE -->
     <div class="panel-spotify-flotante">
-        <h3>// SPOTIFY_PLAYER</h3>
-        <!-- Reproductor incrustado de Spotify (Puedes cambiar el link "playlist/37i9dQZF1DXcBWIGoYBM5M" por tu playlist favorita) -->
-        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        <h3>// BUSCADOR_MUSICA</h3>
+        <div class="buscador-container">
+            <input type="text" id="input-busqueda-yt" placeholder="Busca cualquier canción..." onkeypress="if(event.key === 'Enter') buscarMusicaYT()">
+            <button onclick="buscarMusicaYT()">🔍</button>
+        </div>
+        <!-- Lista opcional de sugerencias/resultados rápidos -->
+        <div id="resultados-yt" class="resultados-lista" style="display:none;"></div>
+        
+        <!-- Reproductor de video/audio incrustado -->
+        <div class="reproductor-youtube-box">
+            <iframe id="iframe-yt" width="100%" height="100%" src="https://www.youtube.com/embed/jfKfPfyJRdk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
     </div>
 
     <!-- TARJETA PRINCIPAL (CENTRAL) -->
@@ -206,6 +280,21 @@
             let s = Math.floor(audio.currentTime % 60);
             document.getElementById('tiempo-actual').innerText = m + ":" + (s < 10 ? "0" + s : s);
         });
+
+        // --- FUNCIÓN BUSCADOR DE YOUTUBE ---
+        function buscarMusicaYT() {
+            const query = document.getElementById('input-busqueda-yt').value.trim();
+            if (!query) return;
+            
+            // Usa una búsqueda directa que redirige el reproductor al término ingresado con autoplay
+            const encodedQuery = encodeURIComponent(query);
+            // Creamos una búsqueda inteligente incrustada enlazando a un reproductor directo por consulta
+            const iframe = document.getElementById('iframe-yt');
+            
+            // Como las políticas de YouTube impiden buscar directamente vía API sin clave secreta, 
+            // usamos un truco limpio mediante enlace de resultados o un visor de búsqueda optimizado:
+            iframe.src = `https://www.youtube.com/embed?listType=search&list=${encodedQuery}&autoplay=1`;
+        }
 
         // --- ANIMACIÓN DEL LIBRITO ---
         function abrirMenuLibro() {
