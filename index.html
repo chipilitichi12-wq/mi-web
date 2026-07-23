@@ -378,6 +378,7 @@
             xPaleta = canvas.width / 2 - 50;
             scoreBreakout = 0;
 
+            // Inicializar con una sola pelota en el centro
             pelotasBreakout = [{
                 x: canvas.width / 2,
                 y: 300,
@@ -386,23 +387,31 @@
                 radio: 8
             }];
 
+            // Crear ladrillos (AJUSTE DE PROBABILIDAD AHORA MUCHO MÁS BAJA)
             ladrillosBreakout = [];
             for (let c = 0; c < 8; c++) {
                 for (let r = 0; r < 4; r++) {
-                    let tipo = 1; 
-                    let color = '#00D2FF';
+                    let tipo = 1; // Ladrillo normal por defecto
+                    let color = '#00D2FF'; // Color cyan normal
                     let texto = '';
 
-                    let rand = Math.random();
-                    if (rand < 0.25) {
+                    // --- COMIENZO DEL AJUSTE DE PROBABILIDAD ---
+                    // Genera un número aleatorio entre 0 y 100
+                    let rand = Math.random() * 100; 
+                    
+                    if (rand < 6) { 
+                        // Hay solo un 6% de chance de que sea x2
                         tipo = 2; 
-                        color = '#FFD700';
+                        color = '#FFD700'; // Amarillo
                         texto = 'x2';
-                    } else if (rand < 0.40) {
+                    } else if (rand < 10) { 
+                        // Del 6% al 10% (4% de chance) de que sea x3
                         tipo = 3; 
-                        color = '#FF5733';
+                        color = '#FF5733'; // Naranja/Rojo
                         texto = 'x3';
                     }
+                    // Si rand es mayor a 10, queda tipo 1 (normal, 90% de chance)
+                    // --- FIN DEL AJUSTE DE PROBABILIDAD ---
 
                     ladrillosBreakout.push({
                         x: c * 110 + 45,
