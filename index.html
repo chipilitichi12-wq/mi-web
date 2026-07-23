@@ -409,11 +409,15 @@
             document.getElementById('desc-juego-modal').innerText = "Haz clic o presiona Espacio para iniciar y propulsar el cohete.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
-            coheteY = 300; 
+            
+            // Posicionar el cohete exactamente en el medio de la pantalla y velocidad en 0
+            coheteY = canvas.height / 2 - 10; 
             coheteVel = 0; 
             scoreCohete = 0;
             coheteIniciado = false; // Bloqueado al empezar
-            obstaculosCohete = [{ x: 950, topH: 150, bottomH: 150, w: 50 }];
+            
+            // Creamos un primer obstáculo más adelante para que no aparezca encima apenas hacés clic
+            obstaculosCohete = [{ x: canvas.width + 100, topH: 150, bottomH: 150, w: 50 }];
             juegoActivo = true;
             currentGame = 'cohete';
             bucleCohete();
@@ -456,12 +460,16 @@
                     }
                 });
             } else {
-                // Mensaje en pantalla cuando está bloqueado en el medio
+                // Mantener el cohete quieto en el medio mientras espera el clic
+                coheteY = canvas.height / 2 - 10;
+                coheteVel = 0;
+
+                // Mensaje en pantalla cuando está bloqueado
                 ctx.fillStyle = '#fff';
                 ctx.font = '20px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillText("¡Haz clic o presiona Espacio para comenzar!", canvas.width / 2, canvas.height / 2 - 60);
-                ctx.textAlign = 'left'; // Resetear alineación
+                ctx.textAlign = 'left'; 
             }
 
             // Dibujar Cohete
