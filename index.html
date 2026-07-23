@@ -557,63 +557,111 @@
             idAnimacionCohete = requestAnimationFrame(bucleCohete);
         }
 
-        // ================= 6. MINI MARIO BROS (CORREGIDO: PREVENIR ACUMULACIÓN DE INTERVALOS/BUCLES) =================
-        let mario = { x: 50, y: 400, w: 30, h: 40, dx: 0, dy: 0, salto: -8.5, enSuelo: false };
+        // ================= 6. MINI MARIO BROS (NIVEL SUPERIOR / GRÁFICOS MEJORADOS) =================
+        let mario = { x: 50, y: 400, w: 32, h: 42, dx: 0, dy: 0, salto: -9.2, enSuelo: false, frameAnim: 0 };
         let plataformasMario = [];
         let obstaculosMario = [];
+        let nubesMario = [];
+        let colinasMario = [];
         let scoreMario = 0;
         let idAnimacionMario = null;
         let teclasMario = {};
 
         function abrirJuegoMario() {
-            // CORREGIDO: Asegurar cancelación limpia y estricta del frame anterior
             if (idAnimacionMario) { 
                 cancelAnimationFrame(idAnimacionMario); 
                 idAnimacionMario = null;
             }
             
-            juegoActivo = false; // Detener temporalmente cualquier bucle previo residual
-            
+            juegoActivo = false;
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Mini Mario Bros";
-            document.getElementById('desc-juego-modal').innerText = "Usa las Flechas Izq/Der para moverte y Espacio para saltar las tuberías.";
+            document.getElementById('titulo-juego-modal').innerText = "Mini Mario Bros [HD Deluxe]";
+            document.getElementById('desc-juego-modal').innerText = "Usa las Flechas Izq/Der o A/D para moverte y Espacio o Flecha Arriba para saltar.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
 
-            mario = { x: 50, y: 400, w: 30, h: 40, dx: 0, dy: 0, salto: -8.5, enSuelo: false };
+            mario = { x: 80, y: 350, w: 32, h: 42, dx: 0, dy: 0, salto: -9.2, enSuelo: false, frameAnim: 0 };
             scoreMario = 0;
 
             plataformasMario = [{ x: 0, y: 500, w: 950, h: 100 }];
+            
+            // Generar nubes estéticas de fondo
+            nubesMario = [
+                { x: 150, y: 100, w: 80, h: 40, speed: 0.5 },
+                { x: 500, y: 70, w: 100, h: 45, speed: 0.5 },
+                { x: 800, y: 130, w: 70, h: 35, speed: 0.5 }
+            ];
+
+            // Generar colinas de fondo
+            colinasMario = [
+                { x: 100, y: 380, w: 140, h: 120 },
+                { x: 550, y: 350, w: 180, h: 150 },
+                { x: 850, y: 390, w: 120, h: 110 }
+            ];
+
             obstaculosMario = [
-                { x: 600, y: 440, w: 35, h: 60, pasado: false },
-                { x: 900, y: 420, w: 35, h: 80, pasado: false }
+                { x: 600, y: 430, w: 45, h: 70 },
+                { x: 920, y: 400, w: 45, h: 100 }
             ];
 
             juegoActivo = true;
             currentGame = 'mario';
-            
-            // Iniciar un único bucle nuevo de forma limpia
             idAnimacionMario = requestAnimationFrame(bucleMario);
         }
 
         function bucleMario() {
             if (!juegoActivo || currentGame !== 'mario') return;
 
-            ctx.fillStyle = '#5C94FC';
+            // --- 1. FONDO CON DEGRADADO DINÁMICO (CIELO ATARDECER/MUNDO CLÁSICO) ---
+            let gradienteCielo = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradienteCielo.addColorStop(0, "#2c3e50");
+            gradienteCielo.addColorStop(0.5, "#4ca1af");
+            gradienteCielo.addColorStop(1, "#87CEEB");
+            ctx.fillStyle = gradienteCielo;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            if (teclasMario['ArrowLeft'] || teclasMario['a']) { mario.dx = -3.0; } 
-            else if (teclasMario['ArrowRight'] || teclasMario['d']) { mario.dx = 3.0; } 
-            else { mario.dx = 0; }
+            // --- 2. DIBUJAR NUBES DE FONDO ---
+            ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+            nubesMario.forEach(n => {
+                n.x -= n.speed;
+                if (n.x < -120) n.x = canvas.width + 50;
+                
+                ctx.beginPath();
+                ctx.arc(n.x, n.y + 20, 20, 0, Math.PI * 2);
+                ctx.arc(n.x + 20, n.y + 10, 25, 0, Math.PI * 2);
+                ctx.arc(n.x + 45, n.y + 15, 22, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // --- 3. DIBUJAR COLINAS RETRO (PARALLAX) ---
+            ctx.fillStyle = "#2ecc71";
+            colinasMario.forEach(c => {
+                c.x -= 1.2;
+                if (c.x < -200) c.x = canvas.width + 100;
+                
+                ctx.beginPath();
+                ctx.arc(c.x + c.w / 2, c.y + c.h, c.w / 2, Math.PI, 0, false);
+                ctx.fill();
+            });
+
+            // --- 4. FÍSICAS Y CONTROLES DE MARIO ---
+            if (teclasMario['ArrowLeft'] || teclasMario['a']) { 
+                mario.dx = -3.5; 
+                mario.frameAnim += 0.15;
+            } else if (teclasMario['ArrowRight'] || teclasMario['d']) { 
+                mario.dx = 3.5; 
+                mario.frameAnim += 0.15;
+            } else { 
+                mario.dx = 0; 
+            }
 
             mario.x += mario.dx;
             if (mario.x < 0) mario.x = 0;
             if (mario.x > canvas.width - mario.w) mario.x = canvas.width - mario.w;
 
-            mario.dy += 0.25;
+            mario.dy += 0.35; // Gravedad suave y equilibrada
             mario.y += mario.dy;
-
             mario.enSuelo = false;
 
             plataformasMario.forEach(p => {
@@ -629,33 +677,77 @@
                 }
             });
 
-            // Dibujar suelo
-            ctx.fillStyle = '#00AA00';
-            plataformasMario.forEach(p => ctx.fillRect(p.x, p.y, p.w, p.h));
+            // --- 5. DIBUJAR SUELO NIVEL SUPERIOR (TEXTURA ESTILO BLOQUE/GRASS) ---
+            plataformasMario.forEach(p => {
+                // Base de tierra con gradiente
+                let gradTierra = ctx.createLinearGradient(0, p.y, 0, p.y + p.h);
+                gradTierra.addColorStop(0, "#27ae60");
+                gradTierra.addColorStop(0.15, "#d35400");
+                gradTierra.addColorStop(1, "#8e44ad");
+                ctx.fillStyle = gradTierra;
+                ctx.fillRect(p.x, p.y, p.w, p.h);
 
-            // Dibujar Mario
-            ctx.fillStyle = '#FF0000';
-            ctx.fillRect(mario.x, mario.y, mario.w, mario.h);
+                // Franja superior de pasto detallada
+                ctx.fillStyle = "#2ecc71";
+                ctx.fillRect(p.x, p.y, p.w, 14);
+                
+                // Líneas decorativas en el suelo estilo ladrillo clásico
+                ctx.strokeStyle = "rgba(0,0,0,0.2)";
+                ctx.lineWidth = 2;
+                for(let lx = 0; lx < p.w; lx += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(p.x + lx, p.y + 14);
+                    ctx.lineTo(p.x + lx, p.y + p.h);
+                    ctx.stroke();
+                }
+            });
 
-            // Obstáculos / Tuberías
+            // --- 6. DIBUJAR OBSTÁCULOS (TUBERÍAS 3D CON BRILLO Y SOMBRA) ---
             obstaculosMario.forEach(obs => {
-                obs.x -= 2.5;
-                if (obs.x < -50) {
-                    obs.x = canvas.width + Math.random() * 250;
-                    obs.pasado = false;
+                obs.x -= 3.2; // Velocidad de desplazamiento fluida
+                if (obs.x < -60) {
+                    obs.x = canvas.width + Math.random() * 200 + 50;
                     scoreMario += 10;
                 }
-                ctx.fillStyle = '#008800';
-                ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
 
-                // Colisión Mario con Tubería
+                // Cuerpo principal de la tubería (Tubos verdes estilo Mario Bros 3D)
+                let gradTubo = ctx.createLinearGradient(obs.x, 0, obs.x + obs.w, 0);
+                gradTubo.addColorStop(0, "#145A32");
+                gradTubo.addColorStop(0.4, "#27AE60");
+                gradTubo.addColorStop(0.8, "#2ECC71");
+                gradTubo.addColorStop(1, "#117A65");
+                
+                ctx.fillStyle = gradTubo;
+                ctx.fillRect(obs.x + 4, obs.y + 18, obs.w - 8, obs.h - 18);
+
+                // Sombra interior de la tubería
+                ctx.fillStyle = "#0B3B24";
+                ctx.fillRect(obs.x + 8, obs.y + 18, obs.w - 16, 6);
+
+                // Borde superior de la tubería (Tapa más ancha)
+                let gradTapa = ctx.createLinearGradient(obs.x - 4, 0, obs.x + obs.w + 4, 0);
+                gradTapa.addColorStop(0, "#196F3D");
+                gradTapa.addColorStop(0.3, "#27AE60");
+                gradTapa.addColorStop(0.8, "#52BE80");
+                gradTapa.addColorStop(1, "#145A32");
+
+                ctx.fillStyle = gradTapa;
+                ctx.fillRect(obs.x - 4, obs.y, obs.w + 8, 20);
+                ctx.strokeStyle = "#0B3B24";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(obs.x - 4, obs.y, obs.w + 8, 20);
+
+                // Brillo especular en la tubería
+                ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+                ctx.fillRect(obs.x + 6, obs.y + 22, 5, obs.h - 24);
+
+                // --- COLISIÓN MARIO VS TUBERÍA ---
                 if (
-                    mario.x < obs.x + obs.w &&
-                    mario.x + mario.w > obs.x &&
-                    mario.y < obs.y + obs.h &&
-                    mario.y + mario.h > obs.y
+                    mario.x + 4 < obs.x + obs.w &&
+                    mario.x + mario.w - 4 > obs.x &&
+                    mario.y + 4 < obs.y + obs.h &&
+                    mario.y + mario.h - 2 > obs.y
                 ) {
-                    // CORREGIDO: Desactivar juego y cancelar la animación ANTES de mostrar el alert
                     juegoActivo = false;
                     if (idAnimacionMario) {
                         cancelAnimationFrame(idAnimacionMario);
@@ -668,10 +760,63 @@
                 }
             });
 
-            // Marcador
-            ctx.fillStyle = '#FFFFFF';
+            // --- 7. DIBUJAR A MARIO (DISEÑO MEJORADO EN CANVAS / PIXEL-ART VECTORIAL) ---
+            ctx.save();
+            ctx.translate(mario.x, mario.y);
+
+            // Sombra bajo los pies de Mario
+            ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+            ctx.beginPath();
+            ctx.ellipse(mario.w / 2, mario.h + 2, mario.w / 2, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Zapatos (Negros / Marrones)
+            ctx.fillStyle = "#5d4037";
+            ctx.fillRect(4, mario.h - 8, 10, 8);
+            ctx.fillRect(mario.w - 14, mario.h - 8, 10, 8);
+
+            // Overol / Peto (Azul clásico)
+            ctx.fillStyle = "#1b4f72";
+            ctx.fillRect(6, mario.h - 22, mario.w - 12, 16);
+            // Botones amarillos del overol
+            ctx.fillStyle = "#f1c40f";
+            ctx.fillRect(8, mario.h - 20, 3, 3);
+            ctx.fillRect(mario.w - 11, mario.h - 20, 3, 3);
+
+            // Camisa interior (Roja)
+            ctx.fillStyle = "#e74c3c";
+            ctx.fillRect(4, mario.h - 30, mario.w - 8, 12);
+
+            // Cabeza / Cara (Tono piel)
+            ctx.fillStyle = "#f5b041";
+            ctx.fillRect(6, 4, mario.w - 12, 14);
+
+            // Gorra roja característica
+            ctx.fillStyle = "#c0392b";
+            ctx.fillRect(4, 2, mario.w - 6, 7);
+            // Visera de la gorra
+            ctx.fillRect(mario.w - 10, 7, 10, 4);
+
+            // Ojos expresivos
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(mario.w - 11, 9, 3, 4);
+
+            // Bigote icónico poblado
+            ctx.fillStyle = "#4a235a";
+            ctx.fillRect(mario.w - 14, 13, 10, 4);
+
+            ctx.restore();
+
+            // --- 8. HUD Y MARCADOR MODERNO ---
+            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+            ctx.fillRect(15, 15, 210, 45);
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(15, 15, 210, 45);
+
+            ctx.fillStyle = "#FFFFFF";
             ctx.font = 'bold 18px sans-serif';
-            ctx.fillText("🍄 PUNTOS: " + scoreMario, 25, 35);
+            ctx.fillText("🍄 PUNTOS: " + scoreMario, 30, 43);
 
             if (juegoActivo && currentGame === 'mario') {
                 idAnimacionMario = requestAnimationFrame(bucleMario);
@@ -681,7 +826,7 @@
         // Controles de teclado globales para Mario y Snake
         window.addEventListener('keydown', (e) => {
             teclasMario[e.key] = true;
-            if (currentGame === 'mario' && (e.key === ' ' || e.key === 'ArrowUp') && mario.enSuelo) {
+            if (currentGame === 'mario' && (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w') && mario.enSuelo) {
                 mario.dy = mario.salto;
             }
             if (currentGame === 'snake') {
