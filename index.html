@@ -454,7 +454,9 @@
         });
 
         // Controles de teclado y click
-        document.addEventListener('click', () => { if (juegoActivo && typeof birdV !== 'undefined') birdV = -7; });
+        document.getElementById('areaJuego').addEventListener('click', () => { 
+    if (juegoActivo && typeof birdV !== 'undefined') birdV = -7; 
+});
         document.addEventListener('keydown', (e) => {
             if (!juegoActivo) return;
             if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
