@@ -427,8 +427,8 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             if (coheteIniciado) {
-                // Gravedad más suave (antes era 0.35, ahora baja más liviano)
-                coheteVel += 0.22;
+                // Gravedad súper suave para que caiga lento (bajó a 0.15)
+                coheteVel += 0.15;
                 coheteY += coheteVel;
                 scoreCohete += 0.1;
 
@@ -439,14 +439,14 @@
 
                 if (obstaculosCohete[obstaculosCohete.length - 1].x < canvas.width - 350) {
                     let topH = Math.floor(Math.random() * 220) + 60;
-                    let gap = 190; // Espacio un poco más ancho para que sea más fácil pasar
+                    let gap = 200; // Espacio aún más amplio
                     let bottomH = canvas.height - topH - gap;
                     obstaculosCohete.push({ x: canvas.width, topH: topH, bottomH: bottomH, w: 50 });
                 }
 
                 obstaculosCohete.forEach((obs, index) => {
-                    // Velocidad de los obstáculos más lenta (antes era 3.5, ahora 2.2)
-                    obs.x -= 2.2;
+                    // Obstáculos lentos para que acompañen la velocidad (2.0)
+                    obs.x -= 2.0;
                     ctx.fillStyle = '#00FF66';
                     ctx.fillRect(obs.x, 0, obs.w, obs.topH);
                     ctx.fillRect(obs.x, canvas.height - obs.bottomH, obs.w, obs.bottomH);
@@ -623,7 +623,7 @@
                 if (!coheteIniciado) {
                     coheteIniciado = true;
                 }
-                coheteVel = -5; // Impulso más controlado
+                coheteVel = -4.2; // Salto suave y controlado
             }
         });
 
@@ -642,7 +642,7 @@
                 if (!coheteIniciado) {
                     coheteIniciado = true;
                 }
-                coheteVel = -5; // Impulso más controlado con espacio
+                coheteVel = -4.2; // Salto suave con espacio
             }
         });
 
