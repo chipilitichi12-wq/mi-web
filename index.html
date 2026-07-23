@@ -86,7 +86,7 @@
         <p>Web actualizada: 22/7/2026</p>
     </div>
 
-    <!-- VENTANA LIBRITO: CON LOS 4 JUEGOS NUEVOS -->
+    <!-- VENTANA LIBRITO -->
     <div id="modal-libro" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:3000; pointer-events: none;">
         <div id="caja-libro" style="pointer-events: auto; position: absolute; left: calc(50% - 250px - 340px); top: 50%; transform: translateY(-50%) rotateY(90deg) scale(0.8); transform-origin: right center; width: 340px; background:rgba(255,255,255,0.1); padding:25px; border-radius:20px; border:1px solid rgba(255,255,255,0.3); text-align:center; box-shadow:-15px 0 30px rgba(0,0,0,0.5); backdrop-filter:blur(15px); opacity: 0; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);">
             <h2 style="color:white; font-family:'Segoe UI', sans-serif; font-size: 18px; margin-top:0; margin-bottom: 15px;">📖 Biblioteca de Juegos</h2>
@@ -118,14 +118,14 @@
         </div>
     </div>
 
-    <!-- VENTANA EMERGENTE DEL JUEGO (EN EL MEDIO Y GRANDE) -->
+    <!-- VENTANA EMERGENTE DEL JUEGO -->
     <div id="modal-juego" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(15px); z-index:3100; justify-content:center; align-items:center; flex-direction:column;">
         <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:20px; border:1px solid rgba(255,255,255,0.3); text-align:center; box-shadow:0 0 30px rgba(0,0,0,0.5); width: auto;">
-            <h2 style="color:white; margin-top:0; font-family:'Segoe UI', sans-serif;">Minijuego Agar.io</h2>
-            <p style="color:#ccc; font-size:13px; margin-bottom:10px;">Mueve el mouse para guiar tu célula, come puntos brillantes y crece.</p>
+            <h2 id="titulo-juego-modal" style="color:white; margin-top:0; font-family:'Segoe UI', sans-serif;">Minijuego</h2>
+            <p id="desc-juego-modal" style="color:#ccc; font-size:13px; margin-bottom:10px;">Diviértete un rato.</p>
             <canvas id="areaJuego" width="950" height="600" style="border:2px solid rgba(255,255,255,0.4); border-radius:10px; background:#111; cursor:crosshair;"></canvas>
             <br>
-            <button onclick="cerrarJuegoAgar()" style="margin-top:15px; padding:10px 20px; background:rgba(255,0,0,0.4); color:white; border:1px solid rgba(255,255,255,0.3); border-radius:10px; cursor:pointer; font-weight:bold;">Volver al Menú</button>
+            <button onclick="cerrarTodoJuego()" style="margin-top:15px; padding:10px 20px; background:rgba(255,0,0,0.4); color:white; border:1px solid rgba(255,255,255,0.3); border-radius:10px; cursor:pointer; font-weight:bold;">Volver al Menú</button>
         </div>
     </div>
     
@@ -178,7 +178,7 @@
             document.getElementById('tiempo-actual').innerText = m + ":" + (s < 10 ? "0" + s : s);
         });
 
-        // --- ANIMACIÓN DEL LIBRITO A LA IZQUIERDA ---
+        // --- ANIMACIÓN DEL LIBRITO ---
         function abrirMenuLibro() {
             const modal = document.getElementById('modal-libro');
             const caja = document.getElementById('caja-libro');
@@ -201,11 +201,11 @@
 
         function cerrarTodoJuego() {
             juegoActivo = false;
+            clearInterval(intervaloSnake);
             document.getElementById('modal-juego').style.display = 'none';
             abrirMenuLibro();
         }
 
-        // Variable global de control de bucles
         let juegoActivo = false;
         let canvas, ctx;
 
@@ -216,6 +216,8 @@
         function abrirJuegoAgar() {
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
+            document.getElementById('titulo-juego-modal').innerText = "Mini Agar.io";
+            document.getElementById('desc-juego-modal').innerText = "Mueve el mouse para guiar tu célula, come puntos brillantes y crece.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
             jugadorAgar.x = canvas.width / 2;
@@ -245,24 +247,37 @@
             requestAnimationFrame(bucleAgar);
         }
 
-        // ================= 2. SNAKE =================
+        // ================= 2. SNAKE (PERFECCIONADO) =================
         let snake = [], comidaSnake = {}, dirSnake = 'RIGHT', scoreSnake = 0, intervaloSnake;
+        const tileSize = 20;
+
         function abrirJuegoSnake() {
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
+            document.getElementById('titulo-juego-modal').innerText = "Snake (Serpiente)";
+            document.getElementById('desc-juego-modal').innerText = "Usa las flechas del teclado para moverte y comer.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
+            
             snake = [{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}];
             dirSnake = 'RIGHT';
             scoreSnake = 0;
             generarComidaSnake();
             juegoActivo = true;
+            
             clearInterval(intervaloSnake);
             intervaloSnake = setInterval(bucleSnake, 100);
         }
+
         function generarComidaSnake() {
-            comidaSnake = { x: Math.floor(Math.random() * (canvas.width / 20)), y: Math.floor(Math.random() * (canvas.height / 20)) };
+            const cols = canvas.width / tileSize;
+            const rows = canvas.height / tileSize;
+            comidaSnake = { 
+                x: Math.floor(Math.random() * cols), 
+                y: Math.floor(Math.random() * rows) 
+            };
         }
+
         function bucleSnake() {
             if (!juegoActivo) return;
             let cabeza = { ...snake[0] };
@@ -271,12 +286,18 @@
             if (dirSnake === 'UP') cabeza.y--;
             if (dirSnake === 'DOWN') cabeza.y++;
 
-            if (cabeza.x < 0 || cabeza.x >= canvas.width / 20 || cabeza.y < 0 || cabeza.y >= canvas.height / 20 || snake.some(s => s.x === cabeza.x && s.y === cabeza.y)) {
+            const cols = canvas.width / tileSize;
+            const rows = canvas.height / tileSize;
+
+            // Verificar colisiones con paredes o consigo mismo
+            if (cabeza.x < 0 || cabeza.x >= cols || cabeza.y < 0 || cabeza.y >= rows || snake.some(s => s.x === cabeza.x && s.y === cabeza.y)) {
                 alert("¡Juego terminado! Puntuación: " + scoreSnake);
                 abrirJuegoSnake();
                 return;
             }
+
             snake.unshift(cabeza);
+
             if (cabeza.x === comidaSnake.x && cabeza.y === comidaSnake.y) {
                 scoreSnake += 10;
                 generarComidaSnake();
@@ -284,11 +305,22 @@
                 snake.pop();
             }
 
-            ctx.fillStyle = '#111'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#FF5733'; ctx.fillRect(comidaSnake.x * 20, comidaSnake.y * 20, 18, 18);
+            // Dibujar
+            ctx.fillStyle = '#111'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dibujar comida
+            ctx.fillStyle = '#FF5733'; 
+            ctx.fillRect(comidaSnake.x * tileSize, comidaSnake.y * tileSize, tileSize - 2, tileSize - 2);
+            
+            // Dibujar serpiente
             ctx.fillStyle = '#00FF66';
-            snake.forEach(s => ctx.fillRect(s.x * 20, s.y * 20, 18, 18));
-            ctx.fillStyle = '#fff'; ctx.font = '16px sans-serif'; ctx.fillText("Puntos: " + scoreSnake, 20, 30);
+            snake.forEach(s => ctx.fillRect(s.x * tileSize, s.y * tileSize, tileSize - 2, tileSize - 2));
+            
+            // Puntuación
+            ctx.fillStyle = '#fff'; 
+            ctx.font = '16px sans-serif'; 
+            ctx.fillText("Puntos: " + scoreSnake, 20, 30);
         }
 
         // ================= 3. PONG RETRO =================
@@ -296,6 +328,8 @@
         function abrirJuegoPong() {
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
+            document.getElementById('titulo-juego-modal').innerText = "Pong Retro";
+            document.getElementById('desc-juego-modal').innerText = "Mueve el mouse arriba y abajo para rebotar la pelota.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
             bolaPong = {x: 475, y: 300, dx: 5, dy: 3, radio: 8};
@@ -307,7 +341,6 @@
             bolaPong.x += bolaPong.dx;
             bolaPong.y += bolaPong.dy;
             if (bolaPong.y < 0 || bolaPong.y > canvas.height) bolaPong.dy *= -1;
-            // IA simple para pala derecha
             if (yPala2 + 40 < bolaPong.y) yPala2 += 3; else yPala2 -= 3;
 
             if (bolaPong.x <= 30 && bolaPong.y >= yPala1 && bolaPong.y <= yPala1 + 80) bolaPong.dx *= -1;
@@ -328,6 +361,8 @@
         function abrirJuegoFlappy() {
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
+            document.getElementById('titulo-juego-modal').innerText = "Flappy Bird";
+            document.getElementById('desc-juego-modal').innerText = "Haz clic en la pantalla para volar y esquivar los tubos.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
             birdY = 300; birdV = 0; pipes = [{x: 950, top: 150, bottom: 400}]; scoreFlappy = 0;
@@ -363,6 +398,8 @@
         function abrirJuegoBreakout() {
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
+            document.getElementById('titulo-juego-modal').innerText = "Rompeladrillos";
+            document.getElementById('desc-juego-modal').innerText = "Mueve el mouse a los lados para mover la paleta y romper los bloques.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
             xBola = canvas.width / 2; yBola = 300; dxB = 3; dyB = -3;
@@ -395,14 +432,13 @@
             requestAnimationFrame(bucleBreakout);
         }
 
-        // Controles de mouse generales para las paletas (Pong, Rompeladrillos, Snake, Flappy)
+        // Controles de mouse
         document.addEventListener('mousemove', (e) => {
-            if (!juegoActivo) return;
+            if (!juegoActivo || !canvas) return;
             let rect = canvas.getBoundingClientRect();
             let mouseX = e.clientX - rect.left;
             let mouseY = e.clientY - rect.top;
 
-            // Agar.io movimiento
             if (typeof jugadorAgar !== 'undefined') {
                 let angulo = Math.atan2(mouseY - jugadorAgar.y, mouseX - jugadorAgar.x);
                 let distancia = Math.hypot(mouseX - jugadorAgar.x, mouseY - jugadorAgar.y);
@@ -413,12 +449,11 @@
                 jugadorAgar.x = Math.max(jugadorAgar.radio, Math.min(canvas.width - jugadorAgar.radio, jugadorAgar.x));
                 jugadorAgar.y = Math.max(jugadorAgar.radio, Math.min(canvas.height - jugadorAgar.radio, jugadorAgar.y));
             }
-            // Pong pala izquierda y Breakout
             yPala1 = Math.max(0, Math.min(canvas.height - 80, mouseY - 40));
             xPaleta = Math.max(0, Math.min(canvas.width - 100, mouseX - 50));
         });
 
-        // Click para saltar en Flappy Bird o cambiar dirección de Snake por teclado
+        // Controles de teclado y click
         document.addEventListener('click', () => { if (juegoActivo && typeof birdV !== 'undefined') birdV = -7; });
         document.addEventListener('keydown', (e) => {
             if (!juegoActivo) return;
