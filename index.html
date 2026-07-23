@@ -463,7 +463,7 @@
             requestAnimationFrame(bucleCohete);
         }
 
-        // ================= 6. SPACE INVADERS (BLOQUES MÓVILES + 20 PTS + PENALIZACIÓN) =================
+        // ================= 6. SPACE INVADERS (SOLO MOVIMIENTO LATERAL + 20 PTS + PENALIZACIÓN) =================
         let playerX = 450, bullets = [], aliens = [], scoreSpace = 0, alienDir = 1;
         function abrirJuegoSpace() {
             cerrarMenuLibro();
@@ -496,27 +496,18 @@
             ctx.fillStyle = '#00D2FF';
             ctx.fillRect(playerX, canvas.height - 50, 40, 20);
 
-            // Mover Aliens de izquierda a derecha
+            // Mover Aliens solo de izquierda a derecha (rebote en paredes)
             let tocarBorde = false;
             aliens.forEach(a => {
                 if (!a.alive) return;
-                a.x += alienDir * 1.2; // Velocidad de movimiento lateral
+                a.x += alienDir * 1.5; // Velocidad lateral
                 if (a.x + a.w > canvas.width - 20 || a.x < 20) {
                     tocarBorde = true;
                 }
             });
 
             if (tocarBorde) {
-                alienDir *= -1; // Cambiar dirección
-                aliens.forEach(a => {
-                    a.y += 15; // Bajan una línea al tocar el borde
-                    // Si los aliens llegan muy abajo, game over
-                    if (a.alive && a.y >= canvas.height - 100) {
-                        juegoActivo = false;
-                        alert("❌ ¡Los invasores llegaron abajo!");
-                        abrirJuegoSpace();
-                    }
-                });
+                alienDir *= -1; // Invierte la dirección y NO bajan
             }
 
             // Actualizar y dibujar Balas
@@ -559,7 +550,7 @@
                 });
             });
 
-            // Si matas a todos, se reinicia la oleada más abajo/rápida
+            // Si matas a todos, se reinician
             if (allDead) {
                 for(let r=0; r<3; r++) {
                     for(let c=0; c<10; c++) {
