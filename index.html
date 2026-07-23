@@ -463,7 +463,7 @@
             requestAnimationFrame(bucleCohete);
         }
 
-        // ================= 6. SPACE INVADERS (ACTUALIZADO CON PENALIZACIÓN Y GAME OVER) =================
+        // ================= 6. SPACE INVADERS (ACTUALIZADO: 20 PUNTOS INICIALES Y -10 POR ERROR) =================
         let playerX = 450, bullets = [], aliens = [], scoreSpace = 0;
         function abrirJuegoSpace() {
             cerrarMenuLibro();
@@ -475,7 +475,7 @@
             playerX = canvas.width / 2 - 20;
             bullets = [];
             aliens = [];
-            scoreSpace = 100; // Puntos iniciales para tener margen antes del Game Over
+            scoreSpace = 20; // Empieza con 20 puntos exactos (permite fallar 1 tiro)
             for(let r=0; r<3; r++) {
                 for(let c=0; c<10; c++) {
                     aliens.push({ x: c * 70 + 80, y: r * 40 + 50, w: 30, h: 20, alive: true });
@@ -505,7 +505,7 @@
                 // Si la bala llega arriba del todo sin impactar (se erra el tiro)
                 if (b.y < 0) {
                     bullets.splice(i, 1);
-                    scoreSpace -= 15; // Descuenta 15 puntos por errar
+                    scoreSpace -= 10; // Descuenta 10 puntos por errar
                     
                     // Comprobar si se quedó sin puntos
                     if (scoreSpace <= 0) {
