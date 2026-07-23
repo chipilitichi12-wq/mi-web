@@ -558,7 +558,7 @@
         }
 
         // ================= 6. MINI MARIO BROS =================
-        let mario = { x: 80, y: 350, w: 32, h: 42, dx: 0, dy: 0, salto: -12.5, enSuelo: false, frameAnim: 0 };
+        let mario = { x: 80, y: 350, w: 32, h: 42, dx: 0, dy: 0, salto: -9.2, enSuelo: false, frameAnim: 0 };
         let plataformasMario = [];
         let obstaculosMario = [];
         let nubesMario = [];
@@ -579,7 +579,7 @@
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
 
-            mario = { x: 80, y: 350, w: 32, h: 42, dx: 0, dy: 0, salto: -12.5, enSuelo: false, frameAnim: 0 };
+            mario = { x: 80, y: 350, w: 32, h: 42, dx: 0, dy: 0, salto: -9.2, enSuelo: false, frameAnim: 0 };
             scoreMario = 0;
 
             plataformasMario = [
@@ -589,9 +589,10 @@
                 { x: 200, y: 220, w: 120, h: 20 }
             ];
 
+            // Velocidad de los obstáculos reducida (propiedad 'dir' para moverse de lado a lado más lento)
             obstaculosMario = [
-                { x: 450, y: 460, w: 30, h: 40, tipo: 'goomba' },
-                { x: 620, y: 240, w: 30, h: 40, tipo: 'goomba' }
+                { x: 450, y: 460, w: 30, h: 40, tipo: 'goomba', speed: 1.0, dir: 1, minX: 320, maxX: 550 },
+                { x: 620, y: 240, w: 30, h: 40, tipo: 'goomba', speed: 1.0, dir: -1, minX: 560, maxX: 720 }
             ];
             
             nubesMario = [
@@ -628,89 +629,94 @@
         function bucleMario() {
             if (!juegoActivo || currentGame !== 'mario') return;
 
-            // Movimiento horizontal
-            mario.dx = 0;
-            if (teclasMario.left) { mario.dx = -4; mario.frameAnim += 0.2; }
-            if (teclasMario.right) { mario.dx = 4; mario.frameAnim += 0.2; }
+            // Física de movimiento de Mario
+            if (teclasMario.left) {
+                mario.dx = -3;
+                mario.frameAnim += 0.1;
+            } else if (teclasMario.right) {
+                mario.dx = 3;
+                mario.frameAnim += 0.1;
+            } else {
+                mario.dx = 0;
+            }
 
+            mario.dy += 0.4; // gravedad
             mario.x += mario.dx;
+            mario.y += mario.dy;
+
+            // Limites de pantalla
             if (mario.x < 0) mario.x = 0;
             if (mario.x > canvas.width - mario.w) mario.x = canvas.width - mario.w;
 
-            // Gravedad ajustada (caída más suave para dar tiempo de pasar los obstáculos)
-            mario.dy += 0.35;
-            mario.y += mario.dy;
-            mario.enSuelo = false;
-
             // Colisiones con plataformas
-            plataformasMario.forEach(plat => {
-                if (mario.x + mario.w > plat.x && mario.x < plat.x + plat.w &&
-                    mario.y + mario.h >= plat.y && mario.y + mario.h - mario.dy <= plat.y) {
-                    mario.y = plat.y - mario.h;
+            mario.enSuelo = false;
+            plataformasMario.forEach(p => {
+                if (mario.x + mario.w > p.x && mario.x < p.x + p.w &&
+                    mario.y + mario.h >= p.y && mario.y + mario.h <= p.y + 15 && mario.dy >= 0) {
+                    mario.y = p.y - mario.h;
                     mario.dy = 0;
                     mario.enSuelo = true;
                 }
             });
 
-            // Dibujar fondo estilo cielo
-            ctx.fillStyle = '#5c94fc';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Dibujar nubes
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            nubesMario.forEach(n => {
-                ctx.fillRect(n.x, n.y, n.w, n.h);
-                n.x -= n.speed;
-                if (n.x < -100) n.x = canvas.width + 50;
-            });
-
-            // Dibujar plataformas (estilo ladrillo clásico)
-            plataformasMario.forEach(plat => {
-                ctx.fillStyle = '#c84c0c';
-                ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
-                ctx.strokeStyle = '#000';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(plat.x, plat.y, plat.w, plat.h);
-            });
-
-            // Dibujar obstaculos (Goombas sencillos)
+            // Movimiento de los obstáculos (Goombas más lentos)
             obstaculosMario.forEach(obs => {
-                ctx.fillStyle = '#8b4513';
-                ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-                ctx.strokeStyle = '#000';
-                ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+                obs.x += obs.speed * obs.dir;
+                if (obs.x < obs.minX || obs.x > obs.maxX) {
+                    obs.dir *= -1;
+                }
 
-                // Colisión con Mario
+                // Colisión con Mario (Game Over)
                 if (mario.x < obs.x + obs.w && mario.x + mario.w > obs.x &&
                     mario.y < obs.y + obs.h && mario.y + mario.h > obs.y) {
-                    if (mario.dy > 0 && mario.y + mario.h - mario.dy <= obs.y + 10) {
-                        // Derrotar enemigo al caer encima
-                        scoreMario += 100;
-                        obs.y = 9999; // Remover de pantalla temporalmente
-                        mario.dy = -6; // Pequeño rebote
-                    } else {
-                        juegoActivo = false;
-                        window.removeEventListener('keydown', manejarKeyDownMario);
-                        window.removeEventListener('keyup', manejarKeyUpMario);
-                        alert("❌ ¡Game Over en Mario! Puntos: " + scoreMario);
-                        abrirJuegoMario();
-                        return;
-                    }
+                    juegoActivo = false;
+                    alert("🍄 ¡Te ha alcanzado un Goomba! Game Over.");
+                    abrirJuegoMario();
+                    return;
                 }
             });
 
-            // Dibujar a Mario (personaje simplificado pero detallado)
-            ctx.fillStyle = '#e52521'; // Gorra y playera roja
-            ctx.fillRect(mario.x + 4, mario.y + 4, mario.w - 8, 16);
-            ctx.fillStyle = '#0000cc'; // Overol azul
-            ctx.fillRect(mario.x + 6, mario.y + 20, mario.w - 12, 16);
-            ctx.fillStyle = '#ffcc99'; // Rostro
-            ctx.fillRect(mario.x + 8, mario.y + 8, 16, 12);
+            // Dibujar entorno (Cielo, Nubes, Plataformas, Goombas y Mario)
+            ctx.fillStyle = '#5c94fc';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Texto de puntaje
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 18px sans-serif';
-            ctx.fillText("🍄 MARIO PUNTOS: " + scoreMario, 25, 35);
+            // Nubes
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            nubesMario.forEach(n => {
+                n.x -= n.speed;
+                if (n.x < -100) n.x = canvas.width + 50;
+                ctx.fillRect(n.x, n.y, n.w, n.h);
+            });
+
+            // Plataformas
+            plataformasMario.forEach(p => {
+                ctx.fillStyle = '#c84c0c';
+                ctx.fillRect(p.x, p.y, p.w, p.h);
+                ctx.fillStyle = '#fcbc32';
+                ctx.fillRect(p.x, p.y, p.w, 4);
+            });
+
+            // Obstáculos (Goombas)
+            obstaculosMario.forEach(obs => {
+                ctx.fillStyle = '#8b4513';
+                ctx.fillRect(obs.x, obs.y + 10, obs.w, obs.h - 10);
+                // Cabeza del Goomba
+                ctx.beginPath();
+                ctx.arc(obs.x + obs.w / 2, obs.y + 10, obs.w / 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#a0522d';
+                ctx.fill();
+                ctx.closePath();
+            });
+
+            // Dibujar a Mario
+            ctx.fillStyle = '#e52521';
+            ctx.fillRect(mario.x, mario.y, mario.w, mario.h);
+
+            // Puntuación
+            scoreMario++;
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText("PUNTOS: " + Math.floor(scoreMario / 10), 25, 35);
 
             idAnimacionMario = requestAnimationFrame(bucleMario);
         }
