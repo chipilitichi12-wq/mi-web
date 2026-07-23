@@ -437,37 +437,48 @@
             ctx.fillStyle = '#111';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // --- NUEVA LÓGICA: CONTAR LADRILLOS VIVOS ---
+            let ladrillosVivos = 0;
+
+            // Actualizar y mover cada pelota activa
             for (let i = pelotasBreakout.length - 1; i >= 0; i--) {
                 let p = pelotasBreakout[i];
                 p.x += p.dx;
                 p.y += p.dy;
 
+                // Rebote en paredes laterales
                 if (p.x < p.radio || p.x > canvas.width - p.radio) {
                     p.dx *= -1;
                 }
+                // Rebote arriba
                 if (p.y < p.radio) {
                     p.dy *= -1;
                 }
 
+                // Rebote en la paleta
                 if (p.y + p.radio >= canvas.height - 20 && p.y <= canvas.height - 8 && p.x >= xPaleta && p.x <= xPaleta + 100) {
                     p.dy *= -1;
                     let centroPaleta = xPaleta + 50;
                     let diferencia = p.x - centroPaleta;
-                    p.dx = diferencia * 0.15;
+                    p.dx = diferencia * 0.15; // Efecto según donde pegue
                 }
 
+                // Si la pelota cae al fondo, se elimina
                 if (p.y > canvas.height + 20) {
                     pelotasBreakout.splice(i, 1);
-                    continue;
+                    continue; // Pasa a la siguiente pelota sin verificar colisiones
                 }
 
+                // Colisiones con los ladrillos
                 ladrillosBreakout.forEach(l => {
                     if (l.estado === 1) {
+                        // Comprobar colisión AABB simple
                         if (p.x > l.x && p.x < l.x + l.w && p.y > l.y && p.y < l.y + l.h) {
                             p.dy *= -1;
-                            l.estado = 0; 
+                            l.estado = 0; // Romper ladrillo
                             scoreBreakout += 10;
 
+                            // Si el ladrillo era x2 o x3, spawneamos pelotas extras
                             if (l.tipo === 2) {
                                 pelotasBreakout.push({ x: l.x, y: l.y, dx: -2.5, dy: -3, radio: 8 });
                                 pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 2.5, dy: -3, radio: 8 });
@@ -476,17 +487,30 @@
                                 pelotasBreakout.push({ x: l.x + (l.w / 2), y: l.y, dx: 0, dy: -3.5, radio: 8 });
                                 pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 3, dy: -3, radio: 8 });
                             }
+                        } else {
+                            // Si el ladrillo sigue vivo, suma al contador
+                            ladrillosVivos++;
                         }
                     }
                 });
             }
 
-            if (pelotasBreakout.length === 0) {
-                alert("¡Te quedaste sin pelotas! Reiniciando nivel...");
-                abrirJuegoBreakout();
+            // --- NUEVA LÓGICA: VERIFICAR VICTORIA ---
+            // Si el contador de ladrillos vivos es 0, ¡ganaste!
+            if (ladrillosBreakout.length > 0 && ladrillosVivos === 0) {
+                alert("🏆 ¡FELICITACIONES! GANASTE EL NIVEL 🏆\nPuntuación final: " + scoreBreakout);
+                abrirJuegoBreakout(); // Reinicia el juego para volver a jugar
                 return;
             }
 
+            // Si se quedaron sin pelotas en juego Y todavía quedaban ladrillos, pierden
+            if (pelotasBreakout.length === 0) {
+                alert("❌ ¡Te quedaste sin pelotas! Game Over.\nPuntos: " + scoreBreakout);
+                abrirJuegoBreakout(); // Reinicia el juego
+                return;
+            }
+
+            // Dibujar ladrillos
             ladrillosBreakout.forEach(l => {
                 if (l.estado === 1) {
                     ctx.fillStyle = l.color;
@@ -502,9 +526,11 @@
                 }
             });
 
+            // Dibujar Paleta
             ctx.fillStyle = '#fff';
             ctx.fillRect(xPaleta, canvas.height - 20, 100, 12);
 
+            // Dibujar todas las pelotas activas
             pelotasBreakout.forEach(p => {
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radio, 0, Math.PI * 2);
@@ -513,6 +539,7 @@
                 ctx.closePath();
             });
 
+            // Mostrar información en pantalla
             ctx.fillStyle = '#fff';
             ctx.font = '16px sans-serif';
             ctx.fillText("Puntos: " + scoreBreakout + " | Pelotas: " + pelotasBreakout.length, 20, 30);
