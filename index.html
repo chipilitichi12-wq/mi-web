@@ -400,16 +400,19 @@
             requestAnimationFrame(bucleBreakout);
         }
 
-        // ================= 5. COHETE ESPACIAL (ESTILO FLAPPY BIRD FLUIDO) =================
-        let coheteY = 300, coheteVel = 0, obstaculosCohete = [], scoreCohete = 0;
+        // ================= 5. COHETE ESPACIAL (BLOQUEADO HASTA EL PRIMER CLIC) =================
+        let coheteY = 300, coheteVel = 0, obstaculosCohete = [], scoreCohete = 0, coheteIniciado = false;
         function abrirJuegoCohete() {
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Cohete Espacial";
-            document.getElementById('desc-juego-modal').innerText = "Haz clic o presiona Espacio para propulsar el cohete y esquivar los obstáculos.";
+            document.getElementById('desc-juego-modal').innerText = "Haz clic o presiona Espacio para iniciar y propulsar el cohete.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
-            coheteY = 300; coheteVel = 0; scoreCohete = 0;
+            coheteY = 300; 
+            coheteVel = 0; 
+            scoreCohete = 0;
+            coheteIniciado = false; // Bloqueado al empezar
             obstaculosCohete = [{ x: 950, topH: 150, bottomH: 150, w: 50 }];
             juegoActivo = true;
             currentGame = 'cohete';
@@ -418,44 +421,54 @@
         function bucleCohete() {
             if (!juegoActivo || currentGame !== 'cohete') return;
 
-            coheteVel += 0.35;
-            coheteY += coheteVel;
-
-            if (coheteY > canvas.height - 25 || coheteY < 0) {
-                abrirJuegoCohete();
-                return;
-            }
-
-            scoreCohete += 0.1;
-
             ctx.fillStyle = '#111';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            if (obstaculosCohete[obstaculosCohete.length - 1].x < canvas.width - 320) {
-                let topH = Math.floor(Math.random() * 220) + 60;
-                let gap = 170;
-                let bottomH = canvas.height - topH - gap;
-                obstaculosCohete.push({ x: canvas.width, topH: topH, bottomH: bottomH, w: 50 });
+            if (coheteIniciado) {
+                coheteVel += 0.35;
+                coheteY += coheteVel;
+                scoreCohete += 0.1;
+
+                if (coheteY > canvas.height - 25 || coheteY < 0) {
+                    abrirJuegoCohete();
+                    return;
+                }
+
+                if (obstaculosCohete[obstaculosCohete.length - 1].x < canvas.width - 320) {
+                    let topH = Math.floor(Math.random() * 220) + 60;
+                    let gap = 170;
+                    let bottomH = canvas.height - topH - gap;
+                    obstaculosCohete.push({ x: canvas.width, topH: topH, bottomH: bottomH, w: 50 });
+                }
+
+                obstaculosCohete.forEach((obs, index) => {
+                    obs.x -= 3.5;
+                    ctx.fillStyle = '#00FF66';
+                    ctx.fillRect(obs.x, 0, obs.w, obs.topH);
+                    ctx.fillRect(obs.x, canvas.height - obs.bottomH, obs.w, obs.bottomH);
+
+                    if (obs.x < -60) obstaculosCohete.splice(index, 1);
+
+                    if (150 + 30 > obs.x && 150 < obs.x + obs.w) {
+                        if (coheteY < obs.topH || coheteY + 20 > canvas.height - obs.bottomH) {
+                            abrirJuegoCohete();
+                        }
+                    }
+                });
+            } else {
+                // Mensaje en pantalla cuando está bloqueado en el medio
+                ctx.fillStyle = '#fff';
+                ctx.font = '20px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("¡Haz clic o presiona Espacio para comenzar!", canvas.width / 2, canvas.height / 2 - 60);
+                ctx.textAlign = 'left'; // Resetear alineación
             }
 
-            obstaculosCohete.forEach((obs, index) => {
-                obs.x -= 3.5;
-                ctx.fillStyle = '#00FF66';
-                ctx.fillRect(obs.x, 0, obs.w, obs.topH);
-                ctx.fillRect(obs.x, canvas.height - obs.bottomH, obs.w, obs.bottomH);
-
-                if (obs.x < -60) obstaculosCohete.splice(index, 1);
-
-                if (150 + 30 > obs.x && 150 < obs.x + obs.w) {
-                    if (coheteY < obs.topH || coheteY + 20 > canvas.height - obs.bottomH) {
-                        abrirJuegoCohete();
-                    }
-                }
-            });
-
+            // Dibujar Cohete
             ctx.fillStyle = '#00D2FF';
             ctx.fillRect(150, coheteY, 30, 20);
 
+            // Puntuación
             ctx.fillStyle = '#fff';
             ctx.font = '16px sans-serif';
             ctx.fillText("Puntos: " + Math.floor(scoreCohete), 20, 30);
@@ -463,7 +476,7 @@
             requestAnimationFrame(bucleCohete);
         }
 
-        // ================= 6. SPACE INVADERS (SOLO MOVIMIENTO LATERAL + 20 PTS + PENALIZACIÓN) =================
+        // ================= 6. SPACE INVADERS =================
         let playerX = 450, bullets = [], aliens = [], scoreSpace = 0, alienDir = 1;
         function abrirJuegoSpace() {
             cerrarMenuLibro();
@@ -500,14 +513,14 @@
             let tocarBorde = false;
             aliens.forEach(a => {
                 if (!a.alive) return;
-                a.x += alienDir * 1.5; // Velocidad lateral
+                a.x += alienDir * 1.5; 
                 if (a.x + a.w > canvas.width - 20 || a.x < 20) {
                     tocarBorde = true;
                 }
             });
 
             if (tocarBorde) {
-                alienDir *= -1; // Invierte la dirección y NO bajan
+                alienDir *= -1; 
             }
 
             // Actualizar y dibujar Balas
@@ -517,7 +530,6 @@
                 b.y -= 7;
                 ctx.fillRect(b.x, b.y, 4, 10);
                 
-                // Si la bala falla (sale arriba)
                 if (b.y < 0) {
                     bullets.splice(i, 1);
                     scoreSpace -= 10; 
@@ -540,7 +552,6 @@
                 ctx.fillStyle = '#FF5733';
                 ctx.fillRect(a.x, a.y, a.w, a.h);
 
-                // Comprobar colisión bala-alien
                 bullets.forEach((b, bIdx) => {
                     if (b.x > a.x && b.x < a.x + a.w && b.y > a.y && b.y < a.y + a.h) {
                         a.alive = false;
@@ -550,7 +561,6 @@
                 });
             });
 
-            // Si matas a todos, se reinician
             if (allDead) {
                 for(let r=0; r<3; r++) {
                     for(let c=0; c<10; c++) {
@@ -594,7 +604,7 @@
             }
         });
 
-        // Controles de Clic (Disparo en Space o Impulso en Cohete)
+        // Controles de Clic (Disparo en Space o Desbloqueo/Impulso en Cohete)
         const areaCanvas = document.getElementById('areaJuego');
         areaCanvas.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -604,6 +614,9 @@
                 bullets.push({ x: playerX + 18, y: canvas.height - 60 });
             }
             if (currentGame === 'cohete') {
+                if (!coheteIniciado) {
+                    coheteIniciado = true; // Desbloquea el juego en el primer clic
+                }
                 coheteVel = -7; 
             }
         });
@@ -621,6 +634,9 @@
 
             if (currentGame === 'cohete' && e.key === ' ') {
                 e.preventDefault();
+                if (!coheteIniciado) {
+                    coheteIniciado = true; // Desbloquea con la barra espaciadora también
+                }
                 coheteVel = -7; 
             }
         });
