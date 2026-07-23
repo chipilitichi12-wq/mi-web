@@ -410,13 +410,11 @@
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
             
-            // Posicionar el cohete exactamente en el medio de la pantalla y velocidad en 0
             coheteY = canvas.height / 2 - 10; 
             coheteVel = 0; 
             scoreCohete = 0;
-            coheteIniciado = false; // Bloqueado al empezar
+            coheteIniciado = false; 
             
-            // Creamos un primer obstáculo más adelante para que no aparezca encima apenas hacés clic
             obstaculosCohete = [{ x: canvas.width + 100, topH: 150, bottomH: 150, w: 50 }];
             juegoActivo = true;
             currentGame = 'cohete';
@@ -429,7 +427,8 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             if (coheteIniciado) {
-                coheteVel += 0.35;
+                // Gravedad más suave (antes era 0.35, ahora baja más liviano)
+                coheteVel += 0.22;
                 coheteY += coheteVel;
                 scoreCohete += 0.1;
 
@@ -438,15 +437,16 @@
                     return;
                 }
 
-                if (obstaculosCohete[obstaculosCohete.length - 1].x < canvas.width - 320) {
+                if (obstaculosCohete[obstaculosCohete.length - 1].x < canvas.width - 350) {
                     let topH = Math.floor(Math.random() * 220) + 60;
-                    let gap = 170;
+                    let gap = 190; // Espacio un poco más ancho para que sea más fácil pasar
                     let bottomH = canvas.height - topH - gap;
                     obstaculosCohete.push({ x: canvas.width, topH: topH, bottomH: bottomH, w: 50 });
                 }
 
                 obstaculosCohete.forEach((obs, index) => {
-                    obs.x -= 3.5;
+                    // Velocidad de los obstáculos más lenta (antes era 3.5, ahora 2.2)
+                    obs.x -= 2.2;
                     ctx.fillStyle = '#00FF66';
                     ctx.fillRect(obs.x, 0, obs.w, obs.topH);
                     ctx.fillRect(obs.x, canvas.height - obs.bottomH, obs.w, obs.bottomH);
@@ -460,11 +460,9 @@
                     }
                 });
             } else {
-                // Mantener el cohete quieto en el medio mientras espera el clic
                 coheteY = canvas.height / 2 - 10;
                 coheteVel = 0;
 
-                // Mensaje en pantalla cuando está bloqueado
                 ctx.fillStyle = '#fff';
                 ctx.font = '20px sans-serif';
                 ctx.textAlign = 'center';
@@ -623,9 +621,28 @@
             }
             if (currentGame === 'cohete') {
                 if (!coheteIniciado) {
-                    coheteIniciado = true; // Desbloquea el juego en el primer clic
+                    coheteIniciado = true;
                 }
-                coheteVel = -7; 
+                coheteVel = -5; // Impulso más controlado
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (!juegoActivo) return;
+            
+            if (currentGame === 'snake') {
+                if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
+                if (e.key === 'ArrowDown' && dirSnake !== 'UP') dirSnake = 'DOWN';
+                if (e.key === 'ArrowLeft' && dirSnake !== 'RIGHT') dirSnake = 'LEFT';
+                if (e.key === 'ArrowRight' && dirSnake !== 'LEFT') dirSnake = 'RIGHT';
+            }
+
+            if (currentGame === 'cohete' && e.key === ' ') {
+                e.preventDefault();
+                if (!coheteIniciado) {
+                    coheteIniciado = true;
+                }
+                coheteVel = -5; // Impulso más controlado con espacio
             }
         });
 
