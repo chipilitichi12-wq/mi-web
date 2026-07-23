@@ -424,6 +424,11 @@
         let scoreCohete = 0;
 
         function abrirJuegoCohete() {
+            // CORREGIDO: Limpiamos animación previa para evitar duplicados de velocidad
+            if (idAnimacionCohete) { 
+                cancelAnimationFrame(idAnimacionCohete); 
+            }
+
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Cohete Espacial";
@@ -629,17 +634,54 @@
             ctx.fillStyle = '#00AA00';
             plataformasMario.forEach(p => ctx.fillRect(p.x, p.y, p.w, p.h));
 
-            // Dibujar Mario
+            // Dibujar Mario (cuadro rojo temporal o sprite)
             ctx.fillStyle = '#FF0000';
             ctx.fillRect(mario.x, mario.y, mario.w, mario.h);
+
+            // Obstáculos / Tuberías
+            obstaculosMario.forEach(obs => {
+                obs.x -= 3.5;
+                if (obs.x < -50) {
+                    obs.x = canvas.width + Math.random() * 200;
+                    obs.pasado = false;
+                    scoreMario += 10;
+                }
+                ctx.fillStyle = '#008800';
+                ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+
+                // Colisión Mario con Tubería
+                if (
+                    mario.x < obs.x + obs.w &&
+                    mario.x + mario.w > obs.x &&
+                    mario.y < obs.y + obs.h &&
+                    mario.y + mario.h > obs.y
+                ) {
+                    juegoActivo = false;
+                    alert("🍄 ¡Te chocaste con la tubería! Game Over. Puntos: " + scoreMario);
+                    abrirJuegoMario();
+                    return;
+                }
+            });
+
+            // Marcador
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 18px sans-serif';
+            ctx.fillText("🍄 PUNTOS: " + scoreMario, 25, 35);
 
             idAnimacionMario = requestAnimationFrame(bucleMario);
         }
 
+        // Controles de teclado globales para Mario y Snake
         window.addEventListener('keydown', (e) => {
             teclasMario[e.key] = true;
-            if (currentGame === 'mario' && e.key === ' ' && mario.enSuelo) {
+            if (currentGame === 'mario' && (e.key === ' ' || e.key === 'ArrowUp') && mario.enSuelo) {
                 mario.dy = mario.salto;
+            }
+            if (currentGame === 'snake') {
+                if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
+                if (e.key === 'ArrowDown' && dirSnake !== 'UP') dirSnake = 'DOWN';
+                if (e.key === 'ArrowLeft' && dirSnake !== 'RIGHT') dirSnake = 'LEFT';
+                if (e.key === 'ArrowRight' && dirSnake !== 'LEFT') dirSnake = 'RIGHT';
             }
         });
 
