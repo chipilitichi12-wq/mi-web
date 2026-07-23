@@ -6,43 +6,6 @@
     <title>Rayito ⚡️</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="favicon.png">
-    <style>
-        /* ESTILO PARA EL PANEL FLOTANTE DE MÚSICA (ARRIBA A LA DERECHA) */
-        .panel-spotify-flotante {
-            position: fixed;
-            top: 30px;
-            right: 40px;
-            width: 320px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-            z-index: 2000;
-            text-align: center;
-        }
-        .panel-spotify-flotante h3 {
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 14px;
-            margin-top: 0;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
-        }
-        /* Responsivo para pantallas chicas */
-        @media (max-width: 1200px) {
-            .panel-spotify-flotante {
-                position: relative;
-                top: auto;
-                right: auto;
-                width: 90%;
-                max-width: 400px;
-                margin: 20px auto;
-            }
-        }
-    </style>
 </head>
 <body>
 
@@ -65,13 +28,6 @@
     <video autoplay muted loop id="video-fondo">
         <source src="fondo.mp4" type="video/mp4">
     </video>
-
-    <!-- NUEVO PANEL FLOTANTE DE SPOTIFY EN LA ZONA MARCADA -->
-    <div class="panel-spotify-flotante">
-        <h3>// SPOTIFY_PLAYER</h3>
-        <!-- Reproductor incrustado de Spotify (Puedes cambiar el link "playlist/37i9dQZF1DXcBWIGoYBM5M" por tu playlist favorita) -->
-        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-    </div>
 
     <!-- TARJETA PRINCIPAL (CENTRAL) -->
     <div class="caja-estilo">
@@ -136,11 +92,26 @@
             <h2 style="color:white; font-family:'Segoe UI', sans-serif; font-size: 18px; margin-top:0; margin-bottom: 15px;">📖 Biblioteca de Juegos</h2>
             
             <div style="display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; padding-right: 5px;">
-                <button onclick="abrirJuegoAgar()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">⚡️ Mini Agar.io</button>
-                <button onclick="abrirJuegoSnake()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">🐍 Snake (Serpiente)</button>
-                <button onclick="abrirJuegoPong()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">🏓 Pong Retro</button>
-                <button onclick="abrirJuegoFlappy()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">🐦 Flappy Bird</button>
-                <button onclick="abrirJuegoBreakout()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">🧱 Rompeladrillos</button>
+                <!-- JUEGO 1 -->
+                <button onclick="abrirJuegoAgar()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                    ⚡️ Mini Agar.io
+                </button>
+                <!-- JUEGO 2 -->
+                <button onclick="abrirJuegoSnake()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                    🐍 Snake (Serpiente)
+                </button>
+                <!-- JUEGO 3 -->
+                <button onclick="abrirJuegoPong()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                    🏓 Pong Retro
+                </button>
+                <!-- JUEGO 4 -->
+                <button onclick="abrirJuegoFlappy()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                    🐦 Flappy Bird
+                </button>
+                <!-- JUEGO 5 -->
+                <button onclick="abrirJuegoBreakout()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                    🧱 Rompeladrillos
+                </button>
             </div>
 
             <button onclick="cerrarMenuLibro()" style="margin-top: 15px; padding: 8px 20px; background: rgba(255,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 12px;">Cerrar</button>
@@ -276,7 +247,7 @@
             requestAnimationFrame(bucleAgar);
         }
 
-        // ================= 2. SNAKE =================
+        // ================= 2. SNAKE (PERFECCIONADO) =================
         let snake = [], comidaSnake = {}, dirSnake = 'RIGHT', scoreSnake = 0, intervaloSnake;
         const tileSize = 20;
 
@@ -318,6 +289,7 @@
             const cols = canvas.width / tileSize;
             const rows = canvas.height / tileSize;
 
+            // Verificar colisiones con paredes o consigo mismo
             if (cabeza.x < 0 || cabeza.x >= cols || cabeza.y < 0 || cabeza.y >= rows || snake.some(s => s.x === cabeza.x && s.y === cabeza.y)) {
                 alert("¡Juego terminado! Puntuación: " + scoreSnake);
                 abrirJuegoSnake();
@@ -333,15 +305,19 @@
                 snake.pop();
             }
 
+            // Dibujar
             ctx.fillStyle = '#111'; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
+            // Dibujar comida
             ctx.fillStyle = '#FF5733'; 
             ctx.fillRect(comidaSnake.x * tileSize, comidaSnake.y * tileSize, tileSize - 2, tileSize - 2);
             
+            // Dibujar serpiente
             ctx.fillStyle = '#00FF66';
             snake.forEach(s => ctx.fillRect(s.x * tileSize, s.y * tileSize, tileSize - 2, tileSize - 2));
             
+            // Puntuación
             ctx.fillStyle = '#fff'; 
             ctx.font = '16px sans-serif'; 
             ctx.fillText("Puntos: " + scoreSnake, 20, 30);
@@ -477,6 +453,7 @@
             xPaleta = Math.max(0, Math.min(canvas.width - 100, mouseX - 50));
         });
 
+        // Controles de teclado y click
         document.addEventListener('click', () => { if (juegoActivo && typeof birdV !== 'undefined') birdV = -7; });
         document.addEventListener('keydown', (e) => {
             if (!juegoActivo) return;
