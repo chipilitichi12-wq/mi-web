@@ -363,233 +363,170 @@
             requestAnimationFrame(buclePong);
         }
 
-        // ================= 4. ROMPELADRILLOS =================
-        let xPaleta = 400, xBola = 475, yBola = 300, dxB = 3, dyB = -3, ladrillos = [];
+        // ================= 4. ROMPELADRILLOS (CON MULTIPLICADORES Y MULTIPLATAS) =================
+        let xPaleta = 400, pelotasBreakout = [], ladrillosBreakout = [];
+        let scoreBreakout = 0;
+
         function abrirJuegoBreakout() {
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Rompeladrillos";
-            document.getElementById('desc-juego-modal').innerText = "Mueve el mouse a los lados para mover la paleta y romper los bloques.";
+            document.getElementById('desc-juego-modal').innerText = "Mueve el mouse para mover la paleta. ¡Atrapa los bloques x2 y x3 para sumar pelotas!";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
-            xBola = canvas.width / 2; yBola = 300; dxB = 3; dyB = -3;
-            ladrillos = [];
-            for(let c=0; c<8; c++) {
-                for(let r=0; r<4; r++) {
-                    ladrillos.push({x: c * 110 + 45, y: r * 30 + 40, estado: 1});
+            
+            xPaleta = canvas.width / 2 - 50;
+            scoreBreakout = 0;
+
+            // Inicializar con una sola pelota en el centro
+            pelotasBreakout = [{
+                x: canvas.width / 2,
+                y: 300,
+                dx: 3,
+                dy: -3,
+                radio: 8
+            }];
+
+            // Crear ladrillos (algunos con x2 o x3 aleatorios)
+            ladrillosBreakout = [];
+            for (let c = 0; c < 8; c++) {
+                for (let r = 0; r < 4; r++) {
+                    let tipo = 1; // Ladrillo normal por defecto
+                    let color = '#00D2FF';
+                    let texto = '';
+
+                    // Darle probabilidad de ser x2 o x3 a algunos bloques
+                    let rand = Math.random();
+                    if (rand < 0.25) {
+                        tipo = 2; // Multiplicador x2
+                        color = '#FFD700';
+                        texto = 'x2';
+                    } else if (rand < 0.40) {
+                        tipo = 3; // Multiplicador x3
+                        color = '#FF5733';
+                        texto = 'x3';
+                    }
+
+                    ladrillosBreakout.push({
+                        x: c * 110 + 45,
+                        y: r * 30 + 40,
+                        w: 100,
+                        h: 20,
+                        estado: 1,
+                        tipo: tipo,
+                        color: color,
+                        texto: texto
+                    });
                 }
             }
+
             juegoActivo = true;
             currentGame = 'breakout';
             bucleBreakout();
         }
+
         function bucleBreakout() {
             if (!juegoActivo || currentGame !== 'breakout') return;
-            xBola += dxB; yBola += dyB;
-            if (xBola < 10 || xBola > canvas.width - 10) dxB *= -1;
-            if (yBola < 10) dyB *= -1;
-            if (yBola > canvas.height - 30 && xBola >= xPaleta && xBola <= xPaleta + 100) dyB *= -1;
-            if (yBola > canvas.height) { abrirJuegoBreakout(); return; }
-
-            ctx.fillStyle = '#111'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ladrillos.forEach(l => {
-                if (l.estado === 1) {
-                    if (xBola > l.x && xBola < l.x + 100 && yBola > l.y && yBola < l.y + 20) { dyB *= -1; l.estado = 0; }
-                    ctx.fillStyle = '#00D2FF'; ctx.fillRect(l.x, l.y, 100, 20);
-                }
-            });
-            ctx.fillStyle = '#fff'; ctx.fillRect(xPaleta, canvas.height - 20, 100, 12);
-            ctx.beginPath(); ctx.arc(xBola, yBola, 8, 0, Math.PI * 2); ctx.fillStyle = '#FF5733'; ctx.fill(); ctx.closePath();
-            requestAnimationFrame(bucleBreakout);
-        }
-
-        // ================= 5. COHETE ESPACIAL (BLOQUEADO HASTA EL PRIMER CLIC) =================
-        let coheteY = 300, coheteVel = 0, obstaculosCohete = [], scoreCohete = 0, coheteIniciado = false;
-        let idAnimacionCohete = null; // Variable para controlar el bucle
-
-        function abrirJuegoCohete() {
-            // Cancelar cualquier bucle anterior para que no se encierren y aceleren
-            if (idAnimacionCohete) {
-                cancelAnimationFrame(idAnimacionCohete);
-            }
-
-            cerrarMenuLibro();
-            document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Cohete Espacial";
-            document.getElementById('desc-juego-modal').innerText = "Haz clic o presiona Espacio para iniciar y propulsar el cohete.";
-            canvas = document.getElementById('areaJuego');
-            ctx = canvas.getContext('2d');
-            
-            // Reiniciar valores limpios
-            coheteIniciado = false; 
-            coheteVel = 0; 
-            coheteY = canvas.height / 2 - 10; 
-            scoreCohete = 0;
-            
-            obstaculosCohete = [{ x: canvas.width + 100, topH: 150, bottomH: 150, w: 50 }];
-            juegoActivo = true;
-            currentGame = 'cohete';
-            bucleCohete();
-        }
-
-        function bucleCohete() {
-            if (!juegoActivo || currentGame !== 'cohete') return;
 
             ctx.fillStyle = '#111';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            if (coheteIniciado) {
-                coheteVel += 0.15; // Gravedad suave
-                coheteY += coheteVel;
-                scoreCohete += 0.1;
+            // Actualizar y mover cada pelota activa
+            for (let i = pelotasBreakout.length - 1; i >= 0; i--) {
+                let p = pelotasBreakout[i];
+                p.x += p.dx;
+                p.y += p.dy;
 
-                if (coheteY > canvas.height - 25 || coheteY < 0) {
-                    abrirJuegoCohete();
-                    return;
+                // Rebote en paredes laterales
+                if (p.x < p.radio || p.x > canvas.width - p.radio) {
+                    p.dx *= -1;
+                }
+                // Rebote arriba
+                if (p.y < p.radio) {
+                    p.dy *= -1;
                 }
 
-                if (obstaculosCohete[obstaculosCohete.length - 1].x < canvas.width - 350) {
-                    let topH = Math.floor(Math.random() * 220) + 60;
-                    let gap = 200; 
-                    let bottomH = canvas.height - topH - gap;
-                    obstaculosCohete.push({ x: canvas.width, topH: topH, bottomH: bottomH, w: 50 });
+                // Rebote en la paleta
+                if (p.y + p.radio >= canvas.height - 20 && p.y <= canvas.height - 8 && p.x >= xPaleta && p.x <= xPaleta + 100) {
+                    p.dy *= -1;
+                    // Dar un ángulo leve según dónde pegó en la paleta
+                    let centroPaleta = xPaleta + 50;
+                    let diferencia = p.x - centroPaleta;
+                    p.dx = diferencia * 0.15;
                 }
 
-                obstaculosCohete.forEach((obs, index) => {
-                    obs.x -= 2.0; // Obstáculos lentos
-                    ctx.fillStyle = '#00FF66';
-                    ctx.fillRect(obs.x, 0, obs.w, obs.topH);
-                    ctx.fillRect(obs.x, canvas.height - obs.bottomH, obs.w, obs.bottomH);
+                // Si la pelota cae al fondo, se elimina
+                if (p.y > canvas.height + 20) {
+                    pelotasBreakout.splice(i, 1);
+                    continue;
+                }
 
-                    if (obs.x < -60) obstaculosCohete.splice(index, 1);
+                // Colisiones con los ladrillos
+                ladrillosBreakout.forEach(l => {
+                    if (l.estado === 1) {
+                        if (p.x > l.x && p.x < l.x + l.w && p.y > l.y && p.y < l.y + l.h) {
+                            p.dy *= -1;
+                            l.estado = 0; // Romper ladrillo
+                            scoreBreakout += 10;
 
-                    if (150 + 30 > obs.x && 150 < obs.x + obs.w) {
-                        if (coheteY < obs.topH || coheteY + 20 > canvas.height - obs.bottomH) {
-                            abrirJuegoCohete();
+                            // Si el ladrillo era x2 o x3, spawneamos pelotas extras
+                            if (l.tipo === 2) {
+                                // Agrega 2 pelotas nuevas saliendo desde la posición del ladrillo roto
+                                pelotasBreakout.push({ x: l.x, y: l.y, dx: -2.5, dy: -3, radio: 8 });
+                                pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 2.5, dy: -3, radio: 8 });
+                            } else if (l.tipo === 3) {
+                                // Agrega 3 pelotas nuevas
+                                pelotasBreakout.push({ x: l.x, y: l.y, dx: -3, dy: -3, radio: 8 });
+                                pelotasBreakout.push({ x: l.x + (l.w / 2), y: l.y, dx: 0, dy: -3.5, radio: 8 });
+                                pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 3, dy: -3, radio: 8 });
+                            }
                         }
                     }
                 });
-            } else {
-                coheteY = canvas.height / 2 - 10;
-                coheteVel = 0;
-
-                ctx.fillStyle = '#fff';
-                ctx.font = '20px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText("¡Haz clic o presiona Espacio para comenzar!", canvas.width / 2, canvas.height / 2 - 60);
-                ctx.textAlign = 'left'; 
             }
 
-            // Dibujar Cohete
-            ctx.fillStyle = '#00D2FF';
-            ctx.fillRect(150, coheteY, 30, 20);
-
-            // Puntuación
-            ctx.fillStyle = '#fff';
-            ctx.font = '16px sans-serif';
-            ctx.fillText("Puntos: " + Math.floor(scoreCohete), 20, 30);
-
-            idAnimacionCohete = requestAnimationFrame(bucleCohete);
-        }
-
-        // ================= 6. SPACE INVADERS =================
-        let playerX = 450, bullets = [], aliens = [], scoreSpace = 0, alienDir = 1;
-        function abrirJuegoSpace() {
-            cerrarMenuLibro();
-            document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Space Invaders";
-            document.getElementById('desc-juego-modal').innerText = "Mueve el mouse para desplazar la nave y haz clic para disparar.";
-            canvas = document.getElementById('areaJuego');
-            ctx = canvas.getContext('2d');
-            playerX = canvas.width / 2 - 20;
-            bullets = [];
-            aliens = [];
-            scoreSpace = 20; 
-            alienDir = 1;
-            for(let r=0; r<3; r++) {
-                for(let c=0; c<10; c++) {
-                    aliens.push({ x: c * 70 + 80, y: r * 40 + 50, w: 30, h: 20, alive: true });
-                }
+            // Si se quedaron sin pelotas en juego, se reinicia el nivel
+            if (pelotasBreakout.length === 0) {
+                alert("¡Te quedaste sin pelotas! Reiniciando nivel...");
+                abrirJuegoBreakout();
+                return;
             }
-            juegoActivo = true;
-            currentGame = 'space';
-            bucleSpace();
-        }
-        function bucleSpace() {
-            if (!juegoActivo || currentGame !== 'space') return;
 
-            ctx.fillStyle = '#111';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Dibujar ladrillos
+            ladrillosBreakout.forEach(l => {
+                if (l.estado === 1) {
+                    ctx.fillStyle = l.color;
+                    ctx.fillRect(l.x, l.y, l.w, l.h);
 
-            // Dibujar Nave
-            ctx.fillStyle = '#00D2FF';
-            ctx.fillRect(playerX, canvas.height - 50, 40, 20);
-
-            // Mover Aliens solo de izquierda a derecha (rebote en paredes)
-            let tocarBorde = false;
-            aliens.forEach(a => {
-                if (!a.alive) return;
-                a.x += alienDir * 1.5; 
-                if (a.x + a.w > canvas.width - 20 || a.x < 20) {
-                    tocarBorde = true;
+                    if (l.texto !== '') {
+                        ctx.fillStyle = '#000';
+                        ctx.font = 'bold 14px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(l.texto, l.x + l.w / 2, l.y + 15);
+                        ctx.textAlign = 'left';
+                    }
                 }
             });
 
-            if (tocarBorde) {
-                alienDir *= -1; 
-            }
+            // Dibujar Paleta
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(xPaleta, canvas.height - 20, 100, 12);
 
-            // Actualizar y dibujar Balas
-            ctx.fillStyle = '#FFD700';
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                let b = bullets[i];
-                b.y -= 7;
-                ctx.fillRect(b.x, b.y, 4, 10);
-                
-                if (b.y < 0) {
-                    bullets.splice(i, 1);
-                    scoreSpace -= 10; 
-                    
-                    if (scoreSpace <= 0) {
-                        scoreSpace = 0;
-                        juegoActivo = false;
-                        alert("❌ ¡Perdiste! Te quedaste sin puntos.");
-                        abrirJuegoSpace(); 
-                        return;
-                    }
-                }
-            }
-
-            // Actualizar y dibujar Aliens
-            let allDead = true;
-            aliens.forEach(a => {
-                if (!a.alive) return;
-                allDead = false;
+            // Dibujar todas las pelotas activas
+            pelotasBreakout.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radio, 0, Math.PI * 2);
                 ctx.fillStyle = '#FF5733';
-                ctx.fillRect(a.x, a.y, a.w, a.h);
-
-                bullets.forEach((b, bIdx) => {
-                    if (b.x > a.x && b.x < a.x + a.w && b.y > a.y && b.y < a.y + a.h) {
-                        a.alive = false;
-                        bullets.splice(bIdx, 1);
-                        scoreSpace += 20; 
-                    }
-                });
+                ctx.fill();
+                ctx.closePath();
             });
 
-            if (allDead) {
-                for(let r=0; r<3; r++) {
-                    for(let c=0; c<10; c++) {
-                        aliens.push({ x: c * 70 + 80, y: r * 40 + 50, w: 30, h: 20, alive: true });
-                    }
-                }
-            }
-
+            // Mostrar información en pantalla (Puntos y cantidad de pelotas vivas)
             ctx.fillStyle = '#fff';
             ctx.font = '16px sans-serif';
-            ctx.fillText("Puntos: " + scoreSpace, 20, 30);
+            ctx.fillText("Puntos: " + scoreBreakout + " | Pelotas: " + pelotasBreakout.length, 20, 30);
 
-            requestAnimationFrame(bucleSpace);
+            requestAnimationFrame(bucleBreakout);
         }
 
         // Controles de mouse generales
