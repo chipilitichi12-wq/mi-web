@@ -362,7 +362,7 @@
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Flappy Bird";
-            document.getElementById('desc-juego-modal').innerText = "Haz clic en la pantalla para volar y esquivar los tubos.";
+            document.getElementById('desc-juego-modal').innerText = "Haz clic en el área del juego o usa la Barra Espaciadora para volar.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
             birdY = 300; birdV = 0; pipes = [{x: 950, top: 150, bottom: 400}]; scoreFlappy = 0;
@@ -453,16 +453,30 @@
             xPaleta = Math.max(0, Math.min(canvas.width - 100, mouseX - 50));
         });
 
-        // Controles de teclado y click
-        document.getElementById('areaJuego').addEventListener('click', () => { 
-    if (juegoActivo && typeof birdV !== 'undefined') birdV = -7; 
-});
+        // Controles corregidos para Flappy Bird y Snake
+        const areaCanvas = document.getElementById('areaJuego');
+
+        areaCanvas.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (juegoActivo && typeof birdV !== 'undefined') {
+                birdV = -7;
+            }
+        });
+
         document.addEventListener('keydown', (e) => {
             if (!juegoActivo) return;
+            
+            // Controles de Snake
             if (e.key === 'ArrowUp' && dirSnake !== 'DOWN') dirSnake = 'UP';
             if (e.key === 'ArrowDown' && dirSnake !== 'UP') dirSnake = 'DOWN';
             if (e.key === 'ArrowLeft' && dirSnake !== 'RIGHT') dirSnake = 'LEFT';
             if (e.key === 'ArrowRight' && dirSnake !== 'LEFT') dirSnake = 'RIGHT';
+
+            // Salto de Flappy Bird con la Barra Espaciadora
+            if (e.key === ' ' && typeof birdV !== 'undefined') {
+                e.preventDefault();
+                birdV = -7;
+            }
         });
     </script>
 </body>
