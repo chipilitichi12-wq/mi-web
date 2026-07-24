@@ -110,3 +110,39 @@ h1 { margin: 10px 0; color: white; font-size: 28px; text-shadow: 0 0 10px rgba(2
     margin-bottom: 5px;
     color: #cccccc; /* Gris claro para los componentes */
 }
+
+/* El lienzo de los minijuegos conserva su resolución interna, pero se adapta
+   a pantallas pequeñas sin deformarse ni salirse del modal. */
+#modal-juego > div {
+    width: min(1000px, calc(100vw - 28px)) !important;
+    max-height: calc(100vh - 28px);
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+#areaJuego {
+    display: block;
+    width: 100%;
+    max-width: 950px;
+    height: auto;
+    max-height: min(600px, 68vh);
+    margin: 0 auto;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+@media (max-width: 700px) {
+    #modal-juego > div {
+        padding: 12px !important;
+    }
+
+    #titulo-juego-modal {
+        margin-bottom: 4px !important;
+        font-size: 20px;
+    }
+
+    #desc-juego-modal {
+        margin: 4px 0 8px !important;
+    }
+}

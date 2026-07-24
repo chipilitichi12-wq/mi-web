@@ -189,7 +189,13 @@
             clearInterval(intervaloSnake);
             if (idAnimacionCohete) { cancelAnimationFrame(idAnimacionCohete); idAnimacionCohete = null; }
             if (idAnimacionPenalty) { cancelAnimationFrame(idAnimacionPenalty); idAnimacionPenalty = null; }
-            if (canvas) { canvas.onmousemove = null; canvas.onclick = null; }
+            if (timeoutPenalty) { clearTimeout(timeoutPenalty); timeoutPenalty = null; }
+            if (canvas) {
+                canvas.onmousemove = null;
+                canvas.onclick = null;
+                canvas.onpointermove = null;
+                canvas.onpointerdown = null;
+            }
             document.getElementById('modal-juego').style.display = 'none';
             abrirMenuLibro();
         }
@@ -557,253 +563,408 @@
             idAnimacionCohete = requestAnimationFrame(bucleCohete);
         }
 
-        // ================= 6. PENALTY SHOOTER (CORREGIDO Y DINÁMICO) =================
+        // ================= 6. PENALTY MASTER =================
+        const MAX_TIROS_PENALTY = 5;
         let golesPenalty = 0;
         let tirosPenalty = 0;
+        let puntosPenalty = 0;
+        let rachaPenalty = 0;
+        let potenciaPenalty = 0.55;
+        let direccionPotencia = 1;
         let estadoBalon = 'esperando';
-        let balon = { x: 475, y: 500, radio: 11, vx: 0, vy: 0, vz: 0, z: 0, destinoX: 475, destinoY: 250 };
-        let portero = { x: 450, y: 155, w: 65, h: 22, vx: 4, objetivoX: 450, patronMovimiento: 0, debilidadActual: 1 }; 
+        let objetivoPenalty = { x: 475, y: 170 };
+        let balon = { x: 475, y: 520, radio: 13, inicioX: 475, inicioY: 520, destinoX: 475, destinoY: 170, progreso: 0, duracion: 52 };
+        let portero = { x: 475, y: 172, objetivoX: 475, inclinacion: 0, reaccion: 0, decidio: false };
         let mensajeResultado = "";
+        let subtituloResultado = "";
         let tiempoMensaje = 0;
+        let particulasPenalty = [];
         let idAnimacionPenalty = null;
+        let timeoutPenalty = null;
 
         function abrirJuegoPenalty() {
-            if (idAnimacionPenalty) {
-                cancelAnimationFrame(idAnimacionPenalty);
-                idAnimacionPenalty = null;
-            }
+            if (idAnimacionPenalty) cancelAnimationFrame(idAnimacionPenalty);
+            if (timeoutPenalty) clearTimeout(timeoutPenalty);
 
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Penalty Shooter ⚽";
-            document.getElementById('desc-juego-modal').innerText = "¡El arquero se mueve y cambia su punto débil en cada tiro! Descubre dónde meterla.";
+            document.getElementById('titulo-juego-modal').innerText = "Penalty Master ⚽";
+            document.getElementById('desc-juego-modal').innerText = "Mové la mira y tocá para patear. Elegí bien la potencia: tenés 5 tiros.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
-            
+
             golesPenalty = 0;
             tirosPenalty = 0;
-            reiniciarTiroPenalty();
-
+            puntosPenalty = 0;
+            rachaPenalty = 0;
+            particulasPenalty = [];
             juegoActivo = true;
             currentGame = 'penalty';
+            reiniciarTiroPenalty();
 
-            canvas.onclick = function(e) {
-                if (!juegoActivo || currentGame !== 'penalty' || estadoBalon !== 'esperando') return;
-
-                const rect = canvas.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const clickY = e.clientY - rect.top;
-
-                balon.destinoX = clickX;
-                balon.destinoY = Math.max(clickY, 130);
-
-                let dx = balon.destinoX - balon.x;
-                let dy = balon.destinoY - balon.y;
-                let distancia = Math.sqrt(dx * dx + dy * dy);
-
-                let velocidadDisparo = 12;
-                balon.vx = (dx / distancia) * velocidadDisparo;
-                balon.vy = (dy / distancia) * velocidadDisparo;
-                balon.vz = -0.3;
-                balon.z = 0;
-
-                estadoBalon = 'disparando';
-                tirosPenalty++;
-            };
-
+            canvas.onpointermove = apuntarPenalty;
+            canvas.onpointerdown = patearPenalty;
+            canvas.onclick = null;
             buclePenalty();
         }
 
+        function posicionCanvasPenalty(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX - rect.left) * canvas.width / rect.width,
+                y: (e.clientY - rect.top) * canvas.height / rect.height
+            };
+        }
+
+        function apuntarPenalty(e) {
+            if (!juegoActivo || currentGame !== 'penalty' || estadoBalon !== 'esperando') return;
+            const p = posicionCanvasPenalty(e);
+            objetivoPenalty.x = Math.max(320, Math.min(630, p.x));
+            objetivoPenalty.y = Math.max(105, Math.min(255, p.y));
+        }
+
+        function patearPenalty(e) {
+            if (!juegoActivo || currentGame !== 'penalty') return;
+            if (estadoBalon === 'final') {
+                abrirJuegoPenalty();
+                return;
+            }
+            if (estadoBalon !== 'esperando') return;
+
+            apuntarPenalty(e);
+            balon.inicioX = balon.x;
+            balon.inicioY = balon.y;
+            balon.destinoX = objetivoPenalty.x;
+            balon.destinoY = objetivoPenalty.y;
+            balon.progreso = 0;
+            balon.duracion = 68 - potenciaPenalty * 30;
+            estadoBalon = 'disparando';
+            tirosPenalty++;
+
+            const dificultad = (tirosPenalty - 1) * 0.07;
+            const errorLectura = 115 - potenciaPenalty * 55 - dificultad * 80;
+            portero.objetivoX = balon.destinoX + (Math.random() - 0.5) * errorLectura;
+            portero.reaccion = Math.max(7, 18 - tirosPenalty * 1.5 - potenciaPenalty * 4);
+            portero.decidio = true;
+        }
+
         function reiniciarTiroPenalty() {
-            balon.x = canvas ? canvas.width / 2 : 475;
-            balon.y = canvas ? canvas.height - 80 : 520;
-            balon.vx = 0;
-            balon.vy = 0;
-            balon.vz = 0;
-            balon.z = 0;
+            if (!juegoActivo || currentGame !== 'penalty') return;
+            balon.x = canvas.width / 2;
+            balon.y = canvas.height - 72;
+            balon.progreso = 0;
+            objetivoPenalty.x = canvas.width / 2;
+            objetivoPenalty.y = 170;
+            potenciaPenalty = 0.45;
+            direccionPotencia = 1;
+            portero.x = canvas.width / 2;
+            portero.y = 172;
+            portero.objetivoX = portero.x;
+            portero.inclinacion = 0;
+            portero.decidio = false;
             estadoBalon = 'esperando';
-            
-            // Define una debilidad aleatoria en cada tiro (1: Izquierda, 2: Centro, 3: Derecha, 4: Muy arriba)
-            portero.debilidadActual = Math.floor(Math.random() * 4) + 1;
-            portero.patronMovimiento = Math.random() * Math.PI * 2;
-            portero.x = 450;
-            portero.y = 155;
+        }
+
+        function resolverTiroPenalty() {
+            const enArco = balon.destinoX >= 335 && balon.destinoX <= 615 && balon.destinoY >= 105 && balon.destinoY <= 222;
+            const distanciaArquero = Math.abs(balon.destinoX - portero.x);
+            const alcanceVertical = Math.abs(balon.destinoY - 172);
+            const atajada = enArco && distanciaArquero < (54 + (1 - potenciaPenalty) * 28) && alcanceVertical < 67;
+
+            if (!enArco) {
+                rachaPenalty = 0;
+                mensajeResultado = "¡AFUERA!";
+                subtituloResultado = balon.destinoY < 105 ? "Se fue por arriba" : "Rozó el palo";
+                estadoBalon = 'fuera';
+            } else if (atajada) {
+                rachaPenalty = 0;
+                mensajeResultado = "¡ATAJÓ!";
+                subtituloResultado = "El arquero leyó tu disparo";
+                estadoBalon = 'atajado';
+            } else {
+                golesPenalty++;
+                rachaPenalty++;
+                const esquina = Math.abs(balon.destinoX - 475) > 105 || balon.destinoY < 135;
+                const bonus = esquina ? 250 : 100;
+                puntosPenalty += bonus + Math.round(potenciaPenalty * 100) + rachaPenalty * 50;
+                mensajeResultado = esquina ? "¡GOLAZO!" : "¡GOOOL!";
+                subtituloResultado = esquina ? `A la escuadra · +${bonus}` : `Racha x${rachaPenalty}`;
+                estadoBalon = 'gol';
+                crearParticulasPenalty(balon.destinoX, balon.destinoY);
+            }
+
+            tiempoMensaje = 80;
+            timeoutPenalty = setTimeout(() => {
+                if (!juegoActivo || currentGame !== 'penalty') return;
+                if (tirosPenalty >= MAX_TIROS_PENALTY) estadoBalon = 'final';
+                else reiniciarTiroPenalty();
+            }, 1350);
+        }
+
+        function crearParticulasPenalty(x, y) {
+            const colores = ['#ffd60a', '#ffffff', '#42f5a7', '#40c9ff'];
+            for (let i = 0; i < 42; i++) {
+                particulasPenalty.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.8) * 9,
+                    vida: 55 + Math.random() * 25,
+                    color: colores[Math.floor(Math.random() * colores.length)]
+                });
+            }
+        }
+
+        function actualizarPenalty() {
+            if (estadoBalon === 'esperando') {
+                potenciaPenalty += 0.012 * direccionPotencia;
+                if (potenciaPenalty >= 1 || potenciaPenalty <= 0.2) direccionPotencia *= -1;
+                portero.x = 475 + Math.sin(performance.now() / 520) * 28;
+            } else if (estadoBalon === 'disparando') {
+                balon.progreso += 1 / balon.duracion;
+                const t = Math.min(1, balon.progreso);
+                const suave = 1 - Math.pow(1 - t, 2.2);
+                balon.x = balon.inicioX + (balon.destinoX - balon.inicioX) * suave;
+                balon.y = balon.inicioY + (balon.destinoY - balon.inicioY) * suave - Math.sin(t * Math.PI) * 48 * potenciaPenalty;
+
+                if (portero.decidio && balon.progreso > portero.reaccion / balon.duracion) {
+                    const dx = portero.objetivoX - portero.x;
+                    portero.x += dx * (0.055 + tirosPenalty * 0.006);
+                    portero.inclinacion = Math.max(-0.8, Math.min(0.8, dx / 90));
+                }
+                if (t >= 1) resolverTiroPenalty();
+            }
+
+            particulasPenalty.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.18;
+                p.vida--;
+            });
+            particulasPenalty = particulasPenalty.filter(p => p.vida > 0);
+        }
+
+        function dibujarEstadioPenalty() {
+            const gradiente = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradiente.addColorStop(0, '#071a2d');
+            gradiente.addColorStop(0.31, '#12304a');
+            gradiente.addColorStop(0.32, '#18834b');
+            gradiente.addColorStop(1, '#075c35');
+            ctx.fillStyle = gradiente;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'rgba(255,255,255,.08)';
+            for (let x = 15; x < canvas.width; x += 30) {
+                ctx.beginPath();
+                ctx.arc(x, 88 + Math.sin(x) * 7, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            for (let y = 265; y < canvas.height; y += 54) {
+                ctx.fillStyle = y % 108 ? 'rgba(255,255,255,.025)' : 'rgba(0,0,0,.035)';
+                ctx.fillRect(0, y, canvas.width, 54);
+            }
+
+            ctx.strokeStyle = 'rgba(255,255,255,.78)';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(245, 218, 460, 205);
+            ctx.beginPath();
+            ctx.arc(475, 420, 75, Math.PI, 0);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(475, 505, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+
+            ctx.fillStyle = 'rgba(0,0,0,.32)';
+            ctx.fillRect(330, 102, 290, 120);
+            ctx.strokeStyle = 'rgba(255,255,255,.2)';
+            ctx.lineWidth = 1;
+            for (let x = 335; x <= 615; x += 18) {
+                ctx.beginPath(); ctx.moveTo(x, 105); ctx.lineTo(x, 222); ctx.stroke();
+            }
+            for (let y = 108; y <= 218; y += 15) {
+                ctx.beginPath(); ctx.moveTo(335, y); ctx.lineTo(615, y); ctx.stroke();
+            }
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 9;
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(330, 222); ctx.lineTo(330, 100); ctx.lineTo(620, 100); ctx.lineTo(620, 222);
+            ctx.stroke();
+        }
+
+        function dibujarPorteroPenalty() {
+            ctx.save();
+            ctx.translate(portero.x, portero.y);
+            ctx.rotate(portero.inclinacion);
+            ctx.strokeStyle = '#ff9f1c';
+            ctx.lineWidth = 12;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(-23, -2); ctx.lineTo(-57, 10);
+            ctx.moveTo(23, -2); ctx.lineTo(57, 10);
+            ctx.stroke();
+            ctx.strokeStyle = '#eaf4ff';
+            ctx.lineWidth = 14;
+            ctx.beginPath();
+            ctx.moveTo(-56, 10); ctx.lineTo(-66, 12);
+            ctx.moveTo(56, 10); ctx.lineTo(66, 12);
+            ctx.stroke();
+            ctx.fillStyle = '#ff7b00';
+            ctx.roundRect(-28, -13, 56, 47, 10);
+            ctx.fill();
+            ctx.fillStyle = '#10243b';
+            ctx.fillRect(-25, 27, 50, 12);
+            ctx.strokeStyle = '#10243b';
+            ctx.lineWidth = 11;
+            ctx.beginPath();
+            ctx.moveTo(-15, 35); ctx.lineTo(-28, 57);
+            ctx.moveTo(15, 35); ctx.lineTo(28, 57);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(0, -27, 13, 0, Math.PI * 2);
+            ctx.fillStyle = '#d89b71';
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function dibujarBalonPenalty() {
+            const escala = 0.52 + (balon.y / canvas.height) * 0.75;
+            const radio = balon.radio * escala;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,.5)';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(balon.x, balon.y, radio, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            ctx.strokeStyle = '#172033';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.arc(balon.x, balon.y, radio * .36, 0, Math.PI * 2);
+            ctx.fillStyle = '#172033';
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function dibujarHudPenalty() {
+            ctx.fillStyle = 'rgba(4,12,24,.82)';
+            ctx.roundRect(20, 18, 285, 65, 15);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = '700 17px Segoe UI, sans-serif';
+            ctx.fillText(`TIRO ${Math.min(tirosPenalty + 1, 5)} / ${MAX_TIROS_PENALTY}`, 38, 45);
+            ctx.fillStyle = '#ffd60a';
+            ctx.font = '800 19px Segoe UI, sans-serif';
+            ctx.fillText(`${puntosPenalty} PTS`, 38, 70);
+            ctx.fillStyle = '#fff';
+            ctx.font = '700 15px Segoe UI, sans-serif';
+            ctx.fillText(`GOLES ${golesPenalty}`, 188, 69);
+
+            const inicio = 790;
+            for (let i = 0; i < MAX_TIROS_PENALTY; i++) {
+                ctx.beginPath();
+                ctx.arc(inicio + i * 30, 48, 10, 0, Math.PI * 2);
+                ctx.fillStyle = i < tirosPenalty ? (i < golesPenalty ? '#42f587' : '#ff4d6d') : 'rgba(255,255,255,.22)';
+                ctx.fill();
+            }
+
+            if (estadoBalon === 'esperando') {
+                ctx.setLineDash([8, 8]);
+                ctx.strokeStyle = 'rgba(255,255,255,.7)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(balon.x, balon.y - 15);
+                ctx.quadraticCurveTo((balon.x + objetivoPenalty.x) / 2, objetivoPenalty.y + 110, objetivoPenalty.x, objetivoPenalty.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.strokeStyle = '#ffd60a';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(objetivoPenalty.x, objetivoPenalty.y, 18, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(objetivoPenalty.x - 25, objetivoPenalty.y);
+                ctx.lineTo(objetivoPenalty.x + 25, objetivoPenalty.y);
+                ctx.moveTo(objetivoPenalty.x, objetivoPenalty.y - 25);
+                ctx.lineTo(objetivoPenalty.x, objetivoPenalty.y + 25);
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(4,12,24,.78)';
+                ctx.roundRect(335, 555, 280, 25, 12);
+                ctx.fill();
+                const barraW = 266 * potenciaPenalty;
+                const color = potenciaPenalty > .82 ? '#ff4d6d' : potenciaPenalty > .55 ? '#ffd60a' : '#42f587';
+                ctx.fillStyle = color;
+                ctx.roundRect(342, 562, barraW, 11, 5);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.font = '700 12px Segoe UI, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('POTENCIA', 475, 548);
+                ctx.textAlign = 'left';
+            }
+        }
+
+        function dibujarMensajesPenalty() {
+            if (tiempoMensaje > 0 && estadoBalon !== 'final') {
+                tiempoMensaje--;
+                ctx.fillStyle = 'rgba(3,10,20,.86)';
+                ctx.roundRect(300, 274, 350, 92, 18);
+                ctx.fill();
+                ctx.textAlign = 'center';
+                ctx.fillStyle = estadoBalon === 'gol' ? '#ffd60a' : '#fff';
+                ctx.font = '900 31px Segoe UI, sans-serif';
+                ctx.fillText(mensajeResultado, 475, 314);
+                ctx.fillStyle = '#cbd7e6';
+                ctx.font = '600 15px Segoe UI, sans-serif';
+                ctx.fillText(subtituloResultado, 475, 343);
+                ctx.textAlign = 'left';
+            }
+
+            if (estadoBalon === 'final') {
+                ctx.fillStyle = 'rgba(3,10,20,.9)';
+                ctx.roundRect(260, 190, 430, 235, 24);
+                ctx.fill();
+                ctx.strokeStyle = '#ffd60a';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffd60a';
+                ctx.font = '900 32px Segoe UI, sans-serif';
+                ctx.fillText(golesPenalty >= 4 ? '¡CAMPEÓN!' : golesPenalty >= 2 ? '¡BUENA TANDA!' : '¡A ENTRENAR!', 475, 245);
+                ctx.fillStyle = '#fff';
+                ctx.font = '800 24px Segoe UI, sans-serif';
+                ctx.fillText(`${golesPenalty} goles · ${puntosPenalty} puntos`, 475, 292);
+                ctx.fillStyle = '#cbd7e6';
+                ctx.font = '500 15px Segoe UI, sans-serif';
+                ctx.fillText('Cada tiro vuelve al arquero más rápido', 475, 326);
+                ctx.fillStyle = '#ffd60a';
+                ctx.roundRect(342, 354, 266, 44, 12);
+                ctx.fill();
+                ctx.fillStyle = '#102033';
+                ctx.font = '800 16px Segoe UI, sans-serif';
+                ctx.fillText('TOCÁ PARA LA REVANCHA', 475, 382);
+                ctx.textAlign = 'left';
+            }
         }
 
         function buclePenalty() {
             if (!juegoActivo || currentGame !== 'penalty') return;
-
-            // --- LÓGICA DEL JUEGO ---
-            if (estadoBalon === 'esperando') {
-                portero.patronMovimiento += 0.04;
-                portero.x = 475 + Math.sin(portero.patronMovimiento) * 85;
-            } 
-            else if (estadoBalon === 'disparando') {
-                balon.x += balon.vx;
-                balon.y += balon.vy;
-                balon.z += balon.vz;
-
-                let seMueveHaciaBalon = true;
-                if (portero.debilidadActual === 1 && balon.x < 430) seMueveHaciaBalon = false;
-                if (portero.debilidadActual === 2 && balon.x >= 430 && balon.x <= 520) seMueveHaciaBalon = false;
-                if (portero.debilidadActual === 3 && balon.x > 520) seMueveHancaBalon = false;
-                
-                if (seMueveHaciaBalon) {
-                    if (portero.x < balon.x - 30) portero.x += 5;
-                    else if (portero.x > balon.x - 30) portero.x -= 5;
-                }
-
-                let dentroDeLosPalosX = (balon.x >= 365 && balon.x <= 585);
-                let dentroDeLosPalosY = (balon.y >= 130 && balon.y <= 195);
-
-                let colisionArquero = false;
-                let esZonaDebil = false;
-                if (portero.debilidadActual === 1 && balon.x < 430) esZonaDebil = true;
-                if (portero.debilidadActual === 2 && balon.x >= 430 && balon.x <= 520) esZonaDebil = true;
-                if (portero.debilidadActual === 3 && balon.x > 520) esZonaDebil = true;
-                if (portero.debilidadActual === 4 && balon.y < 150) esZonaDebil = true;
-
-                if (!esZonaDebil) {
-                    colisionArquero = (
-                        balon.x >= portero.x - 8 &&
-                        balon.x <= portero.x + portero.w + 8 &&
-                        balon.y >= portero.y - 8 &&
-                        balon.y <= portero.y + portero.h + 8
-                    );
-                }
-
-                if (colisionArquero) {
-                    estadoBalon = 'atajado';
-                    mensajeResultado = "🧤 ¡ATAJÓ EL ARQUERO!";
-                    tiempoMensaje = 60;
-                    setTimeout(reiniciarTiroPenalty, 1200);
-                } 
-                else if (balon.y <= 195) {
-                    if (dentroDeLosPalosX && dentroDeLosPalosY) {
-                        golesPenalty++;
-                        estadoBalon = 'gol';
-                        mensajeResultado = "⚽ ¡GOLAZO! ¡Encontraste el hueco!";
-                        tiempoMensaje = 60;
-                        setTimeout(reiniciarTiroPenalty, 1200);
-                    } else {
-                        estadoBalon = 'fuera';
-                        mensajeResultado = "❌ ¡AFUERA / AL PALO!";
-                        tiempoMensaje = 60;
-                        setTimeout(reiniciarTiroPenalty, 1200);
-                    }
-                }
-            }
-
-            // --- RENDERIZADO GRÁFICO ---
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Césped
-            ctx.fillStyle = '#227722';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#1e6b1e';
-            for (let i = 0; i < canvas.height; i += 40) {
-                ctx.fillRect(0, i, canvas.width, 20);
-            }
-
-            // Área y punto penal
-            ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(300, 130, 350, 150);
-            ctx.strokeRect(390, 130, 170, 65);
-            ctx.beginPath();
-            ctx.arc(canvas.width / 2, 420, 4, 0, Math.PI * 2);
-            ctx.fillStyle = 'white';
-            ctx.fill();
-            ctx.closePath();
-
-            // Arco y red
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-            ctx.fillRect(355, 120, 240, 75);
-
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-            ctx.lineWidth = 1;
-            for (let rx = 360; rx <= 590; rx += 15) {
-                ctx.beginPath(); ctx.moveTo(rx, 130); ctx.lineTo(rx, 195); ctx.stroke();
-            }
-            for (let ry = 130; ry <= 195; ry += 12) {
-                ctx.beginPath(); ctx.moveTo(360, ry); ctx.lineTo(590, ry); ctx.stroke();
-            }
-
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 8;
-            ctx.beginPath();
-            ctx.moveTo(355, 195);
-            ctx.lineTo(355, 125);
-            ctx.lineTo(595, 125);
-            ctx.lineTo(595, 195);
-            ctx.stroke();
-            ctx.closePath();
-
-            // Arquero
-            ctx.fillStyle = '#222222';
-            ctx.fillRect(portero.x + 10, portero.y + 10, portero.w - 20, portero.h - 10);
-            
-            ctx.fillStyle = '#FF4500';
-            ctx.fillRect(portero.x, portero.y, portero.w, portero.h);
-            ctx.strokeStyle = '#CC3300';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(portero.x, portero.y, portero.w, portero.h);
-
-            ctx.beginPath();
-            ctx.arc(portero.x + portero.w / 2, portero.y - 8, 8, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffccaa';
-            ctx.fill();
-            ctx.stroke();
-            ctx.closePath();
-
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(portero.x - 6, portero.y + 4, 8, 8);
-            ctx.fillRect(portero.x + portero.w - 2, portero.y + 4, 8, 8);
-
-            // Balón
-            let escalaBalon = 1 - (balon.y / canvas.height) * 0.4;
-            let radioActual = Math.max(balon.radio * escalaBalon, 6);
-
-            ctx.beginPath();
-            ctx.arc(balon.x, balon.y, radioActual, 0, Math.PI * 2);
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fill();
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = '#111';
-            ctx.stroke();
-
-            ctx.fillStyle = '#111';
-            ctx.beginPath();
-            ctx.arc(balon.x, balon.y, radioActual * 0.35, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.closePath();
-
-            // Mensajes
-            if (tiempoMensaje > 0) {
-                tiempoMensaje--;
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-                ctx.fillRect(canvas.width / 2 - 180, canvas.height / 2 - 40, 360, 65);
-                ctx.strokeStyle = '#FFFFFF';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(canvas.width / 2 - 180, canvas.height / 2 - 40, 360, 65);
-
-                ctx.fillStyle = '#FFF';
-                ctx.font = 'bold 18px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(mensajeResultado, canvas.width / 2, canvas.height / 2);
-                ctx.textAlign = 'left';
-            }
-
-            // Marcador
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.fillRect(20, 20, 260, 50);
-            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-            ctx.strokeRect(20, 20, 260, 50);
-
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 15px sans-serif';
-            ctx.fillText(`⚽ GOLES: ${golesPenalty} / ${tirosPenalty}`, 35, 51);
-
+            actualizarPenalty();
+            dibujarEstadioPenalty();
+            dibujarPorteroPenalty();
+            particulasPenalty.forEach(p => {
+                ctx.globalAlpha = Math.max(0, p.vida / 70);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, 5, 5);
+            });
+            ctx.globalAlpha = 1;
+            dibujarBalonPenalty();
+            dibujarHudPenalty();
+            dibujarMensajesPenalty();
             idAnimacionPenalty = requestAnimationFrame(buclePenalty);
         }
     </script>
