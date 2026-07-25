@@ -772,6 +772,50 @@ h1 {
     line-height: 1.4;
 }
 
+#penalty-scoreboard {
+    width: min(620px, 100%);
+    margin: 0 auto 9px;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    color: rgba(255, 255, 255, 0.72);
+    background: rgba(4, 12, 24, 0.78);
+    border: 1px solid rgba(255, 214, 10, 0.32);
+    border-radius: 13px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+#penalty-scoreboard[hidden] {
+    display: none;
+}
+
+#penalty-scoreboard span {
+    min-height: 34px;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 9px;
+}
+
+#penalty-scoreboard strong {
+    color: #ffd60a;
+    font-size: 14px;
+}
+
+#penalty-estado {
+    grid-column: 1 / -1;
+    min-height: 25px;
+    display: grid;
+    place-items: center;
+    color: white;
+    font-style: normal;
+}
+
 .game-toolbar {
     width: min(950px, 100%);
     margin: 0 auto 9px;
@@ -1061,6 +1105,16 @@ h1 {
 
     .game-toolbar button {
         flex: 1 1 30%;
+    }
+
+    #penalty-scoreboard {
+        gap: 5px;
+    }
+
+    #penalty-scoreboard span {
+        padding-inline: 4px;
+        flex-direction: column;
+        gap: 2px;
     }
 }
 

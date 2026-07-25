@@ -12,6 +12,8 @@ instalar dependencias ni incluye funciones de venta.
 - Botones para compartir la página o copiar su enlace.
 - Seis minijuegos con dificultad, pausa, reinicio, sonido y récords guardados
   en el navegador.
+- Penalty Master con arquero activo, marcador de tiros, goles y puntos.
+- Cohete Espacial con velocidad progresiva según el tiempo sobrevivido.
 
 ## Probarla
 

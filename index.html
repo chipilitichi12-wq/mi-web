@@ -160,6 +160,12 @@
         <div class="panel-juego" style="background:rgba(255,255,255,0.1); padding:20px; border-radius:20px; border:1px solid rgba(255,255,255,0.3); text-align:center; box-shadow:0 0 30px rgba(0,0,0,0.5); width: auto;">
             <h2 id="titulo-juego-modal" style="color:white; margin-top:0; font-family:'Segoe UI', sans-serif;">Minijuego</h2>
             <p id="desc-juego-modal" style="color:#ccc; font-size:13px; margin-bottom:10px;">Diviértete un rato.</p>
+            <div id="penalty-scoreboard" hidden aria-live="polite">
+                <span>TIROS <strong id="penalty-tiros">0 / 5</strong></span>
+                <span>GOLES <strong id="penalty-goles">0</strong></span>
+                <span>PUNTOS <strong id="penalty-puntos">0</strong></span>
+                <em id="penalty-estado">Apuntá y pateá</em>
+            </div>
             <div class="game-toolbar">
                 <label>Dificultad
                     <select id="dificultad-juego" onchange="cambiarDificultad(this.value)">
@@ -209,6 +215,7 @@
 
         let dificultadActual = localStorage.getItem('rayito-dificultad') || 'normal';
         let juegoPausado = false;
+        let inicioPausaJuego = 0;
         let sonidoJuegoActivo = localStorage.getItem('rayito-sonido-juego') !== 'off';
         let contextoAudioJuego = null;
         let toastTimeout = null;
@@ -375,6 +382,7 @@
             juegoPausado = false;
             document.getElementById('pausa-overlay').hidden = true;
             document.getElementById('game-result-overlay').hidden = true;
+            document.getElementById('penalty-scoreboard').hidden = currentGame !== 'penalty';
             document.getElementById('btn-pausa').textContent = '⏸ Pausa';
             document.getElementById('btn-sonido-juego').textContent = sonidoJuegoActivo ? '🔊 Sonido' : '🔇 Sonido';
             document.getElementById('dificultad-juego').value = dificultadActual;
@@ -384,6 +392,12 @@
         function togglePausaJuego() {
             if (!currentGame || !juegoActivo) return;
             juegoPausado = !juegoPausado;
+            if (juegoPausado) {
+                inicioPausaJuego = performance.now();
+            } else if (currentGame === 'cohete' && inicioPausaJuego) {
+                inicioCohete += performance.now() - inicioPausaJuego;
+                inicioPausaJuego = 0;
+            }
             document.getElementById('pausa-overlay').hidden = !juegoPausado;
             document.getElementById('btn-pausa').textContent = juegoPausado ? '▶ Continuar' : '⏸ Pausa';
         }
@@ -516,6 +530,7 @@
                 canvas.onpointerdown = null;
             }
             document.getElementById('controles-moviles').classList.remove('is-active');
+            document.getElementById('penalty-scoreboard').hidden = true;
             document.getElementById('game-result-overlay').hidden = true;
             document.getElementById('pausa-overlay').hidden = true;
             document.getElementById('modal-juego').style.display = 'none';
@@ -853,6 +868,10 @@
         let estrellasCohete = [];
         let obstaculosCohete = [];
         let scoreCohete = 0;
+        let inicioCohete = 0;
+        let asteroidesSuperados = 0;
+        let velocidadCoheteActual = 4;
+        let multiplicadorCohete = 1;
 
         function abrirJuegoCohete() {
             if (idAnimacionCohete) { 
@@ -863,18 +882,27 @@
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Cohete Espacial";
-            document.getElementById('desc-juego-modal').innerText = "Mové el mouse o deslizá el dedo para pilotar el cohete y esquivar los asteroides.";
+            document.getElementById('desc-juego-modal').innerText = "Esquivá los asteroides: cuanto más sobrevivas, más rápido se vuelve el juego.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
             coheteY = canvas.height / 2;
             scoreCohete = 0;
+            asteroidesSuperados = 0;
+            multiplicadorCohete = 1;
+            velocidadCoheteActual = 4 * factorDificultad();
+            inicioCohete = performance.now();
             
             estrellasCohete = [];
             for (let i = 0; i < 60; i++) {
                 estrellasCohete.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2 + 1, speed: Math.random() * 2 + 1 });
             }
             
-            obstaculosCohete = [{ x: canvas.width, y: Math.random() * 400 + 100, radio: 25, speed: 4 * factorDificultad() }];
+            obstaculosCohete = [{
+                x: canvas.width,
+                y: Math.random() * 400 + 100,
+                radio: 25,
+                velocidadBase: 0.95 + Math.random() * 0.12
+            }];
 
             juegoActivo = true;
             currentGame = 'cohete';
@@ -882,19 +910,24 @@
             bucleCohete();
         }
 
-        function bucleCohete() {
+        function bucleCohete(tiempoActual = performance.now()) {
             if (!juegoActivo || currentGame !== 'cohete') return;
             if (juegoPausado) {
                 idAnimacionCohete = requestAnimationFrame(bucleCohete);
                 return;
             }
+            const segundosSobrevividos = Math.max(0, (tiempoActual - inicioCohete) / 1000);
+            multiplicadorCohete = 1 + segundosSobrevividos * 0.035;
+            velocidadCoheteActual = 4 * factorDificultad() * multiplicadorCohete;
+            scoreCohete = Math.floor(segundosSobrevividos * 3) + asteroidesSuperados * 25;
+
             ctx.fillStyle = '#050515';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = '#ffffff';
             estrellasCohete.forEach(s => {
                 ctx.fillRect(s.x, s.y, s.size, s.size);
-                s.x -= s.speed;
+                s.x -= s.speed * Math.min(multiplicadorCohete, 3);
                 if (s.x < 0) s.x = canvas.width;
             });
 
@@ -945,12 +978,18 @@
 
             let ultimoObs = obstaculosCohete[obstaculosCohete.length - 1];
             if (ultimoObs && ultimoObs.x < canvas.width - (300 / factorDificultad())) {
-                obstaculosCohete.push({ x: canvas.width, y: Math.random() * (canvas.height - 150) + 75, radio: Math.random() * 15 + 20, speed: 4.5 * factorDificultad() });
+                obstaculosCohete.push({
+                    x: canvas.width,
+                    y: Math.random() * (canvas.height - 150) + 75,
+                    radio: Math.random() * 15 + 20,
+                    velocidadBase: 0.95 + Math.random() * 0.15
+                });
             }
 
             let choque = false;
-            obstaculosCohete.forEach((obs, index) => {
-                obs.x -= obs.speed;
+            for (let index = obstaculosCohete.length - 1; index >= 0; index--) {
+                const obs = obstaculosCohete[index];
+                obs.x -= velocidadCoheteActual * obs.velocidadBase;
 
                 ctx.beginPath();
                 ctx.arc(obs.x, obs.y, obs.radio, 0, Math.PI * 2);
@@ -963,15 +1002,16 @@
 
                 if (obs.x < -50) {
                     obstaculosCohete.splice(index, 1);
-                    scoreCohete += 10;
+                    asteroidesSuperados++;
                     feedbackJuego('punto');
+                    continue;
                 }
 
                 let distancia = Math.hypot(cx - obs.x, cy - obs.y);
                 if (distancia < obs.radio + 15) {
                     choque = true;
                 }
-            });
+            }
 
             if (choque) {
                 idAnimacionCohete = null;
@@ -982,6 +1022,11 @@
             ctx.fillStyle = '#FFFFFF';
             ctx.font = 'bold 18px sans-serif';
             ctx.fillText("🚀 PUNTOS: " + scoreCohete, 25, 35);
+            ctx.fillStyle = multiplicadorCohete >= 2 ? '#ff6b35' : '#ffd60a';
+            ctx.fillText(`⚡ VELOCIDAD: x${multiplicadorCohete.toFixed(1)}`, 25, 62);
+            ctx.fillStyle = 'rgba(255,255,255,.72)';
+            ctx.font = '600 14px sans-serif';
+            ctx.fillText(`Tiempo: ${segundosSobrevividos.toFixed(1)} s`, 25, 86);
 
             idAnimacionCohete = requestAnimationFrame(bucleCohete);
         }
@@ -997,13 +1042,45 @@
         let estadoBalon = 'esperando';
         let objetivoPenalty = { x: 475, y: 170 };
         let balon = { x: 475, y: 520, radio: 13, inicioX: 475, inicioY: 520, destinoX: 475, destinoY: 170, progreso: 0, duracion: 52 };
-        let portero = { x: 475, y: 172, objetivoX: 475, inclinacion: 0, reaccion: 0, decidio: false };
         let mensajeResultado = "";
         let subtituloResultado = "";
         let tiempoMensaje = 0;
+        let resultadosPenalty = [];
         let particulasPenalty = [];
         let idAnimacionPenalty = null;
         let timeoutPenalty = null;
+        let portero = {
+            x: 475,
+            y: 172,
+            objetivoX: 475,
+            objetivoY: 172,
+            inclinacion: 0,
+            inclinacionObjetivo: 0,
+            reaccion: 0,
+            velocidad: 0.1,
+            decidio: false,
+            vaAAtajar: false
+        };
+
+        function calcularProbabilidadAtajadaPenalty(x, y, potencia, dificultad = dificultadActual) {
+            const baseDificultad = { facil: 0.16, normal: 0.3, dificil: 0.44 };
+            const centralidad = Math.max(0, 1 - Math.abs(x - 475) / 145);
+            const alturaAlcanzable = Math.max(0, 1 - Math.abs(y - 172) / 75);
+            const tiroAEsquina = Math.abs(x - 475) > 105 || y < 132;
+            const probabilidad = (baseDificultad[dificultad] || 0.3)
+                + centralidad * 0.3
+                + alturaAlcanzable * 0.08
+                - potencia * 0.14
+                - (tiroAEsquina ? 0.16 : 0);
+            return Math.max(0.08, Math.min(0.82, probabilidad));
+        }
+
+        function actualizarMarcadorPenalty(estado = 'Apuntá y pateá') {
+            document.getElementById('penalty-tiros').textContent = `${tirosPenalty} / ${MAX_TIROS_PENALTY}`;
+            document.getElementById('penalty-goles').textContent = golesPenalty;
+            document.getElementById('penalty-puntos').textContent = puntosPenalty;
+            document.getElementById('penalty-estado').textContent = estado;
+        }
 
         function abrirJuegoPenalty() {
             if (idAnimacionPenalty) cancelAnimationFrame(idAnimacionPenalty);
@@ -1012,7 +1089,7 @@
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Penalty Master ⚽";
-            document.getElementById('desc-juego-modal').innerText = "Mové la mira y tocá para patear. Elegí bien la potencia: tenés 5 tiros.";
+            document.getElementById('desc-juego-modal').innerText = "Mové la mira y tocá para patear. Al centro el arquero tiene ventaja; las esquinas dan más puntos.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
 
@@ -1020,10 +1097,12 @@
             tirosPenalty = 0;
             puntosPenalty = 0;
             rachaPenalty = 0;
+            resultadosPenalty = [];
             particulasPenalty = [];
             juegoActivo = true;
             currentGame = 'penalty';
             prepararEstadoJuego();
+            actualizarMarcadorPenalty();
             reiniciarTiroPenalty();
 
             document.getElementById('controles-moviles').classList.remove('is-active');
@@ -1065,11 +1144,25 @@
             estadoBalon = 'disparando';
             tirosPenalty++;
 
-            const dificultad = (tirosPenalty - 1) * 0.07;
-            const errorLectura = (115 - potenciaPenalty * 55 - dificultad * 80) / factorDificultad();
-            portero.objetivoX = balon.destinoX + (Math.random() - 0.5) * errorLectura;
-            portero.reaccion = Math.max(5, (18 - tirosPenalty * 1.5 - potenciaPenalty * 4) / factorDificultad());
+            const probabilidadAtajada = calcularProbabilidadAtajadaPenalty(
+                balon.destinoX,
+                balon.destinoY,
+                potenciaPenalty
+            );
+            portero.vaAAtajar = Math.random() < probabilidadAtajada;
+            if (portero.vaAAtajar) {
+                portero.objetivoX = balon.destinoX + (Math.random() - 0.5) * 18;
+                portero.objetivoY = Math.max(135, Math.min(205, balon.destinoY + 12));
+            } else {
+                const ladoEquivocado = balon.destinoX < 475 ? 1 : -1;
+                portero.objetivoX = 475 + ladoEquivocado * (75 + Math.random() * 80);
+                portero.objetivoY = 165 + (Math.random() - 0.5) * 40;
+            }
+            portero.inclinacionObjetivo = Math.max(-0.92, Math.min(0.92, (portero.objetivoX - 475) / 115));
+            portero.reaccion = Math.max(4, (16 - tirosPenalty * 0.8 - potenciaPenalty * 3) / factorDificultad());
+            portero.velocidad = (portero.vaAAtajar ? 0.12 : 0.095) * factorDificultad();
             portero.decidio = true;
+            actualizarMarcadorPenalty('¡Tiro en camino!');
         }
 
         function reiniciarTiroPenalty() {
@@ -1084,38 +1177,54 @@
             portero.x = canvas.width / 2;
             portero.y = 172;
             portero.objetivoX = portero.x;
+            portero.objetivoY = portero.y;
             portero.inclinacion = 0;
+            portero.inclinacionObjetivo = 0;
             portero.decidio = false;
+            portero.vaAAtajar = false;
             estadoBalon = 'esperando';
+            actualizarMarcadorPenalty(tirosPenalty === 0 ? 'Apuntá y pateá' : 'Prepará el próximo tiro');
         }
 
         function resolverTiroPenalty() {
             const enArco = balon.destinoX >= 335 && balon.destinoX <= 615 && balon.destinoY >= 105 && balon.destinoY <= 222;
             const distanciaArquero = Math.abs(balon.destinoX - portero.x);
-            const alcanceVertical = Math.abs(balon.destinoY - 172);
-            const atajada = enArco && distanciaArquero < (54 + (1 - potenciaPenalty) * 28) && alcanceVertical < 67;
+            const alcanceVertical = Math.abs(balon.destinoY - portero.y);
+            const atajada = enArco
+                && portero.vaAAtajar
+                && distanciaArquero < 86
+                && alcanceVertical < 90;
 
             if (!enArco) {
                 rachaPenalty = 0;
                 mensajeResultado = "¡AFUERA!";
                 subtituloResultado = balon.destinoY < 105 ? "Se fue por arriba" : "Rozó el palo";
                 estadoBalon = 'fuera';
+                resultadosPenalty.push('fuera');
+                actualizarMarcadorPenalty('Tiro afuera · +0 puntos');
                 feedbackJuego('fin');
             } else if (atajada) {
                 rachaPenalty = 0;
                 mensajeResultado = "¡ATAJÓ!";
-                subtituloResultado = "El arquero leyó tu disparo";
+                subtituloResultado = "El arquero se tiró y llegó a la pelota";
                 estadoBalon = 'atajado';
+                resultadosPenalty.push('atajado');
+                actualizarMarcadorPenalty('Atajó el arquero · +0 puntos');
                 feedbackJuego('fin');
             } else {
                 golesPenalty++;
                 rachaPenalty++;
                 const esquina = Math.abs(balon.destinoX - 475) > 105 || balon.destinoY < 135;
-                const bonus = esquina ? 250 : 100;
-                puntosPenalty += bonus + Math.round(potenciaPenalty * 100) + rachaPenalty * 50;
+                const bonusEsquina = esquina ? 150 : 0;
+                const bonusPotencia = Math.round(potenciaPenalty * 100);
+                const bonusRacha = Math.max(0, rachaPenalty - 1) * 50;
+                const puntosGanados = 100 + bonusEsquina + bonusPotencia + bonusRacha;
+                puntosPenalty += puntosGanados;
                 mensajeResultado = esquina ? "¡GOLAZO!" : "¡GOOOL!";
-                subtituloResultado = esquina ? `A la escuadra · +${bonus}` : `Racha x${rachaPenalty}`;
+                subtituloResultado = `+${puntosGanados} puntos · Total ${puntosPenalty}`;
                 estadoBalon = 'gol';
+                resultadosPenalty.push('gol');
+                actualizarMarcadorPenalty(`¡Gol! +${puntosGanados} puntos`);
                 crearParticulasPenalty(balon.destinoX, balon.destinoY);
                 feedbackJuego('gol');
             }
@@ -1126,6 +1235,7 @@
                 if (tirosPenalty >= MAX_TIROS_PENALTY) {
                     estadoBalon = 'final';
                     guardarRecord('penalty', puntosPenalty);
+                    actualizarMarcadorPenalty(`Tanda terminada: ${golesPenalty} goles y ${puntosPenalty} puntos`);
                     if (golesPenalty >= 4) feedbackJuego('record');
                 } else {
                     reiniciarTiroPenalty();
@@ -1160,8 +1270,10 @@
 
                 if (portero.decidio && balon.progreso > portero.reaccion / balon.duracion) {
                     const dx = portero.objetivoX - portero.x;
-                    portero.x += dx * (0.055 + tirosPenalty * 0.006) * factorDificultad();
-                    portero.inclinacion = Math.max(-0.8, Math.min(0.8, dx / 90));
+                    const dy = portero.objetivoY - portero.y;
+                    portero.x += dx * portero.velocidad;
+                    portero.y += dy * portero.velocidad;
+                    portero.inclinacion += (portero.inclinacionObjetivo - portero.inclinacion) * 0.14;
                 }
                 if (t >= 1) resolverTiroPenalty();
             }
@@ -1287,7 +1399,10 @@
             ctx.fill();
             ctx.fillStyle = '#fff';
             ctx.font = '700 17px Segoe UI, sans-serif';
-            ctx.fillText(`TIRO ${Math.min(tirosPenalty + 1, 5)} / ${MAX_TIROS_PENALTY}`, 38, 45);
+            const tiroMostrado = estadoBalon === 'esperando'
+                ? Math.min(tirosPenalty + 1, MAX_TIROS_PENALTY)
+                : Math.min(tirosPenalty, MAX_TIROS_PENALTY);
+            ctx.fillText(`TIRO ${tiroMostrado} / ${MAX_TIROS_PENALTY}`, 38, 45);
             ctx.fillStyle = '#ffd60a';
             ctx.font = '800 19px Segoe UI, sans-serif';
             ctx.fillText(`${puntosPenalty} PTS`, 38, 70);
@@ -1299,7 +1414,14 @@
             for (let i = 0; i < MAX_TIROS_PENALTY; i++) {
                 ctx.beginPath();
                 ctx.arc(inicio + i * 30, 48, 10, 0, Math.PI * 2);
-                ctx.fillStyle = i < tirosPenalty ? (i < golesPenalty ? '#42f587' : '#ff4d6d') : 'rgba(255,255,255,.22)';
+                const resultado = resultadosPenalty[i];
+                ctx.fillStyle = resultado === 'gol'
+                    ? '#42f587'
+                    : resultado === 'atajado'
+                        ? '#40c9ff'
+                        : resultado === 'fuera'
+                            ? '#ff4d6d'
+                            : 'rgba(255,255,255,.22)';
                 ctx.fill();
             }
 
