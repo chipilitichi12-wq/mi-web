@@ -3,54 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="El mundo de Rayito: redes, música, setup y minijuegos.">
+    <meta name="theme-color" content="#ffd700">
     <title>Rayito ⚡️</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="favicon.png">
 </head>
-<body>
+<body data-theme="rayito">
 
-    <div id="contenedor-volumen" aria-label="Control de volumen">
-        <button onclick="toggleMute()" id="btn-mute-toggle" style="background:none; border:none; cursor:pointer;" aria-label="Silenciar o activar música">
+    <div id="contenedor-volumen" role="group" aria-label="Control de volumen">
+        <button type="button" onclick="toggleMute()" id="btn-mute-toggle" style="background:none; border:none; cursor:pointer;" aria-label="Silenciar o activar música">
             <svg id="icon-sound" viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
             <svg id="icon-mute" viewBox="0 0 24 24" fill="white" width="20" height="20" style="display:none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71z"/></svg>
         </button>
         <input type="range" id="volumen-slider" min="0" max="1" step="0.1" value="1" oninput="ajustarVolumen(this.value)" aria-label="Volumen de la música">
     </div>
 
-    <div id="pantalla-entrada">
-        <div class="flechas-animadas">
-            <p>Presiona aquí</p>
-            <span>▼</span>
+    <label id="selector-tema-wrap">
+        <span aria-hidden="true">🎨</span>
+        <span class="sr-only">Tema visual</span>
+        <select id="selector-tema" onchange="cambiarTema(this.value)" aria-label="Elegir tema visual">
+            <option value="rayito">Rayito</option>
+            <option value="neon">Neón</option>
+            <option value="fuego">Fuego</option>
+            <option value="noche">Noche</option>
+        </select>
+    </label>
+
+    <div id="pantalla-entrada" aria-live="polite">
+        <div class="entrada-contenido">
+            <img src="avatar.gif" alt="" class="entrada-logo">
+            <h2 id="entrada-titulo">Cargando el mundo de Rayito</h2>
+            <div class="barra-carga" aria-hidden="true">
+                <div id="progreso-carga"></div>
+            </div>
+            <p id="texto-carga">Preparando el video, la música y los juegos…</p>
+            <div class="flechas-animadas" id="indicacion-entrada" hidden>
+                <p>Todo listo</p>
+                <span>▼</span>
+            </div>
+            <button type="button" id="btn-entrar" onclick="entrar()" disabled>Esperá un momento…</button>
         </div>
-        <button onclick="entrar()">Entrar</button>
     </div>
 
-    <video autoplay muted loop playsinline id="video-fondo">
+    <video autoplay muted loop playsinline preload="auto" poster="poster.jpg" id="video-fondo">
         <source src="fondo.mp4" type="video/mp4">
     </video>
 
     <!-- TARJETA PRINCIPAL (CENTRAL) -->
     <div class="caja-estilo">
-        <img src="avatar.jpg" alt="Perfil" class="foto-perfil">
-        <h1>Rayito ⚡️</h1>
-        <p>¡Bienvenido al sitio oficial!</p>
+        <img id="avatar-principal" src="avatar.gif" alt="Perfil de Rayito" class="foto-perfil">
+        <h1 id="nombre-perfil">Rayito ⚡️</h1>
+        <p id="texto-bienvenida">¡Bienvenido a mi mundo!</p>
         
-        <a href="https://www.tiktok.com/@el_metralletas.1" class="boton-red">TikTok <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;"></a>
-        <a href="https://www.youtube.com/@El_Metralletas" class="boton-red">Youtube <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;"></a>
-        <a href="https://open.spotify.com/user/31v4u2rovzppfwizlzg4fagw36pu?si=92824926e8974c2c" class="boton-red">Spotify <img src="https://cdn-icons-png.flaticon.com/512/174/174872.png" width="20" height="20" style="vertical-align: middle; margin-left: 8px;"></a>
+        <a id="link-tiktok" href="https://www.tiktok.com/@el_metralletas.1" class="boton-red" target="_blank" rel="noopener noreferrer">TikTok <span aria-hidden="true">♪</span></a>
+        <a id="link-youtube" href="https://www.youtube.com/@El_Metralletas" class="boton-red" target="_blank" rel="noopener noreferrer">YouTube <span aria-hidden="true">▶</span></a>
+        <a id="link-spotify" href="https://open.spotify.com/user/31v4u2rovzppfwizlzg4fagw36pu?si=92824926e8974c2c" class="boton-red" target="_blank" rel="noopener noreferrer">Spotify <span aria-hidden="true">●</span></a>
         
-        <button onclick="abrirMenuLibro()" class="boton-red" style="cursor:pointer; width:100%; border:none;">Minijuegos ⚡️</button>
+        <button type="button" onclick="abrirMenuLibro()" class="boton-red" style="cursor:pointer; width:100%; border:none;">Minijuegos ⚡️</button>
 
         <div class="contenedor-reproductor">
-            <img src="avatar.jpg" class="img-mini" alt="">
+            <img src="avatar.gif" class="img-mini" alt="">
             <div class="info-track">
-                <p style="margin: 0; font-size: 14px;">Mi Canción</p>
+                <p id="titulo-cancion" style="margin: 0; font-size: 14px;">Mi Canción</p>
                 <div class="barra-progreso" onclick="setPos(event)">
                     <div id="progreso-actual"></div>
                 </div>
                 <div class="controles">
                     <span id="tiempo-actual">0:00</span>
-                    <button onclick="togglePlay()" class="btn-audio" aria-label="Reproducir o pausar canción">
+                    <button type="button" onclick="togglePlay()" class="btn-audio" aria-label="Reproducir o pausar canción">
                         <svg id="icon-play" viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
                         <svg id="icon-pause" viewBox="0 0 24 24" fill="white" width="20" height="20" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                     </button>
@@ -59,47 +80,78 @@
             </div>
         </div>
 
-        <div class="system-monitor">
-            <h3>// SYSTEM_SPECS</h3>
-            <div class="specs-section">
-                <p><strong>CPU:</strong> AMD Ryzen 7 5700X</p>
-                <p><strong>GPU:</strong> AMD Radeon RX 7600 XT 16GB</p>
-                <p><strong>Motherboard:</strong> GA-A320M-H</p>
+        <details class="setup-desplegable">
+            <summary>
+                <span>🖥️ Mi setup</span>
+                <span class="summary-hint">Ver componentes</span>
+            </summary>
+            <div class="system-monitor">
+                <h3>// SYSTEM_SPECS</h3>
+                <div class="specs-section">
+                    <p><strong>CPU:</strong> <span id="spec-cpu">AMD Ryzen 7 5700X</span></p>
+                    <p><strong>GPU:</strong> <span id="spec-gpu">AMD Radeon RX 7600 XT 16GB</span></p>
+                    <p><strong>Motherboard:</strong> <span id="spec-motherboard">GA-A320M-H</span></p>
+                </div>
+                <div class="specs-section">
+                    <p><strong>Monitores:</strong></p>
+                    <ul id="lista-monitores">
+                        <li>Valkyrie VH2410V2 (200Hz)</li>
+                        <li>ASUS VA24E (75Hz)</li>
+                        <li>Samsung SMB1930N (60Hz)</li>
+                    </ul>
+                </div>
             </div>
-            <div class="specs-section">
-                <p><strong>Monitors:</strong></p>
-                <ul>
-                    <li>Valkyrie VH2410V2 (200Hz)</li>
-                    <li>ASUS VA24E (75Hz)</li>
-                    <li>Samsung SMB1930N (60Hz)</li>
-                </ul>
-            </div>
+        </details>
+
+        <div class="acciones-compartir">
+            <button type="button" onclick="compartirSitio()" class="boton-secundario">↗ Compartir</button>
+            <button type="button" onclick="copiarEnlace()" class="boton-secundario">⧉ Copiar enlace</button>
         </div>
 
-        <audio id="mi-musica" loop>
+        <audio id="mi-musica" loop preload="metadata">
             <source src="tu-cancion.mp3" type="audio/mpeg">
         </audio>
     </div> 
 
     <div class="caja-fecha">
-        <p>Web actualizada: 22/7/2026</p>
+        <p>Web actualizada: <span id="fecha-actualizacion">24/7/2026</span></p>
     </div>
+
+    <div id="toast" role="status" aria-live="polite"></div>
 
     <!-- VENTANA LIBRITO -->
     <div id="modal-libro" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="titulo-biblioteca">
         <div id="caja-libro">
             <h2 id="titulo-biblioteca" style="color:white; font-family:'Segoe UI', sans-serif; font-size: 18px; margin-top:0; margin-bottom: 15px;">📖 Biblioteca de Juegos</h2>
             
-            <div class="lista-juegos" style="display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; padding-right: 5px;">
-                <button class="boton-juego" onclick="abrirJuegoAgar()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;">⚡️ Mini Agar.io</button>
-                <button class="boton-juego" onclick="abrirJuegoSnake()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;">🐍 Snake (Serpiente)</button>
-                <button class="boton-juego" onclick="abrirJuegoPong()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;">🏓 Pong Retro</button>
-                <button class="boton-juego" onclick="abrirJuegoBreakout()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;">🧱 Rompeladrillos</button>
-                <button class="boton-juego" onclick="abrirJuegoCohete()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;">🚀 Cohete Espacial</button>
-                <button class="boton-juego" onclick="abrirJuegoPenalty()" style="padding: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;">⚽ Penalty Shooter</button>
+            <div class="lista-juegos">
+                <button type="button" class="boton-juego" onclick="abrirJuegoAgar()">
+                    <span class="game-art art-agar" aria-hidden="true">⚡</span>
+                    <span class="game-copy"><strong>Mini Agar.io</strong><small>Comé, crecé y rompé tu récord</small><em data-record="agar">Récord: 0</em></span>
+                </button>
+                <button type="button" class="boton-juego" onclick="abrirJuegoSnake()">
+                    <span class="game-art art-snake" aria-hidden="true">🐍</span>
+                    <span class="game-copy"><strong>Snake</strong><small>Clásico, rápido y táctil</small><em data-record="snake">Récord: 0</em></span>
+                </button>
+                <button type="button" class="boton-juego" onclick="abrirJuegoPong()">
+                    <span class="game-art art-pong" aria-hidden="true">🏓</span>
+                    <span class="game-copy"><strong>Pong Retro</strong><small>Sobreviví a cada rebote</small><em data-record="pong">Récord: 0</em></span>
+                </button>
+                <button type="button" class="boton-juego" onclick="abrirJuegoBreakout()">
+                    <span class="game-art art-breakout" aria-hidden="true">🧱</span>
+                    <span class="game-copy"><strong>Rompeladrillos</strong><small>Buscá los bloques x2 y x3</small><em data-record="breakout">Récord: 0</em></span>
+                </button>
+                <button type="button" class="boton-juego" onclick="abrirJuegoCohete()">
+                    <span class="game-art art-cohete" aria-hidden="true">🚀</span>
+                    <span class="game-copy"><strong>Cohete Espacial</strong><small>Esquivá la lluvia de asteroides</small><em data-record="cohete">Récord: 0</em></span>
+                </button>
+                <button type="button" class="boton-juego" onclick="abrirJuegoPenalty()">
+                    <span class="game-art art-penalty" aria-hidden="true">⚽</span>
+                    <span class="game-copy"><strong>Penalty Master</strong><small>Cinco tiros para ser campeón</small><em data-record="penalty">Récord: 0</em></span>
+                </button>
             </div>
 
-            <button onclick="cerrarMenuLibro()" style="margin-top: 15px; padding: 8px 20px; background: rgba(255,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 12px;">Cerrar</button>
+            <button type="button" class="boton-cerrar" onclick="cerrarMenuLibro()">Cerrar</button>
         </div>
     </div>
 
@@ -108,14 +160,41 @@
         <div class="panel-juego" style="background:rgba(255,255,255,0.1); padding:20px; border-radius:20px; border:1px solid rgba(255,255,255,0.3); text-align:center; box-shadow:0 0 30px rgba(0,0,0,0.5); width: auto;">
             <h2 id="titulo-juego-modal" style="color:white; margin-top:0; font-family:'Segoe UI', sans-serif;">Minijuego</h2>
             <p id="desc-juego-modal" style="color:#ccc; font-size:13px; margin-bottom:10px;">Diviértete un rato.</p>
-            <canvas id="areaJuego" width="950" height="600" tabindex="0" aria-label="Área interactiva del minijuego" style="border:2px solid rgba(255,255,255,0.4); border-radius:10px; background:#111; cursor:crosshair;"></canvas>
-            <div id="controles-moviles" aria-label="Controles de dirección para Snake">
-                <button class="control-serpiente control-arriba" onclick="cambiarDireccionSnake('UP')" aria-label="Mover arriba">▲</button>
-                <button class="control-serpiente control-izquierda" onclick="cambiarDireccionSnake('LEFT')" aria-label="Mover a la izquierda">◀</button>
-                <button class="control-serpiente control-abajo" onclick="cambiarDireccionSnake('DOWN')" aria-label="Mover abajo">▼</button>
-                <button class="control-serpiente control-derecha" onclick="cambiarDireccionSnake('RIGHT')" aria-label="Mover a la derecha">▶</button>
+            <div class="game-toolbar">
+                <label>Dificultad
+                    <select id="dificultad-juego" onchange="cambiarDificultad(this.value)">
+                        <option value="facil">Fácil</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="dificil">Difícil</option>
+                    </select>
+                </label>
+                <span class="record-actual">🏆 Récord <strong id="record-juego">0</strong></span>
+                <button type="button" id="btn-sonido-juego" onclick="toggleSonidoJuego()" aria-label="Activar o desactivar efectos de sonido">🔊 Sonido</button>
+                <button type="button" id="btn-pausa" onclick="togglePausaJuego()">⏸ Pausa</button>
+                <button type="button" onclick="reiniciarJuegoActual()">↻ Reiniciar</button>
             </div>
-            <button class="boton-volver" onclick="cerrarTodoJuego()" style="margin-top:15px; padding:10px 20px; background:rgba(255,0,0,0.4); color:white; border:1px solid rgba(255,255,255,0.3); border-radius:10px; cursor:pointer; font-weight:bold;">Volver al Menú</button>
+            <div class="canvas-wrap">
+                <canvas id="areaJuego" width="950" height="600" tabindex="0" aria-label="Área interactiva del minijuego" style="border:2px solid rgba(255,255,255,0.4); border-radius:10px; background:#111; cursor:crosshair;"></canvas>
+                <div id="game-result-overlay" hidden>
+                    <div class="resultado-card">
+                        <span id="resultado-icono" aria-hidden="true">🏆</span>
+                        <h3 id="resultado-titulo">¡Buen juego!</h3>
+                        <p id="resultado-texto"></p>
+                        <div class="resultado-acciones">
+                            <button type="button" onclick="reiniciarJuegoActual()">Jugar otra vez</button>
+                            <button type="button" onclick="cerrarTodoJuego()">Elegir juego</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="pausa-overlay" hidden><span>⏸</span><strong>Juego en pausa</strong></div>
+            </div>
+            <div id="controles-moviles" role="group" aria-label="Controles de dirección para Snake">
+                <button type="button" class="control-serpiente control-arriba" onclick="cambiarDireccionSnake('UP')" aria-label="Mover arriba">▲</button>
+                <button type="button" class="control-serpiente control-izquierda" onclick="cambiarDireccionSnake('LEFT')" aria-label="Mover a la izquierda">◀</button>
+                <button type="button" class="control-serpiente control-abajo" onclick="cambiarDireccionSnake('DOWN')" aria-label="Mover abajo">▼</button>
+                <button type="button" class="control-serpiente control-derecha" onclick="cambiarDireccionSnake('RIGHT')" aria-label="Mover a la derecha">▶</button>
+            </div>
+            <button type="button" class="boton-volver" onclick="cerrarTodoJuego()">Volver al Menú</button>
         </div>
     </div>
     
@@ -124,8 +203,220 @@
         const barra = document.getElementById('progreso-actual');
         const playIcon = document.getElementById('icon-play');
         const pauseIcon = document.getElementById('icon-pause');
+        const videoFondo = document.getElementById('video-fondo');
+        const CLAVE_RECORDS = 'rayito-records-v2';
+        const factoresDificultad = { facil: 0.76, normal: 1, dificil: 1.32 };
+
+        let dificultadActual = localStorage.getItem('rayito-dificultad') || 'normal';
+        let juegoPausado = false;
+        let sonidoJuegoActivo = localStorage.getItem('rayito-sonido-juego') !== 'off';
+        let contextoAudioJuego = null;
+        let toastTimeout = null;
+        let recursosCargados = new Set();
+        let cargaCompletada = false;
+        let records = {};
+
+        try {
+            records = JSON.parse(localStorage.getItem(CLAVE_RECORDS) || '{}');
+        } catch {
+            records = {};
+        }
+
+        function cambiarTema(tema, guardar = true) {
+            const temas = ['rayito', 'neon', 'fuego', 'noche'];
+            const coloresTema = {
+                rayito: '#ffd700',
+                neon: '#00f5d4',
+                fuego: '#ff6b35',
+                noche: '#8ea8ff'
+            };
+            const elegido = temas.includes(tema) ? tema : 'rayito';
+            document.body.dataset.theme = elegido;
+            document.getElementById('selector-tema').value = elegido;
+            document.querySelector('meta[name="theme-color"]').content = coloresTema[elegido];
+            if (guardar) localStorage.setItem('rayito-tema', elegido);
+        }
+
+        function mostrarToast(mensaje) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.classList.add('is-visible');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.remove('is-visible'), 2400);
+        }
+
+        async function copiarEnlace() {
+            try {
+                await navigator.clipboard.writeText(location.href);
+                mostrarToast('Enlace copiado');
+            } catch {
+                mostrarToast('Copiá la dirección desde el navegador');
+            }
+        }
+
+        async function compartirSitio() {
+            const datos = {
+                title: document.title,
+                text: 'Entrá al mundo de Rayito ⚡️',
+                url: location.href
+            };
+            if (navigator.share) {
+                try {
+                    await navigator.share(datos);
+                    return;
+                } catch (error) {
+                    if (error.name === 'AbortError') return;
+                }
+            }
+            copiarEnlace();
+        }
+
+        function actualizarCarga(nombre) {
+            recursosCargados.add(nombre);
+            const total = 4;
+            const porcentaje = Math.min(100, Math.round((recursosCargados.size / total) * 100));
+            document.getElementById('progreso-carga').style.width = `${porcentaje}%`;
+            document.getElementById('texto-carga').textContent = porcentaje < 100
+                ? `Preparando todo… ${porcentaje}%`
+                : 'Video, música y juegos listos';
+
+            if (porcentaje >= 100 && !cargaCompletada) {
+                cargaCompletada = true;
+                const boton = document.getElementById('btn-entrar');
+                boton.disabled = false;
+                boton.textContent = 'Entrar';
+                document.getElementById('indicacion-entrada').hidden = false;
+            }
+        }
+
+        function iniciarCarga() {
+            const avatar = document.getElementById('avatar-principal');
+            if (avatar.complete) actualizarCarga('avatar');
+            else avatar.addEventListener('load', () => actualizarCarga('avatar'), { once: true });
+
+            if (videoFondo.readyState >= 3) actualizarCarga('video');
+            else videoFondo.addEventListener('canplay', () => actualizarCarga('video'), { once: true });
+
+            if (audio.readyState >= 1) actualizarCarga('audio');
+            else audio.addEventListener('loadedmetadata', () => actualizarCarga('audio'), { once: true });
+
+            if (document.readyState === 'complete') actualizarCarga('pagina');
+            else window.addEventListener('load', () => actualizarCarga('pagina'), { once: true });
+
+            setTimeout(() => {
+                ['avatar', 'video', 'audio', 'pagina'].forEach(actualizarCarga);
+            }, 5500);
+        }
+
+        function actualizarRecordsUI() {
+            document.querySelectorAll('[data-record]').forEach(elemento => {
+                const juego = elemento.dataset.record;
+                elemento.textContent = `Récord: ${records[juego] || 0}`;
+            });
+            if (currentGame) {
+                document.getElementById('record-juego').textContent = records[currentGame] || 0;
+            }
+        }
+
+        function guardarRecord(juego, puntaje) {
+            const valor = Math.max(0, Math.round(puntaje || 0));
+            if (valor > (records[juego] || 0)) {
+                records[juego] = valor;
+                localStorage.setItem(CLAVE_RECORDS, JSON.stringify(records));
+                actualizarRecordsUI();
+                mostrarToast(`¡Nuevo récord: ${valor}!`);
+                feedbackJuego('record');
+                return true;
+            }
+            return false;
+        }
+
+        function factorDificultad() {
+            return factoresDificultad[dificultadActual] || 1;
+        }
+
+        function cambiarDificultad(valor) {
+            dificultadActual = factoresDificultad[valor] ? valor : 'normal';
+            localStorage.setItem('rayito-dificultad', dificultadActual);
+            if (currentGame) reiniciarJuegoActual();
+        }
+
+        function toggleSonidoJuego() {
+            sonidoJuegoActivo = !sonidoJuegoActivo;
+            localStorage.setItem('rayito-sonido-juego', sonidoJuegoActivo ? 'on' : 'off');
+            document.getElementById('btn-sonido-juego').textContent = sonidoJuegoActivo ? '🔊 Sonido' : '🔇 Sonido';
+            if (sonidoJuegoActivo) feedbackJuego('punto');
+        }
+
+        function feedbackJuego(tipo = 'punto') {
+            if (navigator.vibrate) {
+                const patrones = { punto: 20, gol: [25, 30, 45], fin: [80, 40, 100], record: [30, 25, 30, 25, 80] };
+                navigator.vibrate(patrones[tipo] || 20);
+            }
+            if (!sonidoJuegoActivo) return;
+
+            try {
+                contextoAudioJuego ??= new (window.AudioContext || window.webkitAudioContext)();
+                const oscilador = contextoAudioJuego.createOscillator();
+                const ganancia = contextoAudioJuego.createGain();
+                const frecuencias = { punto: 560, gol: 780, fin: 170, record: 980 };
+                oscilador.frequency.value = frecuencias[tipo] || 560;
+                oscilador.type = tipo === 'fin' ? 'sawtooth' : 'sine';
+                ganancia.gain.setValueAtTime(0.06, contextoAudioJuego.currentTime);
+                ganancia.gain.exponentialRampToValueAtTime(0.001, contextoAudioJuego.currentTime + 0.12);
+                oscilador.connect(ganancia);
+                ganancia.connect(contextoAudioJuego.destination);
+                oscilador.start();
+                oscilador.stop(contextoAudioJuego.currentTime + 0.12);
+            } catch {}
+        }
+
+        function prepararEstadoJuego() {
+            juegoPausado = false;
+            document.getElementById('pausa-overlay').hidden = true;
+            document.getElementById('game-result-overlay').hidden = true;
+            document.getElementById('btn-pausa').textContent = '⏸ Pausa';
+            document.getElementById('btn-sonido-juego').textContent = sonidoJuegoActivo ? '🔊 Sonido' : '🔇 Sonido';
+            document.getElementById('dificultad-juego').value = dificultadActual;
+            actualizarRecordsUI();
+        }
+
+        function togglePausaJuego() {
+            if (!currentGame || !juegoActivo) return;
+            juegoPausado = !juegoPausado;
+            document.getElementById('pausa-overlay').hidden = !juegoPausado;
+            document.getElementById('btn-pausa').textContent = juegoPausado ? '▶ Continuar' : '⏸ Pausa';
+        }
+
+        function mostrarResultado(titulo, texto, puntaje, icono = '🏆') {
+            juegoActivo = false;
+            juegoPausado = false;
+            clearInterval(intervaloSnake);
+            guardarRecord(currentGame, puntaje);
+            document.getElementById('resultado-icono').textContent = icono;
+            document.getElementById('resultado-titulo').textContent = titulo;
+            document.getElementById('resultado-texto').textContent = `${texto} · ${Math.round(puntaje || 0)} puntos`;
+            document.getElementById('game-result-overlay').hidden = false;
+            document.getElementById('pausa-overlay').hidden = true;
+            feedbackJuego(titulo.includes('GANASTE') ? 'gol' : 'fin');
+        }
+
+        function reiniciarJuegoActual() {
+            const juego = currentGame;
+            document.getElementById('game-result-overlay').hidden = true;
+            const aperturas = {
+                agar: abrirJuegoAgar,
+                snake: abrirJuegoSnake,
+                pong: abrirJuegoPong,
+                breakout: abrirJuegoBreakout,
+                cohete: abrirJuegoCohete,
+                penalty: abrirJuegoPenalty
+            };
+            if (aperturas[juego]) aperturas[juego]();
+        }
 
         function entrar() {
+            if (!cargaCompletada) return;
             document.getElementById('pantalla-entrada').style.display = 'none';
             audio.play().then(() => {
                 playIcon.style.display = 'none';
@@ -189,6 +480,7 @@
         function abrirMenuLibro() {
             const modal = document.getElementById('modal-libro');
             const caja = document.getElementById('caja-libro');
+            actualizarRecordsUI();
             modal.style.display = 'block';
             setTimeout(() => {
                 caja.classList.add('is-open');
@@ -208,8 +500,12 @@
 
         function cerrarTodoJuego() {
             juegoActivo = false;
+            juegoPausado = false;
             currentGame = null;
             clearInterval(intervaloSnake);
+            if (idAnimacionAgar) { cancelAnimationFrame(idAnimacionAgar); idAnimacionAgar = null; }
+            if (idAnimacionPong) { cancelAnimationFrame(idAnimacionPong); idAnimacionPong = null; }
+            if (idAnimacionBreakout) { cancelAnimationFrame(idAnimacionBreakout); idAnimacionBreakout = null; }
             if (idAnimacionCohete) { cancelAnimationFrame(idAnimacionCohete); idAnimacionCohete = null; }
             if (idAnimacionPenalty) { cancelAnimationFrame(idAnimacionPenalty); idAnimacionPenalty = null; }
             if (timeoutPenalty) { clearTimeout(timeoutPenalty); timeoutPenalty = null; }
@@ -220,6 +516,8 @@
                 canvas.onpointerdown = null;
             }
             document.getElementById('controles-moviles').classList.remove('is-active');
+            document.getElementById('game-result-overlay').hidden = true;
+            document.getElementById('pausa-overlay').hidden = true;
             document.getElementById('modal-juego').style.display = 'none';
             abrirMenuLibro();
         }
@@ -255,6 +553,7 @@
 
         function configurarControlesJuego() {
             const controles = document.getElementById('controles-moviles');
+            prepararEstadoJuego();
             controles.classList.toggle('is-active', currentGame === 'snake');
             canvas.onpointermove = manejarPunteroJuego;
             canvas.onpointerdown = event => {
@@ -267,8 +566,12 @@
         // ================= 1. AGAR.IO =================
         let jugadorAgar = { x: 350, y: 250, radio: 15, color: '#FFD700', velocidad: 3.5 };
         let comidasAgar = [];
+        let scoreAgar = 0;
+        let metaAgar = 35;
+        let idAnimacionAgar = null;
 
         function abrirJuegoAgar() {
+            if (idAnimacionAgar) cancelAnimationFrame(idAnimacionAgar);
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Mini Agar.io";
@@ -278,8 +581,10 @@
             jugadorAgar.x = canvas.width / 2;
             jugadorAgar.y = canvas.height / 2;
             jugadorAgar.radio = 15;
+            scoreAgar = 0;
+            metaAgar = dificultadActual === 'facil' ? 25 : dificultadActual === 'dificil' ? 50 : 35;
             comidasAgar = [];
-            for (let i = 0; i < 50; i++) agregarComidaAgar();
+            for (let i = 0; i < Math.round(45 * factorDificultad()); i++) agregarComidaAgar();
             juegoActivo = true;
             currentGame = 'agar';
             configurarControlesJuego();
@@ -290,18 +595,30 @@
         }
         function bucleAgar() {
             if (!juegoActivo || currentGame !== 'agar') return;
+            if (juegoPausado) {
+                idAnimacionAgar = requestAnimationFrame(bucleAgar);
+                return;
+            }
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             for (let i = comidasAgar.length - 1; i >= 0; i--) {
                 let c = comidasAgar[i];
                 if (Math.hypot(jugadorAgar.x - c.x, jugadorAgar.y - c.y) < jugadorAgar.radio + c.radio) {
                     comidasAgar.splice(i, 1);
                     jugadorAgar.radio += 0.15;
+                    scoreAgar++;
+                    feedbackJuego('punto');
                     agregarComidaAgar();
                 }
                 ctx.beginPath(); ctx.arc(c.x, c.y, c.radio, 0, Math.PI * 2); ctx.fillStyle = c.color; ctx.fill(); ctx.closePath();
             }
             ctx.beginPath(); ctx.arc(jugadorAgar.x, jugadorAgar.y, jugadorAgar.radio, 0, Math.PI * 2); ctx.fillStyle = jugadorAgar.color; ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 15; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.stroke(); ctx.shadowBlur = 0; ctx.closePath();
-            requestAnimationFrame(bucleAgar);
+            ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.roundRect(18, 16, 220, 42, 12); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = '700 17px sans-serif'; ctx.fillText(`Puntos: ${scoreAgar} / ${metaAgar}`, 32, 43);
+            if (scoreAgar >= metaAgar) {
+                mostrarResultado('¡CÉLULA GIGANTE!', 'Completaste el desafío de crecimiento', scoreAgar, '⚡');
+                return;
+            }
+            idAnimacionAgar = requestAnimationFrame(bucleAgar);
         }
 
         // ================= 2. SNAKE =================
@@ -324,8 +641,8 @@
             currentGame = 'snake';
             
             clearInterval(intervaloSnake);
-            intervaloSnake = setInterval(bucleSnake, 100);
             configurarControlesJuego();
+            intervaloSnake = setInterval(bucleSnake, Math.round(105 / factorDificultad()));
         }
 
         function cambiarDireccionSnake(nuevaDireccion) {
@@ -342,6 +659,7 @@
 
         function bucleSnake() {
             if (!juegoActivo || currentGame !== 'snake') return;
+            if (juegoPausado) return;
             let cabeza = { ...snake[0] };
             if (dirSnake === 'RIGHT') cabeza.x++;
             if (dirSnake === 'LEFT') cabeza.x--;
@@ -352,14 +670,14 @@
             const rows = canvas.height / tileSize;
 
             if (cabeza.x < 0 || cabeza.x >= cols || cabeza.y < 0 || cabeza.y >= rows || snake.some(s => s.x === cabeza.x && s.y === cabeza.y)) {
-                alert("¡Juego terminado! Puntuación: " + scoreSnake);
-                abrirJuegoSnake();
+                mostrarResultado('GAME OVER', 'La serpiente chocó', scoreSnake, '🐍');
                 return;
             }
 
             snake.unshift(cabeza);
             if (cabeza.x === comidaSnake.x && cabeza.y === comidaSnake.y) {
                 scoreSnake += 10;
+                feedbackJuego('punto');
                 generarComidaSnake();
             } else {
                 snake.pop();
@@ -374,14 +692,20 @@
 
         // ================= 3. PONG RETRO =================
         let yPala1 = 250, yPala2 = 250, bolaPong = {x: 475, y: 300, dx: 4, dy: 4, radio: 8};
+        let scorePong = 0;
+        let idAnimacionPong = null;
         function abrirJuegoPong() {
+            if (idAnimacionPong) cancelAnimationFrame(idAnimacionPong);
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Pong Retro";
             document.getElementById('desc-juego-modal').innerText = "Mové el mouse o deslizá el dedo arriba y abajo para rebotar la pelota.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
-            bolaPong = {x: 475, y: 300, dx: 5, dy: 3, radio: 8};
+            const velocidad = factorDificultad();
+            bolaPong = {x: 475, y: 300, dx: 5 * velocidad, dy: 3 * velocidad, radio: 8};
+            yPala1 = yPala2 = 250;
+            scorePong = 0;
             juegoActivo = true;
             currentGame = 'pong';
             configurarControlesJuego();
@@ -389,28 +713,50 @@
         }
         function buclePong() {
             if (!juegoActivo || currentGame !== 'pong') return;
+            if (juegoPausado) {
+                idAnimacionPong = requestAnimationFrame(buclePong);
+                return;
+            }
             bolaPong.x += bolaPong.dx;
             bolaPong.y += bolaPong.dy;
             if (bolaPong.y < 0 || bolaPong.y > canvas.height) bolaPong.dy *= -1;
-            if (yPala2 + 40 < bolaPong.y) yPala2 += 3; else yPala2 -= 3;
+            const velocidadIA = 2.6 * factorDificultad();
+            if (yPala2 + 40 < bolaPong.y) yPala2 += velocidadIA; else yPala2 -= velocidadIA;
 
-            if (bolaPong.x <= 30 && bolaPong.y >= yPala1 && bolaPong.y <= yPala1 + 80) bolaPong.dx *= -1;
+            if (bolaPong.x <= 30 && bolaPong.y >= yPala1 && bolaPong.y <= yPala1 + 80) {
+                bolaPong.dx = Math.abs(bolaPong.dx) * 1.015;
+                scorePong++;
+                feedbackJuego('punto');
+            }
             if (bolaPong.x >= canvas.width - 30 && bolaPong.y >= yPala2 && bolaPong.y <= yPala2 + 80) bolaPong.dx *= -1;
-            if (bolaPong.x < 0 || bolaPong.x > canvas.width) { bolaPong.x = canvas.width / 2; bolaPong.y = canvas.height / 2; }
+            if (bolaPong.x < 0) {
+                mostrarResultado('GAME OVER', 'La pelota pasó tu defensa', scorePong, '🏓');
+                return;
+            }
+            if (bolaPong.x > canvas.width) {
+                scorePong += 5;
+                feedbackJuego('gol');
+                bolaPong.x = canvas.width / 2;
+                bolaPong.y = canvas.height / 2;
+                bolaPong.dx = -Math.abs(bolaPong.dx);
+            }
 
             ctx.fillStyle = '#111'; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#fff';
             ctx.fillRect(20, yPala1, 10, 80);
             ctx.fillRect(canvas.width - 30, yPala2, 10, 80);
             ctx.beginPath(); ctx.arc(bolaPong.x, bolaPong.y, bolaPong.radio, 0, Math.PI * 2); ctx.fill(); ctx.closePath();
-            requestAnimationFrame(buclePong);
+            ctx.font = '700 18px sans-serif'; ctx.fillText(`Rebotes: ${scorePong}`, 20, 30);
+            idAnimacionPong = requestAnimationFrame(buclePong);
         }
 
         // ================= 4. ROMPELADRILLOS =================
         let xPaleta = 400, pelotasBreakout = [], ladrillosBreakout = [];
         let scoreBreakout = 0;
+        let idAnimacionBreakout = null;
 
         function abrirJuegoBreakout() {
+            if (idAnimacionBreakout) cancelAnimationFrame(idAnimacionBreakout);
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
             document.getElementById('titulo-juego-modal').innerText = "Rompeladrillos";
@@ -419,7 +765,8 @@
             ctx = canvas.getContext('2d');
             xPaleta = canvas.width / 2 - 50;
             scoreBreakout = 0;
-            pelotasBreakout = [{ x: canvas.width / 2, y: 300, dx: 3, dy: -3, radio: 8 }];
+            const velocidad = factorDificultad();
+            pelotasBreakout = [{ x: canvas.width / 2, y: 300, dx: 3 * velocidad, dy: -3 * velocidad, radio: 8 }];
             ladrillosBreakout = [];
             for (let c = 0; c < 8; c++) {
                 for (let r = 0; r < 4; r++) {
@@ -438,6 +785,10 @@
 
         function bucleBreakout() {
             if (!juegoActivo || currentGame !== 'breakout') return;
+            if (juegoPausado) {
+                idAnimacionBreakout = requestAnimationFrame(bucleBreakout);
+                return;
+            }
             ctx.fillStyle = '#111'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             for (let i = pelotasBreakout.length - 1; i >= 0; i--) {
@@ -453,14 +804,16 @@
 
                 ladrillosBreakout.forEach(l => {
                     if (l.estado === 1 && p.x > l.x && p.x < l.x + l.w && p.y > l.y && p.y < l.y + l.h) {
+                        const velocidad = factorDificultad();
                         p.dy *= -1; l.estado = 0; scoreBreakout += 10;
+                        feedbackJuego('punto');
                         if (l.tipo === 2) {
-                            pelotasBreakout.push({ x: l.x, y: l.y, dx: -2.5, dy: -3, radio: 8 });
-                            pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 2.5, dy: -3, radio: 8 });
+                            pelotasBreakout.push({ x: l.x, y: l.y, dx: -2.5 * velocidad, dy: -3 * velocidad, radio: 8 });
+                            pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 2.5 * velocidad, dy: -3 * velocidad, radio: 8 });
                         } else if (l.tipo === 3) {
-                            pelotasBreakout.push({ x: l.x, y: l.y, dx: -3, dy: -3, radio: 8 });
-                            pelotasBreakout.push({ x: l.x + (l.w / 2), y: l.y, dx: 0, dy: -3.5, radio: 8 });
-                            pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 3, dy: -3, radio: 8 });
+                            pelotasBreakout.push({ x: l.x, y: l.y, dx: -3 * velocidad, dy: -3 * velocidad, radio: 8 });
+                            pelotasBreakout.push({ x: l.x + (l.w / 2), y: l.y, dx: 0, dy: -3.5 * velocidad, radio: 8 });
+                            pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 3 * velocidad, dy: -3 * velocidad, radio: 8 });
                         }
                     }
                 });
@@ -468,10 +821,12 @@
 
             let totalVivos = ladrillosBreakout.filter(l => l.estado === 1).length;
             if (ladrillosBreakout.length > 0 && totalVivos === 0) {
-                alert("🏆 ¡GANASTE! Puntos: " + scoreBreakout); abrirJuegoBreakout(); return;
+                mostrarResultado('¡GANASTE!', 'Rompiste todos los ladrillos', scoreBreakout, '🏆');
+                return;
             }
             if (pelotasBreakout.length === 0) {
-                alert("❌ Game Over. Puntos: " + scoreBreakout); abrirJuegoBreakout(); return;
+                mostrarResultado('GAME OVER', 'Te quedaste sin pelotas', scoreBreakout, '🧱');
+                return;
             }
 
             ladrillosBreakout.forEach(l => {
@@ -489,7 +844,7 @@
                 ctx.beginPath(); ctx.arc(p.x, p.y, p.radio, 0, Math.PI * 2); ctx.fillStyle = '#FF5733'; ctx.fill(); ctx.closePath();
             });
             ctx.fillStyle = '#fff'; ctx.font = '16px sans-serif'; ctx.fillText("Puntos: " + scoreBreakout + " | Pelotas: " + pelotasBreakout.length, 20, 30);
-            requestAnimationFrame(bucleBreakout);
+            idAnimacionBreakout = requestAnimationFrame(bucleBreakout);
         }
 
         // ================= 5. COHETE ESPACIAL =================
@@ -519,7 +874,7 @@
                 estrellasCohete.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2 + 1, speed: Math.random() * 2 + 1 });
             }
             
-            obstaculosCohete = [{ x: canvas.width, y: Math.random() * 400 + 100, radio: 25, speed: 4 }];
+            obstaculosCohete = [{ x: canvas.width, y: Math.random() * 400 + 100, radio: 25, speed: 4 * factorDificultad() }];
 
             juegoActivo = true;
             currentGame = 'cohete';
@@ -529,6 +884,10 @@
 
         function bucleCohete() {
             if (!juegoActivo || currentGame !== 'cohete') return;
+            if (juegoPausado) {
+                idAnimacionCohete = requestAnimationFrame(bucleCohete);
+                return;
+            }
             ctx.fillStyle = '#050515';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -585,10 +944,11 @@
             ctx.restore();
 
             let ultimoObs = obstaculosCohete[obstaculosCohete.length - 1];
-            if (ultimoObs && ultimoObs.x < canvas.width - 300) {
-                obstaculosCohete.push({ x: canvas.width, y: Math.random() * (canvas.height - 150) + 75, radio: Math.random() * 15 + 20, speed: 4.5 });
+            if (ultimoObs && ultimoObs.x < canvas.width - (300 / factorDificultad())) {
+                obstaculosCohete.push({ x: canvas.width, y: Math.random() * (canvas.height - 150) + 75, radio: Math.random() * 15 + 20, speed: 4.5 * factorDificultad() });
             }
 
+            let choque = false;
             obstaculosCohete.forEach((obs, index) => {
                 obs.x -= obs.speed;
 
@@ -604,18 +964,20 @@
                 if (obs.x < -50) {
                     obstaculosCohete.splice(index, 1);
                     scoreCohete += 10;
+                    feedbackJuego('punto');
                 }
 
                 let distancia = Math.hypot(cx - obs.x, cy - obs.y);
                 if (distancia < obs.radio + 15) {
-                    juegoActivo = false;
-                    cancelAnimationFrame(idAnimacionCohete);
-                    idAnimacionCohete = null;
-                    alert("💥 ¡Asteroide impactado! Game Over.\nPuntos: " + scoreCohete);
-                    abrirJuegoCohete();
-                    return;
+                    choque = true;
                 }
             });
+
+            if (choque) {
+                idAnimacionCohete = null;
+                mostrarResultado('¡IMPACTO!', 'Un asteroide alcanzó el cohete', scoreCohete, '💥');
+                return;
+            }
 
             ctx.fillStyle = '#FFFFFF';
             ctx.font = 'bold 18px sans-serif';
@@ -661,6 +1023,7 @@
             particulasPenalty = [];
             juegoActivo = true;
             currentGame = 'penalty';
+            prepararEstadoJuego();
             reiniciarTiroPenalty();
 
             document.getElementById('controles-moviles').classList.remove('is-active');
@@ -676,14 +1039,16 @@
         }
 
         function apuntarPenalty(e) {
-            if (!juegoActivo || currentGame !== 'penalty' || estadoBalon !== 'esperando') return;
+            if (!juegoActivo || juegoPausado || currentGame !== 'penalty' || estadoBalon !== 'esperando') return;
+            e.preventDefault();
             const p = posicionCanvasPenalty(e);
             objetivoPenalty.x = Math.max(320, Math.min(630, p.x));
             objetivoPenalty.y = Math.max(105, Math.min(255, p.y));
         }
 
         function patearPenalty(e) {
-            if (!juegoActivo || currentGame !== 'penalty') return;
+            if (!juegoActivo || juegoPausado || currentGame !== 'penalty') return;
+            e.preventDefault();
             if (estadoBalon === 'final') {
                 abrirJuegoPenalty();
                 return;
@@ -701,9 +1066,9 @@
             tirosPenalty++;
 
             const dificultad = (tirosPenalty - 1) * 0.07;
-            const errorLectura = 115 - potenciaPenalty * 55 - dificultad * 80;
+            const errorLectura = (115 - potenciaPenalty * 55 - dificultad * 80) / factorDificultad();
             portero.objetivoX = balon.destinoX + (Math.random() - 0.5) * errorLectura;
-            portero.reaccion = Math.max(7, 18 - tirosPenalty * 1.5 - potenciaPenalty * 4);
+            portero.reaccion = Math.max(5, (18 - tirosPenalty * 1.5 - potenciaPenalty * 4) / factorDificultad());
             portero.decidio = true;
         }
 
@@ -735,11 +1100,13 @@
                 mensajeResultado = "¡AFUERA!";
                 subtituloResultado = balon.destinoY < 105 ? "Se fue por arriba" : "Rozó el palo";
                 estadoBalon = 'fuera';
+                feedbackJuego('fin');
             } else if (atajada) {
                 rachaPenalty = 0;
                 mensajeResultado = "¡ATAJÓ!";
                 subtituloResultado = "El arquero leyó tu disparo";
                 estadoBalon = 'atajado';
+                feedbackJuego('fin');
             } else {
                 golesPenalty++;
                 rachaPenalty++;
@@ -750,13 +1117,19 @@
                 subtituloResultado = esquina ? `A la escuadra · +${bonus}` : `Racha x${rachaPenalty}`;
                 estadoBalon = 'gol';
                 crearParticulasPenalty(balon.destinoX, balon.destinoY);
+                feedbackJuego('gol');
             }
 
             tiempoMensaje = 80;
             timeoutPenalty = setTimeout(() => {
                 if (!juegoActivo || currentGame !== 'penalty') return;
-                if (tirosPenalty >= MAX_TIROS_PENALTY) estadoBalon = 'final';
-                else reiniciarTiroPenalty();
+                if (tirosPenalty >= MAX_TIROS_PENALTY) {
+                    estadoBalon = 'final';
+                    guardarRecord('penalty', puntosPenalty);
+                    if (golesPenalty >= 4) feedbackJuego('record');
+                } else {
+                    reiniciarTiroPenalty();
+                }
             }, 1350);
         }
 
@@ -775,7 +1148,7 @@
 
         function actualizarPenalty() {
             if (estadoBalon === 'esperando') {
-                potenciaPenalty += 0.012 * direccionPotencia;
+                potenciaPenalty += 0.012 * factorDificultad() * direccionPotencia;
                 if (potenciaPenalty >= 1 || potenciaPenalty <= 0.2) direccionPotencia *= -1;
                 portero.x = 475 + Math.sin(performance.now() / 520) * 28;
             } else if (estadoBalon === 'disparando') {
@@ -787,7 +1160,7 @@
 
                 if (portero.decidio && balon.progreso > portero.reaccion / balon.duracion) {
                     const dx = portero.objetivoX - portero.x;
-                    portero.x += dx * (0.055 + tirosPenalty * 0.006);
+                    portero.x += dx * (0.055 + tirosPenalty * 0.006) * factorDificultad();
                     portero.inclinacion = Math.max(-0.8, Math.min(0.8, dx / 90));
                 }
                 if (t >= 1) resolverTiroPenalty();
@@ -1012,6 +1385,10 @@
 
         function buclePenalty() {
             if (!juegoActivo || currentGame !== 'penalty') return;
+            if (juegoPausado) {
+                idAnimacionPenalty = requestAnimationFrame(buclePenalty);
+                return;
+            }
             actualizarPenalty();
             dibujarEstadioPenalty();
             dibujarPorteroPenalty();
@@ -1027,6 +1404,17 @@
             idAnimacionPenalty = requestAnimationFrame(buclePenalty);
         }
 
+        cambiarTema(localStorage.getItem('rayito-tema') || 'rayito', false);
+        document.getElementById('dificultad-juego').value = dificultadActual;
+        actualizarRecordsUI();
+        iniciarCarga();
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && currentGame && juegoActivo && !juegoPausado) {
+                togglePausaJuego();
+            }
+        });
+
         document.addEventListener('keydown', event => {
             const direcciones = {
                 ArrowUp: 'UP',
@@ -1038,6 +1426,16 @@
             if (currentGame === 'snake' && direcciones[event.key]) {
                 event.preventDefault();
                 cambiarDireccionSnake(direcciones[event.key]);
+            }
+
+            if (currentGame && event.key.toLowerCase() === 'p') {
+                event.preventDefault();
+                togglePausaJuego();
+            }
+
+            if (currentGame && event.key.toLowerCase() === 'r') {
+                event.preventDefault();
+                reiniciarJuegoActual();
             }
 
             if (event.key === 'Escape') {
