@@ -677,8 +677,17 @@ h1 {
     box-shadow: inset 0 0 25px rgba(255, 255, 255, 0.08);
 }
 
-.art-agar {
-    background: radial-gradient(circle at 25% 25%, #ffe66d 0 5%, transparent 6%), radial-gradient(circle at 70% 60%, #4cc9f0 0 7%, transparent 8%), #321f4d;
+.art-survivor {
+    position: relative;
+    color: #101326;
+    background:
+        radial-gradient(circle at 50% 50%, #fff4a3 0 15%, #ffd60a 16% 27%, transparent 28%),
+        radial-gradient(circle at 20% 30%, #ff4d8d 0 7%, transparent 8%),
+        radial-gradient(circle at 78% 72%, #6c5cff 0 9%, transparent 10%),
+        linear-gradient(145deg, #151a45, #07091a);
+    box-shadow:
+        inset 0 0 28px rgba(124, 98, 255, 0.3),
+        0 0 20px rgba(255, 214, 10, 0.12);
 }
 
 .art-snake {
@@ -882,6 +891,7 @@ h1 {
     -webkit-user-select: none;
 }
 
+#survivor-upgrade-overlay,
 #game-result-overlay,
 #pausa-overlay {
     position: absolute;
@@ -896,9 +906,85 @@ h1 {
     -webkit-backdrop-filter: blur(7px);
 }
 
+#survivor-upgrade-overlay[hidden],
 #game-result-overlay[hidden],
 #pausa-overlay[hidden] {
     display: none;
+}
+
+#survivor-upgrade-overlay {
+    z-index: 6;
+    background:
+        radial-gradient(circle at 50% 20%, rgba(108, 92, 255, 0.3), transparent 45%),
+        rgba(3, 6, 20, 0.86);
+}
+
+.survivor-upgrade-card {
+    width: min(720px, 100%);
+    padding: clamp(18px, 4vw, 32px);
+    color: white;
+    background: linear-gradient(145deg, rgba(20, 26, 68, 0.96), rgba(7, 10, 29, 0.96));
+    border: 1px solid rgba(143, 127, 255, 0.5);
+    border-radius: 26px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5), 0 0 45px rgba(108, 92, 255, 0.18);
+}
+
+.upgrade-kicker {
+    color: #ffd60a;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+}
+
+.survivor-upgrade-card h3 {
+    margin: 7px 0 4px;
+    font-size: clamp(24px, 6vw, 34px);
+}
+
+.survivor-upgrade-card > p {
+    margin: 0 0 18px;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 13px;
+}
+
+#survivor-upgrade-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.survivor-upgrade-option {
+    min-height: 150px;
+    padding: 16px 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    color: white;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.12), transparent 50%),
+        rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 19px;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.survivor-upgrade-option span {
+    font-size: 34px;
+    filter: drop-shadow(0 0 12px rgba(255, 214, 10, 0.3));
+}
+
+.survivor-upgrade-option strong {
+    color: #fff3a5;
+    font-size: 14px;
+}
+
+.survivor-upgrade-option small {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 11px;
+    line-height: 1.35;
 }
 
 .resultado-card {
@@ -1026,7 +1112,8 @@ h1 {
 
     .boton-juego:hover,
     .boton-secundario:hover,
-    .game-toolbar button:hover {
+    .game-toolbar button:hover,
+    .survivor-upgrade-option:hover {
         background: rgba(255, 255, 255, 0.18);
         border-color: rgba(var(--acento-rgb), 0.55);
         transform: translateY(-1px);
@@ -1115,6 +1202,28 @@ h1 {
         padding-inline: 4px;
         flex-direction: column;
         gap: 2px;
+    }
+
+    #survivor-upgrade-options {
+        grid-template-columns: 1fr;
+        max-height: min(390px, 60dvh);
+        overflow-y: auto;
+    }
+
+    .survivor-upgrade-card {
+        padding: 16px;
+    }
+
+    .survivor-upgrade-option {
+        min-height: 92px;
+        display: grid;
+        grid-template-columns: 44px 1fr;
+        grid-template-rows: auto auto;
+        text-align: left;
+    }
+
+    .survivor-upgrade-option span {
+        grid-row: 1 / 3;
     }
 }
 

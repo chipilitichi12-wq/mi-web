@@ -125,9 +125,9 @@
             <h2 id="titulo-biblioteca" style="color:white; font-family:'Segoe UI', sans-serif; font-size: 18px; margin-top:0; margin-bottom: 15px;">📖 Biblioteca de Juegos</h2>
             
             <div class="lista-juegos">
-                <button type="button" class="boton-juego" onclick="abrirJuegoAgar()">
-                    <span class="game-art art-agar" aria-hidden="true">⚡</span>
-                    <span class="game-copy"><strong>Mini Agar.io</strong><small>Comé, crecé y rompé tu récord</small><em data-record="agar">Récord: 0</em></span>
+                <button type="button" class="boton-juego" onclick="abrirJuegoSurvivor()">
+                    <span class="game-art art-survivor" aria-hidden="true">⚡</span>
+                    <span class="game-copy"><strong>Arena Survivor</strong><small>Oleadas, mejoras y jefes</small><em data-record="survivor">Récord: 0</em></span>
                 </button>
                 <button type="button" class="boton-juego" onclick="abrirJuegoSnake()">
                     <span class="game-art art-snake" aria-hidden="true">🐍</span>
@@ -181,6 +181,14 @@
             </div>
             <div class="canvas-wrap">
                 <canvas id="areaJuego" width="950" height="600" tabindex="0" aria-label="Área interactiva del minijuego" style="border:2px solid rgba(255,255,255,0.4); border-radius:10px; background:#111; cursor:crosshair;"></canvas>
+                <div id="survivor-upgrade-overlay" hidden>
+                    <div class="survivor-upgrade-card">
+                        <span class="upgrade-kicker">NIVEL SUPERADO</span>
+                        <h3 id="survivor-upgrade-title">Elegí una mejora</h3>
+                        <p>La partida continúa cuando selecciones una carta.</p>
+                        <div id="survivor-upgrade-options"></div>
+                    </div>
+                </div>
                 <div id="game-result-overlay" hidden>
                     <div class="resultado-card">
                         <span id="resultado-icono" aria-hidden="true">🏆</span>
@@ -382,6 +390,7 @@
             juegoPausado = false;
             document.getElementById('pausa-overlay').hidden = true;
             document.getElementById('game-result-overlay').hidden = true;
+            document.getElementById('survivor-upgrade-overlay').hidden = true;
             document.getElementById('penalty-scoreboard').hidden = currentGame !== 'penalty';
             document.getElementById('btn-pausa').textContent = '⏸ Pausa';
             document.getElementById('btn-sonido-juego').textContent = sonidoJuegoActivo ? '🔊 Sonido' : '🔇 Sonido';
@@ -391,11 +400,19 @@
 
         function togglePausaJuego() {
             if (!currentGame || !juegoActivo) return;
+            if (currentGame === 'survivor' && survivorSeleccionandoMejora) return;
             juegoPausado = !juegoPausado;
             if (juegoPausado) {
                 inicioPausaJuego = performance.now();
             } else if (currentGame === 'cohete' && inicioPausaJuego) {
                 inicioCohete += performance.now() - inicioPausaJuego;
+                inicioPausaJuego = 0;
+            } else if (currentGame === 'survivor' && inicioPausaJuego) {
+                const pausa = performance.now() - inicioPausaJuego;
+                inicioSurvivor += pausa;
+                ultimoSpawnSurvivor += pausa;
+                ultimoDisparoSurvivor += pausa;
+                ultimoTiempoSurvivor = performance.now();
                 inicioPausaJuego = 0;
             }
             document.getElementById('pausa-overlay').hidden = !juegoPausado;
@@ -411,6 +428,7 @@
             document.getElementById('resultado-titulo').textContent = titulo;
             document.getElementById('resultado-texto').textContent = `${texto} · ${Math.round(puntaje || 0)} puntos`;
             document.getElementById('game-result-overlay').hidden = false;
+            document.getElementById('survivor-upgrade-overlay').hidden = true;
             document.getElementById('pausa-overlay').hidden = true;
             feedbackJuego(titulo.includes('GANASTE') ? 'gol' : 'fin');
         }
@@ -419,7 +437,7 @@
             const juego = currentGame;
             document.getElementById('game-result-overlay').hidden = true;
             const aperturas = {
-                agar: abrirJuegoAgar,
+                survivor: abrirJuegoSurvivor,
                 snake: abrirJuegoSnake,
                 pong: abrirJuegoPong,
                 breakout: abrirJuegoBreakout,
@@ -517,7 +535,7 @@
             juegoPausado = false;
             currentGame = null;
             clearInterval(intervaloSnake);
-            if (idAnimacionAgar) { cancelAnimationFrame(idAnimacionAgar); idAnimacionAgar = null; }
+            if (idAnimacionSurvivor) { cancelAnimationFrame(idAnimacionSurvivor); idAnimacionSurvivor = null; }
             if (idAnimacionPong) { cancelAnimationFrame(idAnimacionPong); idAnimacionPong = null; }
             if (idAnimacionBreakout) { cancelAnimationFrame(idAnimacionBreakout); idAnimacionBreakout = null; }
             if (idAnimacionCohete) { cancelAnimationFrame(idAnimacionCohete); idAnimacionCohete = null; }
@@ -531,6 +549,7 @@
             }
             document.getElementById('controles-moviles').classList.remove('is-active');
             document.getElementById('penalty-scoreboard').hidden = true;
+            document.getElementById('survivor-upgrade-overlay').hidden = true;
             document.getElementById('game-result-overlay').hidden = true;
             document.getElementById('pausa-overlay').hidden = true;
             document.getElementById('modal-juego').style.display = 'none';
@@ -554,9 +573,9 @@
             event.preventDefault();
             const p = posicionEnCanvas(event);
 
-            if (currentGame === 'agar') {
-                jugadorAgar.x = Math.max(jugadorAgar.radio, Math.min(canvas.width - jugadorAgar.radio, p.x));
-                jugadorAgar.y = Math.max(jugadorAgar.radio, Math.min(canvas.height - jugadorAgar.radio, p.y));
+            if (currentGame === 'survivor') {
+                objetivoSurvivor.x = Math.max(26, Math.min(canvas.width - 26, p.x));
+                objetivoSurvivor.y = Math.max(26, Math.min(canvas.height - 26, p.y));
             } else if (currentGame === 'pong') {
                 yPala1 = Math.max(0, Math.min(canvas.height - 80, p.y - 40));
             } else if (currentGame === 'breakout') {
@@ -578,62 +597,626 @@
             canvas.focus({ preventScroll: true });
         }
 
-        // ================= 1. AGAR.IO =================
-        let jugadorAgar = { x: 350, y: 250, radio: 15, color: '#FFD700', velocidad: 3.5 };
-        let comidasAgar = [];
-        let scoreAgar = 0;
-        let metaAgar = 35;
-        let idAnimacionAgar = null;
+        // ================= 1. ARENA SURVIVOR =================
+        let jugadorSurvivor = {};
+        let objetivoSurvivor = { x: 475, y: 300 };
+        let enemigosSurvivor = [];
+        let proyectilesSurvivor = [];
+        let orbesSurvivor = [];
+        let particulasSurvivor = [];
+        let lucesSurvivor = [];
+        let teclasSurvivor = new Set();
+        let scoreSurvivor = 0;
+        let puntosCombateSurvivor = 0;
+        let bajasSurvivor = 0;
+        let nivelSurvivor = 1;
+        let experienciaSurvivor = 0;
+        let experienciaSiguienteSurvivor = 4;
+        let oleadaSurvivor = 1;
+        let inicioSurvivor = 0;
+        let ultimoTiempoSurvivor = 0;
+        let ultimoSpawnSurvivor = 0;
+        let ultimoDisparoSurvivor = 0;
+        let oleadasJefeSurvivor = new Set();
+        let survivorSeleccionandoMejora = false;
+        let inicioSeleccionMejoraSurvivor = 0;
+        let mejorasSurvivorDisponibles = [];
+        let idAnimacionSurvivor = null;
 
-        function abrirJuegoAgar() {
-            if (idAnimacionAgar) cancelAnimationFrame(idAnimacionAgar);
+        function abrirJuegoSurvivor() {
+            if (idAnimacionSurvivor) cancelAnimationFrame(idAnimacionSurvivor);
             cerrarMenuLibro();
             document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Mini Agar.io";
-            document.getElementById('desc-juego-modal').innerText = "Mové el mouse o deslizá el dedo para guiar tu célula, comer puntos y crecer.";
+            document.getElementById('titulo-juego-modal').innerText = "Arena Survivor ⚡";
+            document.getElementById('desc-juego-modal').innerText = "Movete con el mouse, el dedo o WASD. El disparo es automático: sobreviví, subí de nivel y derrotá a los jefes.";
             canvas = document.getElementById('areaJuego');
             ctx = canvas.getContext('2d');
-            jugadorAgar.x = canvas.width / 2;
-            jugadorAgar.y = canvas.height / 2;
-            jugadorAgar.radio = 15;
-            scoreAgar = 0;
-            metaAgar = dificultadActual === 'facil' ? 25 : dificultadActual === 'dificil' ? 50 : 35;
-            comidasAgar = [];
-            for (let i = 0; i < Math.round(45 * factorDificultad()); i++) agregarComidaAgar();
+
+            jugadorSurvivor = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                radio: 21,
+                vida: 100,
+                vidaMaxima: 100,
+                velocidad: 225,
+                dano: 20,
+                cadencia: 500,
+                disparos: 1,
+                iman: 165,
+                escudos: 0,
+                invulnerableHasta: 0
+            };
+            objetivoSurvivor = { x: jugadorSurvivor.x, y: jugadorSurvivor.y };
+            enemigosSurvivor = [];
+            proyectilesSurvivor = [];
+            orbesSurvivor = [];
+            particulasSurvivor = [];
+            lucesSurvivor = Array.from({ length: 22 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radio: 12 + Math.random() * 38,
+                fase: Math.random() * Math.PI * 2,
+                velocidad: 0.25 + Math.random() * 0.45
+            }));
+            teclasSurvivor.clear();
+            scoreSurvivor = 0;
+            puntosCombateSurvivor = 0;
+            bajasSurvivor = 0;
+            nivelSurvivor = 1;
+            experienciaSurvivor = 0;
+            experienciaSiguienteSurvivor = 4;
+            oleadaSurvivor = 1;
+            survivorSeleccionandoMejora = false;
+            inicioSeleccionMejoraSurvivor = 0;
+            mejorasSurvivorDisponibles = [];
+            oleadasJefeSurvivor = new Set();
+            inicioSurvivor = performance.now();
+            ultimoTiempoSurvivor = inicioSurvivor;
+            ultimoSpawnSurvivor = inicioSurvivor - 1000;
+            ultimoDisparoSurvivor = inicioSurvivor;
+
             juegoActivo = true;
-            currentGame = 'agar';
+            currentGame = 'survivor';
             configurarControlesJuego();
-            bucleAgar();
+            bucleSurvivor(inicioSurvivor);
         }
-        function agregarComidaAgar() {
-            comidasAgar.push({ x: Math.random() * (canvas.width - 20) + 10, y: Math.random() * (canvas.height - 20) + 10, radio: 4, color: `hsl(${Math.random() * 360}, 100%, 60%)` });
-        }
-        function bucleAgar() {
-            if (!juegoActivo || currentGame !== 'agar') return;
-            if (juegoPausado) {
-                idAnimacionAgar = requestAnimationFrame(bucleAgar);
-                return;
+
+        function crearEnemigoSurvivor(tipoForzado = null) {
+            const margen = 55;
+            const lado = Math.floor(Math.random() * 4);
+            let x;
+            let y;
+            if (lado === 0) { x = -margen; y = Math.random() * canvas.height; }
+            else if (lado === 1) { x = canvas.width + margen; y = Math.random() * canvas.height; }
+            else if (lado === 2) { x = Math.random() * canvas.width; y = -margen; }
+            else { x = Math.random() * canvas.width; y = canvas.height + margen; }
+
+            let tipo = tipoForzado;
+            if (!tipo) {
+                const azar = Math.random();
+                tipo = oleadaSurvivor >= 3 && azar < 0.17
+                    ? 'tanque'
+                    : oleadaSurvivor >= 2 && azar < 0.4
+                        ? 'rapido'
+                        : 'normal';
             }
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = comidasAgar.length - 1; i >= 0; i--) {
-                let c = comidasAgar[i];
-                if (Math.hypot(jugadorAgar.x - c.x, jugadorAgar.y - c.y) < jugadorAgar.radio + c.radio) {
-                    comidasAgar.splice(i, 1);
-                    jugadorAgar.radio += 0.15;
-                    scoreAgar++;
-                    feedbackJuego('punto');
-                    agregarComidaAgar();
+
+            const configuraciones = {
+                normal: { radio: 20, vida: 36, velocidad: 58, color: '#ff4d8d', nucleo: '#ffb3d1', xp: 1, puntos: 22 },
+                rapido: { radio: 14, vida: 24, velocidad: 98, color: '#31d7ff', nucleo: '#d3f8ff', xp: 1, puntos: 28 },
+                tanque: { radio: 29, vida: 105, velocidad: 39, color: '#8b6cff', nucleo: '#d6caff', xp: 3, puntos: 55 },
+                jefe: { radio: 48, vida: 620, velocidad: 32, color: '#ff7a18', nucleo: '#fff0a8', xp: 18, puntos: 450 }
+            };
+            const base = configuraciones[tipo];
+            const escalaOleada = 1 + (oleadaSurvivor - 1) * 0.12;
+            enemigosSurvivor.push({
+                x,
+                y,
+                tipo,
+                radio: base.radio,
+                vida: base.vida * escalaOleada * factorDificultad(),
+                vidaMaxima: base.vida * escalaOleada * factorDificultad(),
+                velocidad: base.velocidad * factorDificultad(),
+                color: base.color,
+                nucleo: base.nucleo,
+                xp: base.xp,
+                puntos: base.puntos,
+                fase: Math.random() * Math.PI * 2,
+                rotacion: Math.random() * Math.PI * 2
+            });
+        }
+
+        function dispararSurvivor(tiempo) {
+            if (!enemigosSurvivor.length || tiempo - ultimoDisparoSurvivor < jugadorSurvivor.cadencia) return;
+            let objetivo = enemigosSurvivor[0];
+            let distanciaObjetivo = Infinity;
+            enemigosSurvivor.forEach(enemigo => {
+                const distancia = Math.hypot(enemigo.x - jugadorSurvivor.x, enemigo.y - jugadorSurvivor.y);
+                if (distancia < distanciaObjetivo) {
+                    distanciaObjetivo = distancia;
+                    objetivo = enemigo;
                 }
-                ctx.beginPath(); ctx.arc(c.x, c.y, c.radio, 0, Math.PI * 2); ctx.fillStyle = c.color; ctx.fill(); ctx.closePath();
+            });
+
+            const anguloBase = Math.atan2(objetivo.y - jugadorSurvivor.y, objetivo.x - jugadorSurvivor.x);
+            const cantidad = jugadorSurvivor.disparos;
+            for (let i = 0; i < cantidad; i++) {
+                const separacion = cantidad === 1 ? 0 : (i - (cantidad - 1) / 2) * 0.16;
+                const angulo = anguloBase + separacion;
+                proyectilesSurvivor.push({
+                    x: jugadorSurvivor.x,
+                    y: jugadorSurvivor.y,
+                    vx: Math.cos(angulo) * 540,
+                    vy: Math.sin(angulo) * 540,
+                    radio: 5.5,
+                    dano: jugadorSurvivor.dano,
+                    vida: 1.35
+                });
             }
-            ctx.beginPath(); ctx.arc(jugadorAgar.x, jugadorAgar.y, jugadorAgar.radio, 0, Math.PI * 2); ctx.fillStyle = jugadorAgar.color; ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 15; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.stroke(); ctx.shadowBlur = 0; ctx.closePath();
-            ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.roundRect(18, 16, 220, 42, 12); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.font = '700 17px sans-serif'; ctx.fillText(`Puntos: ${scoreAgar} / ${metaAgar}`, 32, 43);
-            if (scoreAgar >= metaAgar) {
-                mostrarResultado('¡CÉLULA GIGANTE!', 'Completaste el desafío de crecimiento', scoreAgar, '⚡');
-                return;
+            ultimoDisparoSurvivor = tiempo;
+        }
+
+        function crearParticulasSurvivor(x, y, color, cantidad = 10, fuerza = 130) {
+            for (let i = 0; i < cantidad; i++) {
+                const angulo = Math.random() * Math.PI * 2;
+                const velocidad = 35 + Math.random() * fuerza;
+                particulasSurvivor.push({
+                    x,
+                    y,
+                    vx: Math.cos(angulo) * velocidad,
+                    vy: Math.sin(angulo) * velocidad,
+                    radio: 1.5 + Math.random() * 3.5,
+                    vida: 0.35 + Math.random() * 0.55,
+                    vidaMaxima: 0.9,
+                    color
+                });
             }
-            idAnimacionAgar = requestAnimationFrame(bucleAgar);
+            if (particulasSurvivor.length > 260) {
+                particulasSurvivor.splice(0, particulasSurvivor.length - 260);
+            }
+        }
+
+        function eliminarEnemigoSurvivor(enemigo, indice) {
+            enemigosSurvivor.splice(indice, 1);
+            bajasSurvivor++;
+            puntosCombateSurvivor += enemigo.puntos;
+            experienciaSurvivor += Math.max(1, Math.round(enemigo.xp / 2));
+            crearParticulasSurvivor(enemigo.x, enemigo.y, enemigo.color, enemigo.tipo === 'jefe' ? 38 : 14, 190);
+            const cantidadOrbes = enemigo.tipo === 'jefe' ? 8 : enemigo.xp;
+            for (let i = 0; i < cantidadOrbes; i++) {
+                orbesSurvivor.push({
+                    x: enemigo.x + (Math.random() - 0.5) * enemigo.radio,
+                    y: enemigo.y + (Math.random() - 0.5) * enemigo.radio,
+                    radio: enemigo.tipo === 'jefe' ? 8 : 6,
+                    valor: enemigo.tipo === 'jefe' ? 3 : 1,
+                    fase: Math.random() * Math.PI * 2
+                });
+            }
+            feedbackJuego(enemigo.tipo === 'jefe' ? 'gol' : 'punto');
+        }
+
+        function verificarNivelSurvivor() {
+            if (survivorSeleccionandoMejora || experienciaSurvivor < experienciaSiguienteSurvivor) return;
+            experienciaSurvivor -= experienciaSiguienteSurvivor;
+            nivelSurvivor++;
+            experienciaSiguienteSurvivor = Math.round(experienciaSiguienteSurvivor * 1.32 + 1);
+            survivorSeleccionandoMejora = true;
+            inicioSeleccionMejoraSurvivor = performance.now();
+            mostrarMejorasSurvivor();
+        }
+
+        function mostrarMejorasSurvivor() {
+            const catalogo = [
+                { icono: '⚡', titulo: 'Rayo potente', detalle: '+7 de daño por disparo', aplicar: () => jugadorSurvivor.dano += 7 },
+                { icono: '🔥', titulo: 'Fuego rápido', detalle: 'Dispara 17% más rápido', aplicar: () => jugadorSurvivor.cadencia = Math.max(145, jugadorSurvivor.cadencia * 0.83) },
+                { icono: '✦', titulo: 'Multidisparo', detalle: 'Agrega un proyectil adicional', aplicar: () => jugadorSurvivor.disparos = Math.min(5, jugadorSurvivor.disparos + 1) },
+                { icono: '💨', titulo: 'Impulso', detalle: '+35 de velocidad de movimiento', aplicar: () => jugadorSurvivor.velocidad += 35 },
+                { icono: '❤', titulo: 'Núcleo vital', detalle: '+25 de vida máxima y curación', aplicar: () => { jugadorSurvivor.vidaMaxima += 25; jugadorSurvivor.vida = Math.min(jugadorSurvivor.vidaMaxima, jugadorSurvivor.vida + 35); } },
+                { icono: '🛡', titulo: 'Escudo orbital', detalle: 'Bloquea los próximos 2 golpes', aplicar: () => jugadorSurvivor.escudos += 2 },
+                { icono: '◉', titulo: 'Imán de energía', detalle: 'Atrae experiencia desde más lejos', aplicar: () => jugadorSurvivor.iman += 55 }
+            ];
+            mejorasSurvivorDisponibles = [...catalogo]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 3);
+
+            document.getElementById('survivor-upgrade-title').textContent = `Nivel ${nivelSurvivor}: elegí una mejora`;
+            const contenedor = document.getElementById('survivor-upgrade-options');
+            contenedor.replaceChildren(...mejorasSurvivorDisponibles.map((mejora, indice) => {
+                const boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className = 'survivor-upgrade-option';
+                const icono = document.createElement('span');
+                icono.textContent = mejora.icono;
+                const titulo = document.createElement('strong');
+                titulo.textContent = mejora.titulo;
+                const detalle = document.createElement('small');
+                detalle.textContent = mejora.detalle;
+                boton.append(icono, titulo, detalle);
+                boton.addEventListener('click', () => elegirMejoraSurvivor(indice));
+                return boton;
+            }));
+            document.getElementById('survivor-upgrade-overlay').hidden = false;
+        }
+
+        function elegirMejoraSurvivor(indice) {
+            const mejora = mejorasSurvivorDisponibles[indice];
+            if (!survivorSeleccionandoMejora || !mejora) return;
+            mejora.aplicar();
+            const tiempoActual = performance.now();
+            const pausaMejora = Math.max(0, tiempoActual - inicioSeleccionMejoraSurvivor);
+            inicioSurvivor += pausaMejora;
+            ultimoSpawnSurvivor += pausaMejora;
+            ultimoDisparoSurvivor += pausaMejora;
+            survivorSeleccionandoMejora = false;
+            inicioSeleccionMejoraSurvivor = 0;
+            document.getElementById('survivor-upgrade-overlay').hidden = true;
+            ultimoTiempoSurvivor = tiempoActual;
+            crearParticulasSurvivor(jugadorSurvivor.x, jugadorSurvivor.y, '#ffd60a', 28, 180);
+            feedbackJuego('record');
+            verificarNivelSurvivor();
+        }
+
+        function moverJugadorSurvivor(delta) {
+            const izquierda = teclasSurvivor.has('a') || teclasSurvivor.has('arrowleft');
+            const derecha = teclasSurvivor.has('d') || teclasSurvivor.has('arrowright');
+            const arriba = teclasSurvivor.has('w') || teclasSurvivor.has('arrowup');
+            const abajo = teclasSurvivor.has('s') || teclasSurvivor.has('arrowdown');
+            let dx = Number(derecha) - Number(izquierda);
+            let dy = Number(abajo) - Number(arriba);
+
+            if (dx || dy) {
+                const longitud = Math.hypot(dx, dy) || 1;
+                jugadorSurvivor.x += dx / longitud * jugadorSurvivor.velocidad * delta;
+                jugadorSurvivor.y += dy / longitud * jugadorSurvivor.velocidad * delta;
+                objetivoSurvivor.x = jugadorSurvivor.x;
+                objetivoSurvivor.y = jugadorSurvivor.y;
+            } else {
+                dx = objetivoSurvivor.x - jugadorSurvivor.x;
+                dy = objetivoSurvivor.y - jugadorSurvivor.y;
+                const distancia = Math.hypot(dx, dy);
+                if (distancia > 3) {
+                    const paso = Math.min(distancia, jugadorSurvivor.velocidad * delta);
+                    jugadorSurvivor.x += dx / distancia * paso;
+                    jugadorSurvivor.y += dy / distancia * paso;
+                }
+            }
+
+            jugadorSurvivor.x = Math.max(jugadorSurvivor.radio, Math.min(canvas.width - jugadorSurvivor.radio, jugadorSurvivor.x));
+            jugadorSurvivor.y = Math.max(jugadorSurvivor.radio, Math.min(canvas.height - jugadorSurvivor.radio, jugadorSurvivor.y));
+        }
+
+        function actualizarSurvivor(delta, tiempo) {
+            const segundos = Math.max(0, (tiempo - inicioSurvivor) / 1000);
+            oleadaSurvivor = Math.floor(segundos / 16) + 1;
+            scoreSurvivor = puntosCombateSurvivor + Math.floor(segundos * 3);
+
+            const intervaloSpawn = Math.max(260, (920 - oleadaSurvivor * 55) / factorDificultad());
+            if (tiempo - ultimoSpawnSurvivor >= intervaloSpawn) {
+                crearEnemigoSurvivor();
+                ultimoSpawnSurvivor = tiempo;
+            }
+            if (oleadaSurvivor % 3 === 0 && !oleadasJefeSurvivor.has(oleadaSurvivor)) {
+                oleadasJefeSurvivor.add(oleadaSurvivor);
+                crearEnemigoSurvivor('jefe');
+                mostrarToast(`⚠ Jefe de la oleada ${oleadaSurvivor}`);
+            }
+
+            moverJugadorSurvivor(delta);
+            dispararSurvivor(tiempo);
+
+            for (let i = proyectilesSurvivor.length - 1; i >= 0; i--) {
+                const proyectil = proyectilesSurvivor[i];
+                proyectil.x += proyectil.vx * delta;
+                proyectil.y += proyectil.vy * delta;
+                proyectil.vida -= delta;
+                let impacto = false;
+                for (let j = enemigosSurvivor.length - 1; j >= 0; j--) {
+                    const enemigo = enemigosSurvivor[j];
+                    if (Math.hypot(proyectil.x - enemigo.x, proyectil.y - enemigo.y) < proyectil.radio + enemigo.radio) {
+                        enemigo.vida -= proyectil.dano;
+                        crearParticulasSurvivor(proyectil.x, proyectil.y, '#fff1a8', 5, 80);
+                        impacto = true;
+                        if (enemigo.vida <= 0) eliminarEnemigoSurvivor(enemigo, j);
+                        break;
+                    }
+                }
+                if (impacto || proyectil.vida <= 0 || proyectil.x < -30 || proyectil.x > canvas.width + 30 || proyectil.y < -30 || proyectil.y > canvas.height + 30) {
+                    proyectilesSurvivor.splice(i, 1);
+                }
+            }
+
+            enemigosSurvivor.forEach(enemigo => {
+                const dx = jugadorSurvivor.x - enemigo.x;
+                const dy = jugadorSurvivor.y - enemigo.y;
+                const distancia = Math.hypot(dx, dy) || 1;
+                enemigo.x += dx / distancia * enemigo.velocidad * delta;
+                enemigo.y += dy / distancia * enemigo.velocidad * delta;
+                enemigo.rotacion += delta * (enemigo.tipo === 'rapido' ? 3 : 1.2);
+
+                if (distancia < jugadorSurvivor.radio + enemigo.radio && tiempo > jugadorSurvivor.invulnerableHasta) {
+                    if (jugadorSurvivor.escudos > 0) {
+                        jugadorSurvivor.escudos--;
+                    } else {
+                        jugadorSurvivor.vida -= enemigo.tipo === 'jefe' ? 34 : enemigo.tipo === 'tanque' ? 26 : 19;
+                    }
+                    jugadorSurvivor.invulnerableHasta = tiempo + 850;
+                    enemigo.x -= dx / distancia * 35;
+                    enemigo.y -= dy / distancia * 35;
+                    crearParticulasSurvivor(jugadorSurvivor.x, jugadorSurvivor.y, '#ff4d6d', 20, 160);
+                    feedbackJuego('fin');
+                }
+            });
+
+            for (let i = orbesSurvivor.length - 1; i >= 0; i--) {
+                const orbe = orbesSurvivor[i];
+                const dx = jugadorSurvivor.x - orbe.x;
+                const dy = jugadorSurvivor.y - orbe.y;
+                const distancia = Math.hypot(dx, dy) || 1;
+                if (distancia < jugadorSurvivor.iman) {
+                    const velocidad = 180 + (jugadorSurvivor.iman - distancia) * 3;
+                    orbe.x += dx / distancia * velocidad * delta;
+                    orbe.y += dy / distancia * velocidad * delta;
+                }
+                orbe.fase += delta * 4;
+                if (distancia < jugadorSurvivor.radio + orbe.radio + 5) {
+                    experienciaSurvivor += orbe.valor;
+                    orbesSurvivor.splice(i, 1);
+                    feedbackJuego('punto');
+                }
+            }
+
+            particulasSurvivor.forEach(particula => {
+                particula.x += particula.vx * delta;
+                particula.y += particula.vy * delta;
+                particula.vx *= 0.97;
+                particula.vy *= 0.97;
+                particula.vida -= delta;
+            });
+            particulasSurvivor = particulasSurvivor.filter(particula => particula.vida > 0);
+
+            verificarNivelSurvivor();
+            if (jugadorSurvivor.vida <= 0) {
+                idAnimacionSurvivor = null;
+                const tiempoSobrevivido = Math.floor(segundos);
+                mostrarResultado(
+                    'ARENA TERMINADA',
+                    `Nivel ${nivelSurvivor} · Oleada ${oleadaSurvivor} · ${bajasSurvivor} enemigos · ${tiempoSobrevivido}s`,
+                    scoreSurvivor,
+                    '⚡'
+                );
+            }
+        }
+
+        function dibujarFondoSurvivor(tiempo) {
+            const fondo = ctx.createRadialGradient(canvas.width * 0.5, canvas.height * 0.4, 30, canvas.width * 0.5, canvas.height * 0.5, canvas.width * 0.72);
+            fondo.addColorStop(0, '#182251');
+            fondo.addColorStop(0.52, '#0b1130');
+            fondo.addColorStop(1, '#040611');
+            ctx.fillStyle = fondo;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            lucesSurvivor.forEach(luz => {
+                const pulso = 0.75 + Math.sin(tiempo / 1000 * luz.velocidad + luz.fase) * 0.25;
+                ctx.beginPath();
+                ctx.arc(luz.x, luz.y, luz.radio * pulso, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(111, 91, 255, ${0.025 + pulso * 0.025})`;
+                ctx.fill();
+            });
+
+            ctx.strokeStyle = 'rgba(124, 144, 255, 0.07)';
+            ctx.lineWidth = 1;
+            for (let radio = 90; radio < 500; radio += 85) {
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2, radio, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        function dibujarEnemigoSurvivor(enemigo, tiempo) {
+            ctx.save();
+            ctx.translate(enemigo.x, enemigo.y);
+            ctx.rotate(enemigo.rotacion);
+            const pulso = 1 + Math.sin(tiempo / 180 + enemigo.fase) * 0.04;
+            const gradiente = ctx.createRadialGradient(-enemigo.radio * 0.3, -enemigo.radio * 0.35, 2, 0, 0, enemigo.radio * pulso);
+            gradiente.addColorStop(0, enemigo.nucleo);
+            gradiente.addColorStop(0.32, enemigo.color);
+            gradiente.addColorStop(1, '#17122f');
+            ctx.shadowColor = enemigo.color;
+            ctx.shadowBlur = enemigo.tipo === 'jefe' ? 28 : 14;
+            ctx.beginPath();
+            ctx.arc(0, 0, enemigo.radio * pulso, 0, Math.PI * 2);
+            ctx.fillStyle = gradiente;
+            ctx.fill();
+            ctx.lineWidth = enemigo.tipo === 'jefe' ? 4 : 2;
+            ctx.strokeStyle = 'rgba(255,255,255,.42)';
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = 'rgba(5,7,20,.78)';
+            ctx.beginPath();
+            ctx.arc(-enemigo.radio * 0.28, -2, Math.max(2.5, enemigo.radio * 0.1), 0, Math.PI * 2);
+            ctx.arc(enemigo.radio * 0.28, -2, Math.max(2.5, enemigo.radio * 0.1), 0, Math.PI * 2);
+            ctx.fill();
+            if (enemigo.tipo === 'jefe') {
+                ctx.rotate(-enemigo.rotacion);
+                ctx.fillStyle = '#ffd60a';
+                ctx.font = '900 22px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('♛', 0, -enemigo.radio - 12);
+                ctx.textAlign = 'left';
+            }
+            ctx.restore();
+
+            if (enemigo.tipo === 'tanque' || enemigo.tipo === 'jefe') {
+                const ancho = enemigo.tipo === 'jefe' ? 92 : 58;
+                const proporcion = Math.max(0, enemigo.vida / enemigo.vidaMaxima);
+                ctx.fillStyle = 'rgba(0,0,0,.55)';
+                ctx.beginPath();
+                ctx.roundRect(enemigo.x - ancho / 2, enemigo.y + enemigo.radio + 10, ancho, 7, 4);
+                ctx.fill();
+                ctx.fillStyle = enemigo.tipo === 'jefe' ? '#ffd60a' : '#9f8cff';
+                ctx.beginPath();
+                ctx.roundRect(enemigo.x - ancho / 2, enemigo.y + enemigo.radio + 10, ancho * proporcion, 7, 4);
+                ctx.fill();
+            }
+        }
+
+        function dibujarJugadorSurvivor(tiempo) {
+            const parpadeo = tiempo < jugadorSurvivor.invulnerableHasta && Math.floor(tiempo / 80) % 2 === 0;
+            ctx.save();
+            ctx.globalAlpha = parpadeo ? 0.38 : 1;
+            ctx.translate(jugadorSurvivor.x, jugadorSurvivor.y);
+            const pulso = 1 + Math.sin(tiempo / 170) * 0.07;
+            ctx.shadowColor = '#ffd60a';
+            ctx.shadowBlur = 30;
+            const gradiente = ctx.createRadialGradient(-7, -8, 2, 0, 0, jugadorSurvivor.radio * pulso);
+            gradiente.addColorStop(0, '#fffbd0');
+            gradiente.addColorStop(0.35, '#ffd60a');
+            gradiente.addColorStop(1, '#ff8c1a');
+            ctx.beginPath();
+            ctx.arc(0, 0, jugadorSurvivor.radio * pulso, 0, Math.PI * 2);
+            ctx.fillStyle = gradiente;
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgba(255,255,255,.9)';
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#15172c';
+            ctx.beginPath();
+            ctx.moveTo(4, -14);
+            ctx.lineTo(-7, 2);
+            ctx.lineTo(1, 2);
+            ctx.lineTo(-4, 15);
+            ctx.lineTo(11, -4);
+            ctx.lineTo(3, -4);
+            ctx.closePath();
+            ctx.fill();
+
+            if (jugadorSurvivor.escudos > 0) {
+                ctx.strokeStyle = 'rgba(66, 231, 255, .82)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([8, 7]);
+                ctx.beginPath();
+                ctx.arc(0, 0, jugadorSurvivor.radio + 12 + Math.sin(tiempo / 180) * 2, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            ctx.restore();
+        }
+
+        function dibujarHudSurvivor(tiempo) {
+            const segundos = Math.max(0, (tiempo - inicioSurvivor) / 1000);
+            ctx.fillStyle = 'rgba(5, 8, 25, .82)';
+            ctx.beginPath();
+            ctx.roundRect(18, 16, 330, 72, 17);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(140, 126, 255, .34)';
+            ctx.stroke();
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '800 16px Segoe UI, sans-serif';
+            ctx.fillText(`⚡ ${scoreSurvivor} PTS`, 34, 43);
+            ctx.fillStyle = '#b8c5ff';
+            ctx.font = '700 13px Segoe UI, sans-serif';
+            ctx.fillText(`OLEADA ${oleadaSurvivor}  ·  NIVEL ${nivelSurvivor}  ·  ${bajasSurvivor} BAJAS`, 34, 68);
+
+            const vida = Math.max(0, jugadorSurvivor.vida / jugadorSurvivor.vidaMaxima);
+            ctx.fillStyle = 'rgba(5, 8, 25, .82)';
+            ctx.beginPath();
+            ctx.roundRect(canvas.width - 252, 16, 234, 72, 17);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = '800 12px Segoe UI, sans-serif';
+            ctx.fillText(`VIDA ${Math.ceil(Math.max(0, jugadorSurvivor.vida))}/${jugadorSurvivor.vidaMaxima}`, canvas.width - 234, 40);
+            ctx.fillText(`${segundos.toFixed(1)}s`, canvas.width - 67, 40);
+            ctx.fillStyle = 'rgba(255,255,255,.1)';
+            ctx.beginPath();
+            ctx.roundRect(canvas.width - 234, 52, 198, 13, 7);
+            ctx.fill();
+            const vidaGradiente = ctx.createLinearGradient(canvas.width - 234, 0, canvas.width - 36, 0);
+            vidaGradiente.addColorStop(0, '#ff4d6d');
+            vidaGradiente.addColorStop(1, '#42f587');
+            ctx.fillStyle = vidaGradiente;
+            ctx.beginPath();
+            ctx.roundRect(canvas.width - 234, 52, 198 * vida, 13, 7);
+            ctx.fill();
+
+            const progresoXp = Math.min(1, experienciaSurvivor / experienciaSiguienteSurvivor);
+            ctx.fillStyle = 'rgba(5, 8, 25, .78)';
+            ctx.beginPath();
+            ctx.roundRect(170, canvas.height - 34, canvas.width - 340, 16, 8);
+            ctx.fill();
+            const xpGradiente = ctx.createLinearGradient(170, 0, canvas.width - 170, 0);
+            xpGradiente.addColorStop(0, '#6c5cff');
+            xpGradiente.addColorStop(0.55, '#31d7ff');
+            xpGradiente.addColorStop(1, '#ffd60a');
+            ctx.fillStyle = xpGradiente;
+            ctx.beginPath();
+            ctx.roundRect(170, canvas.height - 34, (canvas.width - 340) * progresoXp, 16, 8);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = '800 10px Segoe UI, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`ENERGÍA ${experienciaSurvivor} / ${experienciaSiguienteSurvivor}`, canvas.width / 2, canvas.height - 22);
+            ctx.textAlign = 'left';
+        }
+
+        function dibujarSurvivor(tiempo) {
+            dibujarFondoSurvivor(tiempo);
+
+            orbesSurvivor.forEach(orbe => {
+                const pulso = 1 + Math.sin(orbe.fase) * 0.18;
+                ctx.shadowColor = '#42f5d7';
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(orbe.x, orbe.y, orbe.radio * pulso, 0, Math.PI * 2);
+                ctx.fillStyle = '#60f5de';
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.beginPath();
+                ctx.arc(orbe.x - 2, orbe.y - 2, orbe.radio * 0.35, 0, Math.PI * 2);
+                ctx.fillStyle = '#e4fff9';
+                ctx.fill();
+            });
+
+            enemigosSurvivor.forEach(enemigo => dibujarEnemigoSurvivor(enemigo, tiempo));
+
+            proyectilesSurvivor.forEach(proyectil => {
+                ctx.shadowColor = '#fff4a0';
+                ctx.shadowBlur = 18;
+                ctx.beginPath();
+                ctx.arc(proyectil.x, proyectil.y, proyectil.radio, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff7bf';
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            particulasSurvivor.forEach(particula => {
+                ctx.globalAlpha = Math.max(0, particula.vida / particula.vidaMaxima);
+                ctx.beginPath();
+                ctx.arc(particula.x, particula.y, particula.radio, 0, Math.PI * 2);
+                ctx.fillStyle = particula.color;
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+
+            dibujarJugadorSurvivor(tiempo);
+            dibujarHudSurvivor(tiempo);
+        }
+
+        function bucleSurvivor(tiempo = performance.now()) {
+            if (!juegoActivo || currentGame !== 'survivor') return;
+            const delta = Math.min(0.034, Math.max(0, (tiempo - ultimoTiempoSurvivor) / 1000));
+            ultimoTiempoSurvivor = tiempo;
+
+            if (!juegoPausado && !survivorSeleccionandoMejora) {
+                actualizarSurvivor(delta, tiempo);
+            }
+            dibujarSurvivor(tiempo);
+
+            if (juegoActivo && currentGame === 'survivor') {
+                idAnimacionSurvivor = requestAnimationFrame(bucleSurvivor);
+            }
         }
 
         // ================= 2. SNAKE =================
@@ -1544,18 +2127,24 @@
                 ArrowLeft: 'LEFT',
                 ArrowRight: 'RIGHT'
             };
+            const tecla = event.key.toLowerCase();
+
+            if (currentGame === 'survivor' && ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(tecla)) {
+                teclasSurvivor.add(tecla);
+                event.preventDefault();
+            }
 
             if (currentGame === 'snake' && direcciones[event.key]) {
                 event.preventDefault();
                 cambiarDireccionSnake(direcciones[event.key]);
             }
 
-            if (currentGame && event.key.toLowerCase() === 'p') {
+            if (currentGame && tecla === 'p') {
                 event.preventDefault();
                 togglePausaJuego();
             }
 
-            if (currentGame && event.key.toLowerCase() === 'r') {
+            if (currentGame && tecla === 'r') {
                 event.preventDefault();
                 reiniciarJuegoActual();
             }
@@ -1567,6 +2156,14 @@
                     cerrarMenuLibro();
                 }
             }
+        });
+
+        document.addEventListener('keyup', event => {
+            teclasSurvivor.delete(event.key.toLowerCase());
+        });
+
+        window.addEventListener('blur', () => {
+            teclasSurvivor.clear();
         });
     </script>
 </body>

@@ -12,6 +12,8 @@ instalar dependencias ni incluye funciones de venta.
 - Botones para compartir la página o copiar su enlace.
 - Seis minijuegos con dificultad, pausa, reinicio, sonido y récords guardados
   en el navegador.
+- Arena Survivor con disparo automático, oleadas, enemigos especiales, jefes,
+  experiencia y mejoras elegibles en cada nivel.
 - Penalty Master con arquero activo, marcador de tiros, goles y puntos.
 - Cohete Espacial con velocidad progresiva según el tiempo sobrevivido.
 
@@ -22,7 +24,8 @@ también puedes servir la carpeta con cualquier servidor web estático.
 
 ## Controles de los juegos
 
-- Mouse o pantalla táctil: Agar.io, Pong, Rompeladrillos, Cohete y Penalty.
+- Mouse, pantalla táctil o `WASD`: Arena Survivor.
+- Mouse o pantalla táctil: Pong, Rompeladrillos, Cohete y Penalty.
 - Flechas del teclado o botones en pantalla: Snake.
 - `P`: pausar o continuar.
 - `R`: reiniciar el juego actual.
