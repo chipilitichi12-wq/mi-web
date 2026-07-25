@@ -7,6 +7,7 @@
     --borde-cristal: rgba(255, 255, 255, 0.24);
     --fondo-cristal: rgba(255, 255, 255, 0.1);
     --sombra-cristal: 0 8px 32px rgba(0, 0, 0, 0.37);
+    --separacion-paneles-escritorio: 35px;
 }
 
 body[data-theme="neon"] {
@@ -615,7 +616,12 @@ h1 {
 #caja-libro {
     position: absolute !important;
     top: 50% !important;
-    left: max(18px, calc(50% - 590px)) !important;
+    left: max(
+        18px,
+        calc(
+            50% - 215px - var(--separacion-paneles-escritorio) - 390px
+        )
+    ) !important;
     width: min(390px, calc(100vw - 36px)) !important;
     max-height: calc(100dvh - 36px);
     padding: clamp(18px, 4vw, 25px) !important;
@@ -1120,7 +1126,7 @@ h1 {
     }
 }
 
-@media (max-width: 1050px) {
+@media (max-width: 1299px) {
     #modal-libro {
         background: rgba(0, 0, 0, 0.66);
         backdrop-filter: blur(12px);
