@@ -2,165 +2,682 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="El mundo de Rayito: redes, música, setup y minijuegos.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://qxwqfyomdytfycrpqohb.supabase.co; media-src 'self' blob:; connect-src 'self' https://qxwqfyomdytfycrpqohb.supabase.co wss://qxwqfyomdytfycrpqohb.supabase.co; font-src 'self' data:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+    <meta name="description" content="Rayito Hub: música, minijuegos, ranking, perfil, logros y setup.">
     <meta name="theme-color" content="#ffd700">
-    <title>Rayito ⚡️</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Rayito Hub ⚡</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="style.css?v=10.0.0">
+    <link rel="stylesheet" href="app.css?v=10.3.0">
     <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="pwa-192.png">
 </head>
 <body data-theme="rayito">
-
-    <div id="contenedor-volumen" role="group" aria-label="Control de volumen">
-        <button type="button" onclick="toggleMute()" id="btn-mute-toggle" style="background:none; border:none; cursor:pointer;" aria-label="Silenciar o activar música">
-            <svg id="icon-sound" viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
-            <svg id="icon-mute" viewBox="0 0 24 24" fill="white" width="20" height="20" style="display:none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71z"/></svg>
-        </button>
-        <input type="range" id="volumen-slider" min="0" max="1" step="0.1" value="1" oninput="ajustarVolumen(this.value)" aria-label="Volumen de la música">
-    </div>
-
-    <label id="selector-tema-wrap">
-        <span aria-hidden="true">🎨</span>
-        <span class="sr-only">Tema visual</span>
-        <select id="selector-tema" onchange="cambiarTema(this.value)" aria-label="Elegir tema visual">
-            <option value="rayito">Rayito</option>
-            <option value="neon">Neón</option>
-            <option value="fuego">Fuego</option>
-            <option value="noche">Noche</option>
-        </select>
-    </label>
-
     <div id="pantalla-entrada" aria-live="polite">
         <div class="entrada-contenido">
-            <img src="avatar.gif" alt="" class="entrada-logo">
+            <div class="entrada-brand"><img src="avatar.gif" alt="" class="entrada-logo"><span class="live-dot"></span></div>
+            <p class="eyebrow">RAYITO HUB</p>
             <h2 id="entrada-titulo">Cargando el mundo de Rayito</h2>
-            <div class="barra-carga" aria-hidden="true">
-                <div id="progreso-carga"></div>
-            </div>
-            <p id="texto-carga">Preparando el video, la música y los juegos…</p>
-            <div class="flechas-animadas" id="indicacion-entrada" hidden>
-                <p>Todo listo</p>
-                <span>▼</span>
-            </div>
-            <button type="button" id="btn-entrar" onclick="entrar()" disabled>Esperá un momento…</button>
+            <div class="barra-carga" aria-hidden="true"><div id="progreso-carga"></div></div>
+            <p id="texto-carga">Preparando música, juegos y perfil…</p>
+            <div class="flechas-animadas" id="indicacion-entrada" hidden><p>Todo listo</p><span>▼</span></div>
+            <button type="button" id="btn-entrar" data-secure-action="open-world" disabled>Esperá un momento…</button>
         </div>
     </div>
 
-    <video autoplay muted loop playsinline preload="auto" poster="poster.jpg" id="video-fondo">
+    <div id="pantalla-mi-mundo" aria-live="polite" hidden>
+        <div class="mundo-stage">
+        <div class="mundo-panel">
+            <div class="mundo-top">
+                <div class="mundo-identidad">
+                    <div class="mundo-avatar-wrap">
+                        <img id="mundo-avatar" src="avatar.gif" alt="" class="mundo-avatar">
+                        <span class="mundo-online" aria-hidden="true"></span>
+                    </div>
+                    <div>
+                        <p class="eyebrow">BIENVENIDO A</p>
+                        <h2>Mi Mundo <span aria-hidden="true">⚡</span></h2>
+                        <p id="mundo-bienvenida">Música, juegos, competencia y mi setup en un solo lugar.</p>
+                    </div>
+                </div>
+                <span class="mundo-status"><i></i> TODO LISTO</span>
+            </div>
+
+            <div class="mundo-separador"></div>
+
+            <div class="mundo-section-head">
+                <div>
+                    <p class="eyebrow">EXPLORÁ</p>
+                    <h3>¿Qué hay en Rayito Hub?</h3>
+                </div>
+                <span class="mundo-mini-label">RAYITO HUB</span>
+            </div>
+
+            <div class="mundo-grid">
+                <article class="mundo-item">
+                    <span class="mundo-item-icon">♪</span>
+                    <div><strong>Música</strong><small>Playlist, favoritos y reproductor.</small></div>
+                </article>
+                <article class="mundo-item">
+                    <span class="mundo-item-icon">🎮</span>
+                    <div><strong>Juegos</strong><small>Récords, niveles y desafíos.</small></div>
+                </article>
+                <article class="mundo-item">
+                    <span class="mundo-item-icon">🏆</span>
+                    <div><strong>Ranking global</strong><small>Top 10 actualizado en tiempo real.</small></div>
+                </article>
+                <article class="mundo-item">
+                    <span class="mundo-item-icon">👤</span>
+                    <div><strong>Perfil</strong><small>Nombre, foto/GIF, nivel y logros.</small></div>
+                </article>
+                <article class="mundo-item">
+                    <span class="mundo-item-icon">🖥</span>
+                    <div><strong>Setup</strong><small>PC, monitores y periféricos.</small></div>
+                </article>
+                <article class="mundo-item mundo-item-accent">
+                    <span class="mundo-item-icon">⚡</span>
+                    <div><strong>Competí</strong><small>Jugá, sumá puntos y superá a la comunidad.</small></div>
+                </article>
+            </div>
+
+            <div class="mundo-info-row">
+                <div class="mundo-info-card">
+                    <span>● EN VIVO</span>
+                    <strong>Ranking conectado</strong>
+                    <small>Los cambios de posición aparecen automáticamente.</small>
+                </div>
+                <div class="mundo-info-card">
+                    <span>★ TU PROGRESO</span>
+                    <strong>Todo en un solo perfil</strong>
+                    <small>Tu avatar se sincroniza con el ranking global.</small>
+                </div>
+            </div>
+
+            <p class="mundo-nota">Entrá, explorá y tratá de dejar tu nombre en lo más alto.</p>
+
+            <div class="mundo-actions">
+                <button type="button" class="mundo-back" data-secure-action="back-world">← Volver</button>
+                <button type="button" class="mundo-enter" id="mundo-enter-button" data-secure-action="enter">Entrar como invitado <span>→</span></button>
+            </div>
+        </div>
+
+        <aside class="mundo-account-card" aria-labelledby="mundo-account-title">
+            <div class="mundo-account-kicker">IMPORTANTE</div>
+            <div class="mundo-account-head">
+                <div>
+                    <h3 id="mundo-account-title">Guardá tu progreso</h3>
+                    <p id="mundo-account-copy">Podés mirar y jugar sin registrarte. Para competir y guardar todo, creá tu cuenta.</p>
+                </div>
+                <span class="mundo-account-state" id="mundo-account-state"><i></i> INVITADO</span>
+            </div>
+
+            <div class="mundo-account-benefits">
+                <div><span>🏆</span><p><strong>Ranking global</strong><small>Solo cuentas pueden enviar récords.</small></p></div>
+                <div><span>💬</span><p><strong>Chat de comunidad</strong><small>Escribí con tu perfil y avatar.</small></p></div>
+                <div><span>☁️</span><p><strong>Progreso en la nube</strong><small>XP, nivel, logros, favoritos, desafíos y récords.</small></p></div>
+                <div><span>🔐</span><p><strong>Recuperación</strong><small>Restablecé tu contraseña por correo.</small></p></div>
+            </div>
+
+            <div class="mundo-account-actions" id="mundo-account-guest-actions">
+                <button type="button" class="account-primary" data-account-action="signup">Crear cuenta</button>
+                <button type="button" class="account-secondary" data-account-action="login">Iniciar sesión</button>
+            </div>
+            <div class="mundo-account-connected" id="mundo-account-connected" hidden>
+                <span>✓ CUENTA CONECTADA</span>
+                <strong id="mundo-account-email">Tu progreso está protegido.</strong>
+                <button type="button" class="account-secondary" data-account-action="manage">Administrar cuenta</button>
+            </div>
+            <p class="mundo-account-foot">Como invitado podés explorar y jugar. El puntaje queda local y no compite en el Top 10.</p>
+        </aside>
+        </div>
+    </div>
+
+    <video autoplay muted loop playsinline preload="metadata" poster="poster.jpg" id="video-fondo">
         <source src="fondo.mp4" type="video/mp4">
     </video>
+    <div id="audio-reactive-glow" aria-hidden="true"></div>
 
-    <!-- TARJETA PRINCIPAL (CENTRAL) -->
-    <div class="caja-estilo">
-        <img id="avatar-principal" src="avatar.gif" alt="Perfil de Rayito" class="foto-perfil">
-        <h1 id="nombre-perfil">Rayito ⚡️</h1>
-        <p id="texto-bienvenida">¡Bienvenido a mi mundo!</p>
-        
-        <a id="link-tiktok" href="https://www.tiktok.com/@el_metralletas.1" class="boton-red" target="_blank" rel="noopener noreferrer">TikTok <span aria-hidden="true">♪</span></a>
-        <a id="link-youtube" href="https://www.youtube.com/@El_Metralletas" class="boton-red" target="_blank" rel="noopener noreferrer">YouTube <span aria-hidden="true">▶</span></a>
-        <a id="link-spotify" href="https://open.spotify.com/user/31v4u2rovzppfwizlzg4fagw36pu?si=92824926e8974c2c" class="boton-red" target="_blank" rel="noopener noreferrer">Spotify <span aria-hidden="true">●</span></a>
-        
-        <button type="button" onclick="abrirMenuLibro()" class="boton-red" style="cursor:pointer; width:100%; border:none;">Minijuegos ⚡️</button>
+    <header class="topbar">
+        <a class="brand" href="#inicio" data-nav="inicio" aria-label="Ir al inicio">
+            <img src="avatar.gif" alt="" class="brand-avatar">
+            <div><strong id="brand-name">Rayito</strong><span>HUB ⚡</span></div>
+        </a>
+        <nav class="desktop-nav" aria-label="Navegación principal">
+            <button class="nav-link is-active" data-section="inicio">Inicio</button>
+            <button class="nav-link" data-section="musica">Música</button>
+            <button class="nav-link" data-section="juegos">Juegos</button>
+            <button class="nav-link" data-section="ranking">Ranking</button>
+            <button class="nav-link" data-section="perfil">Perfil</button>
+            <button class="nav-link" data-section="setup">Setup</button>
+        </nav>
+        <div class="topbar-actions">
+            <button type="button" class="account-chip" id="account-chip" data-account-action="manage" title="Cuenta y progreso"><span aria-hidden="true">👤</span><span id="account-chip-text">Invitado</span></button>
+            <label id="selector-tema-wrap" class="compact-select" title="Tema visual">
+                <span aria-hidden="true">◐</span>
+                <span class="sr-only">Tema visual</span>
+                <select id="selector-tema" data-secure-change="theme" aria-label="Elegir tema visual">
+                    <option value="rayito">Rayito</option><option value="neon">Neón</option><option value="fuego">Fuego</option><option value="noche">Noche</option>
+                </select>
+            </label>
+            <button type="button" class="icon-button install-trigger" id="btn-instalar" hidden title="Instalar app">⇩</button>
+        </div>
+    </header>
 
-        <div class="contenedor-reproductor">
-            <img src="avatar.gif" class="img-mini" alt="">
-            <div class="info-track">
-                <p id="titulo-cancion" style="margin: 0; font-size: 14px;">Mi Canción</p>
-                <div class="barra-progreso" onclick="setPos(event)">
-                    <div id="progreso-actual"></div>
-                </div>
-                <div class="controles">
-                    <span id="tiempo-actual">0:00</span>
-                    <button type="button" onclick="togglePlay()" class="btn-audio" aria-label="Reproducir o pausar canción">
-                        <svg id="icon-play" viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
-                        <svg id="icon-pause" viewBox="0 0 24 24" fill="white" width="20" height="20" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                    </button>
-                    <span id="duracion">3:12</span>
-                </div>
-            </div>
+    <main class="app-shell">
+        <section class="app-section is-active" id="section-inicio" data-page="inicio">
+            <div class="hero-grid">
+                <article class="glass-card hero-card">
+                    <div class="hero-profile">
+                        <div class="avatar-ring"><img id="avatar-principal" src="avatar.gif" alt="Perfil de Rayito" class="foto-perfil"><span class="status-dot" title="Online"></span></div>
+                        <div class="hero-copy">
+                            <p class="eyebrow">BIENVENIDO A MI MUNDO</p>
+                            <h1 id="nombre-perfil">Rayito ⚡</h1>
+                            <p id="texto-bienvenida">Música, juegos y todo mi setup en un solo lugar.</p>
+                        </div>
+                    </div>
+                    <div class="social-row">
+                        <a id="link-tiktok" href="#" target="_blank" rel="noopener noreferrer" class="social-pill">♪ TikTok</a>
+                        <a id="link-youtube" href="#" target="_blank" rel="noopener noreferrer" class="social-pill">▶ YouTube</a>
+                        <a id="link-spotify" href="#" target="_blank" rel="noopener noreferrer" class="social-pill">● Spotify</a>
+                    </div>
+                    <div class="hero-actions">
+                        <button class="primary-action" data-go="juegos">Jugar ahora <span>→</span></button>
+                        <button class="secondary-action" data-go="musica">Escuchar música</button>
+                    </div>
+                </article>
+
+                <article class="glass-card now-playing-home">
+                    <div class="card-head"><div><p class="eyebrow">REPRODUCIENDO</p><h2>Ahora suena</h2></div><button class="icon-button" data-go="musica" title="Abrir música">↗</button></div>
+                    <div class="home-track">
+
+    <div class="home-vinyl-wrap">
+        <div class="vinyl-record" aria-hidden="true">
+            <div class="vinyl-center"></div>
         </div>
 
-        <details class="setup-desplegable">
-            <summary>
-                <span>🖥️ Mi setup</span>
-                <span class="summary-hint">Ver componentes</span>
-            </summary>
-            <div class="system-monitor">
-                <h3>// SYSTEM_SPECS</h3>
-                <div class="specs-section">
-                    <p><strong>CPU:</strong> <span id="spec-cpu">AMD Ryzen 7 5700X</span></p>
-                    <p><strong>GPU:</strong> <span id="spec-gpu">AMD Radeon RX 7600 XT 16GB</span></p>
-                    <p><strong>Motherboard:</strong> <span id="spec-motherboard">GA-A320M-H</span></p>
-                </div>
-                <div class="specs-section">
-                    <p><strong>Monitores:</strong></p>
-                    <ul id="lista-monitores">
-                        <li>Valkyrie VH2410V2 (200Hz)</li>
-                        <li>ASUS VA24E (75Hz)</li>
-                        <li>Samsung SMB1930N (60Hz)</li>
-                    </ul>
-                </div>
-            </div>
-        </details>
-
-        <div class="acciones-compartir">
-            <button type="button" onclick="compartirSitio()" class="boton-secundario">↗ Compartir</button>
-            <button type="button" onclick="copiarEnlace()" class="boton-secundario">⧉ Copiar enlace</button>
-        </div>
-
-        <audio id="mi-musica" loop preload="metadata">
-            <source src="tu-cancion.mp3" type="audio/mpeg">
-        </audio>
-    </div> 
-
-    <div class="caja-fecha">
-        <p>Web actualizada: <span id="fecha-actualizacion">25/7/2026</span></p>
+        <img id="home-track-cover" src="avatar.gif" alt="Portada actual">
     </div>
 
-    <div id="toast" role="status" aria-live="polite"></div>
+    <div>
+        <strong id="home-track-title">Cargando…</strong>
+        <span id="home-track-artist">Rayito Playlist</span>
+    </div>
 
+</div>
+
+<div class="home-player-controls">
+    <button class="icon-button" data-secure-action="music-prev" aria-label="Anterior">⏮</button>
+
+    <button class="play-orb" data-secure-action="music-toggle" aria-label="Reproducir o pausar">
+        <span id="home-play-icon">▶</span>
+    </button>
+
+    <button class="icon-button" data-secure-action="music-next" aria-label="Siguiente">⏭</button>
+</div>
+                </article>
+            </div>
+
+            <div class="stats-grid">
+                <article class="glass-card stat-card"><span class="stat-icon">🎮</span><div><small>Partidas</small><strong id="stat-partidas">0</strong></div></article>
+                <article class="glass-card stat-card"><span class="stat-icon">🏆</span><div><small>Mejor récord</small><strong id="stat-mejor-record">0</strong></div></article>
+                <article class="glass-card stat-card"><span class="stat-icon">⚡</span><div><small>Nivel</small><strong id="stat-nivel">1</strong></div></article>
+                <article class="glass-card stat-card"><span class="stat-icon">🏅</span><div><small>Logros</small><strong id="stat-logros">0</strong></div></article>
+            </div>
+
+            <div class="content-grid-2">
+                <article class="glass-card challenge-card">
+                    <div class="card-head"><div><p class="eyebrow">DESAFÍO DIARIO</p><h2 id="daily-title">Cargando desafío…</h2></div><span class="day-chip" id="daily-date">HOY</span></div>
+                    <p id="daily-description">Completá el desafío para ganar XP extra.</p>
+                    <div class="challenge-progress"><div id="daily-progress-bar"></div></div>
+                    <div class="challenge-footer"><span id="daily-progress-text">0 / 0</span><strong id="daily-reward">+150 XP</strong></div>
+                    <button class="secondary-action full" id="daily-play-button">Ir al desafío</button>
+                </article>
+                <article class="glass-card activity-card">
+                    <div class="card-head"><div><p class="eyebrow">TU PROGRESO</p><h2>Última actividad</h2></div></div>
+                    <div id="activity-feed" class="activity-feed"></div>
+                </article>
+            </div>
+
+            <aside class="home-global-ranking" id="home-global-ranking" aria-label="Ranking global rápido">
+                <button type="button" class="home-ranking-toggle" id="home-ranking-toggle" aria-expanded="false" aria-controls="home-ranking-book">
+                    <span class="home-ranking-toggle-icon">🏆</span>
+                    <span class="home-ranking-toggle-copy"><small>COMPETITIVO</small><strong>Ranking global</strong></span>
+                    <span class="home-ranking-live"><i></i> EN VIVO</span>
+                    <span class="home-ranking-chevron" aria-hidden="true">⌄</span>
+                </button>
+
+                <div class="home-ranking-book" id="home-ranking-book" aria-hidden="true">
+                    <div class="home-ranking-book-inner">
+                        <div class="home-ranking-book-head">
+                            <div><p class="eyebrow">TOP GLOBAL</p><h3>Los mejores</h3></div>
+                            <label class="home-ranking-game-label">
+                                <span>Juego</span>
+                                <select id="home-ranking-game" aria-label="Juego del ranking rápido">
+                                    <option value="snake">🐍 Snake</option>
+                                    <option value="highway">🏎️ Highway Rush</option>
+                                    <option value="neon">🟣 Neon Jump</option>
+                                    <option value="breakout">🧱 Rompeladrillos</option>
+                                    <option value="cohete">🚀 Cohete</option>
+                                    <option value="penalty">⚽ Penalty</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="home-ranking-list" id="home-ranking-list">
+                            <div class="home-ranking-loading">Abrí el panel para cargar el Top 10.</div>
+                        </div>
+                        <button type="button" class="secondary-action full home-ranking-open-full" data-section="ranking">Ver ranking completo →</button>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <section class="app-section" id="section-musica" data-page="musica" hidden>
+            <div class="section-heading"><div><p class="eyebrow">RAYITO MUSIC</p><h1>Tu biblioteca</h1><p>Elegí una canción, buscá por nombre y guardá tus favoritas.</p></div><div class="section-heading-actions"><button class="secondary-action" id="btn-shuffle">🔀 Aleatorio</button><button class="secondary-action" id="btn-repeat">↻ Repetir: off</button></div></div>
+            <div class="music-layout">
+                <article class="glass-card player-card">
+                    <div class="player-visual"><img id="portada-cancion" src="avatar.gif" alt="Portada de la canción actual"><div class="vinyl-ring" aria-hidden="true"></div></div>
+                    <div class="player-info"><span id="contador-cancion">1/1</span><h2 id="titulo-cancion">Cargando canción…</h2><p id="artista-cancion">Rayito Playlist</p>
+                        <button type="button" class="secondary-action song-request-toggle" id="song-request-toggle" aria-expanded="false" aria-controls="song-request-drawer">🎵 Pedir canción <span aria-hidden="true">‹</span></button>
+                    </div>
+                    <div class="barra-progreso music-progress" data-secure-action="music-seek" role="slider" aria-label="Progreso de la canción" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progreso-actual"></div></div>
+                    <div class="time-row"><span id="tiempo-actual">0:00</span><span id="duracion">0:00</span></div>
+                    <div class="main-audio-controls">
+                        <button type="button" class="icon-button" id="btn-favorito" title="Favorito">♡</button>
+                        <button type="button" class="icon-button" data-secure-action="music-prev" aria-label="Canción anterior">⏮</button>
+                        <button type="button" data-secure-action="music-toggle" class="play-orb large" aria-label="Reproducir o pausar canción">
+                            <svg id="icon-play" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+                        <button type="button" class="icon-button" data-secure-action="music-next" aria-label="Canción siguiente">⏭</button>
+                        <button type="button" class="icon-button" id="btn-queue-toggle" title="Cola">☷</button>
+                    </div>
+                    <div id="contenedor-volumen" class="volume-control" role="group" aria-label="Control de volumen">
+                        <button type="button" data-secure-action="music-mute" id="btn-mute-toggle" class="icon-button" aria-label="Silenciar o activar música">
+                            <svg id="icon-sound" viewBox="0 0 24 24" fill="currentColor" width="19" height="19"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+                            <svg id="icon-mute" viewBox="0 0 24 24" fill="currentColor" width="19" height="19" style="display:none"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71z"/></svg>
+                        </button>
+                        <input type="range" id="volumen-slider" min="0" max="1" step="0.05" value="0.8" data-secure-input="music-volume" aria-label="Volumen de la música">
+                    </div>
+                    <select id="selector-cancion" data-secure-change="music-track" aria-label="Elegir canción" hidden></select>
+                </article>
+
+                <article class="glass-card library-card">
+                    <div class="library-toolbar"><div><p class="eyebrow">CANCIONES</p><h2>Playlist</h2></div><label class="search-box"><span>⌕</span><input id="music-search" type="search" placeholder="Buscar canción o artista…" autocomplete="off"></label></div>
+                    <div class="library-filters"><button class="filter-chip is-active" data-music-filter="all">Todas</button><button class="filter-chip" data-music-filter="favorites">♡ Favoritas</button></div>
+                    <div id="music-library" class="music-library"></div>
+                    <div id="empty-music" class="empty-state" hidden>No hay canciones que coincidan.</div>
+                </article>
+            </div>
+            <aside class="glass-card song-request-drawer" id="song-request-drawer" aria-hidden="true">
+                <div class="song-request-head">
+                    <div><p class="eyebrow">RAYITO REQUESTS</p><h2>Pedir canción</h2><p>Dejá el nombre de la canción y, si querés, el artista.</p></div>
+                    <button type="button" class="icon-button" id="song-request-close" aria-label="Cerrar pedidos">×</button>
+                </div>
+                <div class="song-request-gate" id="song-request-gate" hidden>
+                    <span>🔒</span>
+                    <div><strong>Necesitás una cuenta</strong><small>Los invitados pueden escuchar música, pero solo las cuentas pueden pedir canciones.</small></div>
+                    <button type="button" class="secondary-action" data-account-action="signup">Crear cuenta</button>
+                </div>
+                <div class="song-request-list" id="song-request-list"><div class="song-request-loading">Abrí el panel para cargar los pedidos.</div></div>
+                <form class="song-request-form" id="song-request-form" autocomplete="off">
+                    <div class="song-request-field">
+                        <textarea id="song-request-input" rows="1" maxlength="180" placeholder="Ej: Feid - Luna"></textarea>
+                        <small><span id="song-request-count">0</span>/180</small>
+                    </div>
+                    <button type="submit" class="primary-action song-request-send" id="song-request-send">Pedir</button>
+                </form>
+                <p class="song-request-note" id="song-request-note">Solo las cuentas creadas pueden enviar pedidos.</p>
+                <div class="song-request-legend"><small>✅ 0 / ❌ 0 = sin revisar. Solo el Fundador puede cambiar cada pedido a 1.</small></div>
+            </aside>
+            <aside class="glass-card queue-card" id="queue-panel" hidden><div class="card-head"><div><p class="eyebrow">SIGUIENTE</p><h2>Cola de reproducción</h2></div><button class="icon-button" id="queue-close">×</button></div><div id="queue-list"></div></aside>
+        </section>
+
+        <section class="app-section" id="section-juegos" data-page="juegos" hidden>
+            <div class="section-heading"><div><p class="eyebrow">RAYITO ARCADE</p><h1>Juegos</h1><p>Jugá, mejorá tus récords y peleá por entrar al Top 10.</p></div></div>
+            <article class="glass-card games-showcase" aria-labelledby="games-showcase-title">
+                <div class="games-showcase-head">
+                    <div>
+                        <p class="eyebrow">ARCADE</p>
+                        <h2 id="games-showcase-title">Juegos principales</h2>
+                    </div>
+                    <button type="button" class="games-view-all" data-secure-action="open-library">Ver todos</button>
+                </div>
+
+                <div class="games-strip" id="games-grid" aria-label="Juegos principales">
+                    <button type="button" class="showcase-game-card" data-secure-action="game-highway">
+                        <span class="showcase-game-cover"><img src="assets/games/highway.jpg" alt="" loading="eager"><span class="showcase-game-shine"></span></span>
+                        <span class="showcase-game-info"><strong>Highway Rush</strong><em data-record="highway">Récord: 0</em></span>
+                    </button>
+                    <button type="button" class="showcase-game-card" data-secure-action="game-snake">
+                        <span class="showcase-game-cover"><img src="assets/games/snake.jpg" alt="" loading="lazy"><span class="showcase-game-shine"></span></span>
+                        <span class="showcase-game-info"><strong>Snake</strong><em data-record="snake">Récord: 0</em></span>
+                    </button>
+                    <button type="button" class="showcase-game-card" data-secure-action="game-neon">
+                        <span class="showcase-game-cover"><img src="assets/games/neon.jpg" alt="" loading="lazy"><span class="showcase-game-shine"></span></span>
+                        <span class="showcase-game-info"><strong>Neon Jump</strong><em data-record="neon">Récord: 0</em></span>
+                    </button>
+                    <button type="button" class="showcase-game-card" data-secure-action="game-breakout">
+                        <span class="showcase-game-cover"><img src="assets/games/breakout.jpg" alt="" loading="lazy"><span class="showcase-game-shine"></span></span>
+                        <span class="showcase-game-info"><strong>Rompeladrillos</strong><em data-record="breakout">Récord: 0</em></span>
+                    </button>
+                    <button type="button" class="showcase-game-card" data-secure-action="game-cohete">
+                        <span class="showcase-game-cover"><img src="assets/games/cohete.jpg" alt="" loading="lazy"><span class="showcase-game-shine"></span></span>
+                        <span class="showcase-game-info"><strong>Cohete Espacial</strong><em data-record="cohete">Récord: 0</em></span>
+                    </button>
+                    <button type="button" class="showcase-game-card" data-secure-action="game-penalty">
+                        <span class="showcase-game-cover"><img src="assets/games/penalty.jpg" alt="" loading="lazy"><span class="showcase-game-shine"></span></span>
+                        <span class="showcase-game-info"><strong>Penalty Master</strong><em data-record="penalty">Récord: 0</em></span>
+                    </button>
+                </div>
+
+                <div class="games-carousel-dots" aria-hidden="true">
+                    <span class="is-active"></span><span></span><span></span><span></span><span></span>
+                </div>
+            </article>
+
+            <article class="glass-card records-card games-records-card">
+                <div class="card-head"><div><p class="eyebrow">TUS MARCAS</p><h2>Récords personales</h2></div><button type="button" class="secondary-action ranking-shortcut" data-section="ranking">Ver ranking →</button></div>
+                <div id="personal-records" class="personal-records"></div>
+            </article>
+        </section>
+
+        <section class="app-section" id="section-ranking" data-page="ranking" hidden>
+            <div class="section-heading ranking-heading">
+                <div><p class="eyebrow">RAYITO COMPETITIVO</p><h1>Ranking</h1><p>Los mejores jugadores de la comunidad. Entrá al Top 10 y ganá tu reconocimiento.</p></div>
+                <div class="ranking-mode" id="ranking-mode">Ranking local</div>
+            </div>
+
+            <article class="glass-card leaderboard-card">
+                <div class="leaderboard-toolbar">
+                    <div>
+                        <p class="eyebrow">CLASIFICACIÓN</p>
+                        <h2>Top 10</h2>
+                    </div>
+                    <label class="ranking-game-label">
+                        <span>Juego</span>
+                        <select id="ranking-game">
+                            <option value="snake">🐍 Snake</option>
+                            <option value="highway">🏎️ Highway Rush</option>
+                            <option value="neon">🟣 Neon Jump</option>
+                            <option value="breakout">🧱 Rompeladrillos</option>
+                            <option value="cohete">🚀 Cohete Espacial</option>
+                            <option value="penalty">⚽ Penalty Master</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div id="ranking-podium" class="ranking-podium" aria-label="Podio de los tres mejores"></div>
+
+                <div class="ranking-table-wrap">
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Puesto</th>
+                                <th>Jugador</th>
+                                <th>Reconocimiento</th>
+                                <th class="rank-game-col">Juego</th>
+                                <th class="rank-score-col">Puntos</th>
+                                <th class="rank-date-col">Actualizado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ranking-table-body"></tbody>
+                    </table>
+                    <div id="ranking-empty" class="empty-state ranking-empty" hidden>Todavía no hay puntuaciones. ¡Sé el primero!</div>
+                </div>
+            </article>
+
+            <div class="recognition-grid">
+                <article class="recognition-card recognition-champion"><span>👑</span><div><strong>Campeón</strong><small>Puesto #1 · Corona del servidor</small></div></article>
+                <article class="recognition-card recognition-silver"><span>🥈</span><div><strong>Subcampeón</strong><small>Puesto #2 · Medalla de plata</small></div></article>
+                <article class="recognition-card recognition-bronze"><span>🥉</span><div><strong>Podio</strong><small>Puesto #3 · Medalla de bronce</small></div></article>
+                <article class="recognition-card recognition-elite"><span>💎</span><div><strong>Élite</strong><small>Puestos #4–#5 · Insignia élite</small></div></article>
+                <article class="recognition-card recognition-top10"><span>⭐</span><div><strong>Top 10</strong><small>Puestos #6–#10 · Estrella competitiva</small></div></article>
+            </div>
+
+            <article class="glass-card community-chat-card" id="community-chat-card">
+                <div class="community-chat-head">
+                    <div>
+                        <p class="eyebrow">COMUNIDAD RAYITO ⚡</p>
+                        <h2>Chat de la comunidad</h2>
+                        <p>Hablá con otros jugadores en tiempo real. Tu nombre y foto/GIF salen directamente de tu Perfil.</p>
+                    </div>
+                    <span class="community-chat-live" id="community-chat-live"><i></i> En vivo</span>
+                </div>
+
+                <div class="community-chat-messages" id="community-chat-messages" role="log" aria-live="polite" aria-label="Mensajes de la comunidad">
+                    <div class="community-chat-loading">Conectando con la comunidad…</div>
+                </div>
+
+                <div class="community-chat-gate" id="community-chat-gate" hidden>
+                    <span>🔒</span>
+                    <div><strong>Completá tu Perfil para escribir</strong><small>Necesitás un nombre y una foto o GIF. Todos pueden leer el chat.</small></div>
+                    <button type="button" class="secondary-action" data-section="perfil">Ir a Perfil</button>
+                </div>
+
+                <form class="community-chat-compose" id="community-chat-form" autocomplete="off">
+                    <div class="community-chat-me" id="community-chat-me" aria-hidden="true"></div>
+                    <label class="community-chat-field">
+                        <span class="sr-only">Mensaje para la comunidad</span>
+                        <textarea id="community-chat-input" maxlength="280" rows="1" placeholder="Escribí un mensaje para la comunidad…"></textarea>
+                        <small><b id="community-chat-count">0</b>/280</small>
+                    </label>
+                    <button type="submit" class="primary-action community-chat-send" id="community-chat-send">Enviar</button>
+                </form>
+                <p class="community-chat-note" id="community-chat-status">Los mensajes son públicos para la comunidad.</p>
+            </article>
+        </section>
+
+        <section class="app-section" id="section-perfil" data-page="perfil" hidden>
+            <div class="section-heading"><div><p class="eyebrow">TU PERFIL</p><h1>Jugador</h1><p>Elegí tu nombre y una foto o GIF. El perfil se sincroniza con el ranking global.</p></div></div>
+            <div class="profile-layout">
+                <article class="glass-card profile-card-main">
+                    <div class="profile-avatar-large"><img src="player-default.svg" id="profile-avatar" alt="Tu avatar de jugador"><span id="profile-level-badge">LV. 1</span></div>
+
+                    <input id="player-avatar-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+                    <p class="profile-identity-note">Este perfil pertenece al usuario que está jugando. El perfil de <strong>Inicio</strong> es el perfil público de Rayito y no se modifica desde acá.</p>
+                    <div class="profile-avatar-actions">
+                        <button type="button" class="secondary-action full" id="choose-player-avatar">📷 Cambiar foto / GIF</button>
+                    </div>
+                    <p class="profile-avatar-hint" id="profile-avatar-status">PNG, JPG, WebP o GIF · máximo 8 MB. Tu avatar aparecerá también en el ranking.</p>
+
+                    <label class="field-label">Nombre de jugador<input id="player-name-input" maxlength="20" placeholder="Tu nombre" autocomplete="nickname"></label>
+                    <button class="primary-action full" id="save-player-name">Guardar perfil</button>
+                    <div class="xp-block"><div class="xp-head"><span id="profile-level-text">Nivel 1</span><span id="profile-xp-text">0 / 250 XP</span></div><div class="xp-track"><div id="profile-xp-bar"></div></div></div>
+                    <div class="profile-mini-stats"><div><strong id="profile-games">0</strong><span>Partidas</span></div><div><strong id="profile-favorites">0</strong><span>Favoritas</span></div><div><strong id="profile-achievements-count">0</strong><span>Logros</span></div></div>
+                </article>
+                <div class="profile-right-stack">
+                    <article class="glass-card achievements-card"><div class="card-head"><div><p class="eyebrow">COLECCIÓN</p><h2>Logros</h2></div><span id="achievement-progress">0/8</span></div><div id="achievements-grid" class="achievements-grid"></div></article>
+
+                    <article class="glass-card profile-peripherals-card">
+                        <div class="card-head">
+                            <div><p class="eyebrow">MI EQUIPO</p><h2>Mi PC y periféricos</h2></div>
+                            <span class="profile-peripherals-icon" aria-hidden="true">🖥️</span>
+                        </div>
+                        <p class="profile-peripherals-intro">Completá tu setup. Todo queda vinculado a tu perfil y se conserva al volver a entrar.</p>
+
+                        <div class="profile-equipment-group">
+                            <div class="profile-equipment-title"><span>🧩</span><div><strong>Componentes de PC</strong><small>Hardware principal de tu equipo</small></div></div>
+                            <div class="profile-peripherals-grid">
+                                <label class="profile-peripheral-field"><span>🧠 Procesador</span><input type="text" maxlength="80" data-peripheral-key="cpu" placeholder="Ej: AMD Ryzen 7 5700X"></label>
+                                <label class="profile-peripheral-field"><span>🎮 Tarjeta gráfica</span><input type="text" maxlength="80" data-peripheral-key="gpu" placeholder="Ej: Radeon RX 7600 XT 16 GB"></label>
+                                <label class="profile-peripheral-field"><span>🧩 Motherboard</span><input type="text" maxlength="80" data-peripheral-key="motherboard" placeholder="Ej: Gigabyte B550M DS3H"></label>
+                                <label class="profile-peripheral-field"><span>💾 Memoria RAM</span><input type="text" maxlength="80" data-peripheral-key="ram" placeholder="Ej: 32 GB DDR4 3600 MHz"></label>
+                                <label class="profile-peripheral-field"><span>🗄️ Almacenamiento</span><input type="text" maxlength="80" data-peripheral-key="storage" placeholder="Ej: NVMe 1 TB + SSD 2 TB"></label>
+                                <label class="profile-peripheral-field"><span>⚡ Fuente</span><input type="text" maxlength="80" data-peripheral-key="psu" placeholder="Ej: Corsair RM750e 750W"></label>
+                                <label class="profile-peripheral-field"><span>🖥️ Gabinete</span><input type="text" maxlength="80" data-peripheral-key="case" placeholder="Ej: NZXT H5 Flow"></label>
+                                <label class="profile-peripheral-field"><span>❄️ Refrigeración</span><input type="text" maxlength="80" data-peripheral-key="cooling" placeholder="Ej: DeepCool AK620"></label>
+                            </div>
+                        </div>
+
+                        <div class="profile-equipment-group">
+                            <div class="profile-equipment-title"><span>⌨️</span><div><strong>Periféricos</strong><small>Lo que usás para jugar y comunicarte</small></div></div>
+                            <div class="profile-peripherals-grid">
+                                <label class="profile-peripheral-field"><span>⌨️ Teclado</span><input type="text" maxlength="80" data-peripheral-key="keyboard" placeholder="Ej: HyperX Alloy Origins"></label>
+                                <label class="profile-peripheral-field"><span>🖱️ Mouse</span><input type="text" maxlength="80" data-peripheral-key="mouse" placeholder="Ej: Logitech G Pro X Superlight"></label>
+                                <label class="profile-peripheral-field"><span>🎧 Auriculares</span><input type="text" maxlength="80" data-peripheral-key="headset" placeholder="Ej: HyperX Cloud III"></label>
+                                <label class="profile-peripheral-field"><span>🎙️ Micrófono</span><input type="text" maxlength="80" data-peripheral-key="microphone" placeholder="Ej: Fifine AM8"></label>
+                                <label class="profile-peripheral-field"><span>🖥️ Monitor principal</span><input type="text" maxlength="80" data-peripheral-key="monitor" placeholder="Ej: LG UltraGear 24GN60R"></label>
+                                <label class="profile-peripheral-field"><span>🎮 Mando / Volante</span><input type="text" maxlength="80" data-peripheral-key="controller" placeholder="Ej: Xbox Series Controller"></label>
+                            </div>
+                        </div>
+
+                        <div class="profile-peripherals-actions">
+                            <p id="profile-peripherals-status">Podés dejar en blanco cualquier campo que no uses.</p>
+                            <button type="button" class="primary-action" id="save-player-peripherals">Guardar equipo</button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="app-section" id="section-setup" data-page="setup" hidden>
+            <div class="section-heading"><div><p class="eyebrow">BATTLESTATION</p><h1>Mi setup</h1><p>Hardware y pantallas que uso.</p></div></div>
+            <div class="setup-grid">
+                <article class="glass-card setup-card"><span class="setup-icon"><img src="icons/icon-cpu.svg" alt="Icono de procesador"></span><small>Procesador</small><strong id="spec-cpu">AMD Ryzen 7 5700X</strong><p>El cerebro principal del setup.</p></article>
+                <article class="glass-card setup-card"><span class="setup-icon"><img src="icons/icon-gpu.svg" alt="Icono de tarjeta gráfica"></span><small>Gráfica</small><strong id="spec-gpu">AMD Radeon RX 7600 XT 16GB</strong><p>Gráficos y rendimiento.</p></article>
+                <article class="glass-card setup-card"><span class="setup-icon"><img src="icons/icon-motherboard.svg" alt="Icono de motherboard"></span><small>Motherboard</small><strong id="spec-motherboard">GA-A320M-H</strong><p>Base del equipo.</p></article>
+                <article class="glass-card monitors-card"><div class="card-head"><div><p class="eyebrow">PANTALLAS</p><h2>Monitores</h2></div><span>🖥️</span></div><ul id="lista-monitores"></ul></article>
+                <article class="glass-card monitors-card peripherals-card"><div class="card-head"><div><p class="eyebrow">PERIFÉRICOS</p><h2>Accesorios</h2></div><span>⌨️</span></div><ul id="lista-perifericos"></ul></article>
+            </div>
+            <article class="glass-card install-card"><div><p class="eyebrow">APP INSTALABLE</p><h2>Instalá Rayito Hub</h2><p>En navegadores compatibles podés abrir esta web como una aplicación independiente.</p></div><button class="primary-action install-trigger" id="install-main" disabled>Instalar aplicación</button></article>
+            <div class="share-row"><button type="button" data-secure-action="share" class="secondary-action">↗ Compartir sitio</button><button type="button" data-secure-action="copy-link" class="secondary-action">⧉ Copiar enlace</button></div>
+        </section>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Navegación móvil">
+        <button class="mobile-nav-item is-active" data-section="inicio"><span>⌂</span><small>Inicio</small></button>
+        <button class="mobile-nav-item" data-section="musica"><span>♫</span><small>Música</small></button>
+        <button class="mobile-nav-item" data-section="juegos"><span>⚡</span><small>Juegos</small></button>
+        <button class="mobile-nav-item" data-section="ranking"><span>🏆</span><small>Ranking</small></button>
+        <button class="mobile-nav-item" data-section="perfil"><span>◎</span><small>Perfil</small></button>
+        <button class="mobile-nav-item" data-section="setup"><span>▣</span><small>Setup</small></button>
+    </nav>
+
+    <audio id="mi-musica" preload="auto" playsinline><source src="AMULETO.mp3" type="audio/mpeg"></audio>
+    <div id="toast" role="status" aria-live="polite"></div>
     <!-- VENTANA LIBRITO -->
     <div id="modal-libro" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="titulo-biblioteca">
         <div id="caja-libro">
             <h2 id="titulo-biblioteca" style="color:white; font-family:'Segoe UI', sans-serif; font-size: 18px; margin-top:0; margin-bottom: 15px;">📖 Biblioteca de Juegos</h2>
             
             <div class="lista-juegos">
-                <button type="button" class="boton-juego" onclick="abrirJuegoSurvivor()">
-                    <span class="game-art art-survivor" aria-hidden="true">⚡</span>
-                    <span class="game-copy"><strong>Arena Survivor</strong><small>Oleadas, mejoras y jefes</small><em data-record="survivor">Récord: 0</em></span>
+                <button type="button" class="boton-juego" data-secure-action="game-highway">
+                    <span class="game-art art-highway" aria-hidden="true">🏎️</span>
+                    <span class="game-copy"><strong>Highway Rush</strong><small>Acelerá, frená y adelantá tráfico realista</small><em data-record="highway">Récord: 0</em></span>
                 </button>
-                <button type="button" class="boton-juego" onclick="abrirJuegoSnake()">
+                <button type="button" class="boton-juego" data-secure-action="game-snake">
                     <span class="game-art art-snake" aria-hidden="true">🐍</span>
-                    <span class="game-copy"><strong>Snake</strong><small>Clásico, rápido y táctil</small><em data-record="snake">Récord: 0</em></span>
+                    <span class="game-copy"><strong>Snake</strong><small>Acelera, esquivá bloques y buscá bonus</small><em data-record="snake">Récord: 0</em></span>
                 </button>
-                <button type="button" class="boton-juego" onclick="abrirJuegoPong()">
-                    <span class="game-art art-pong" aria-hidden="true">🏓</span>
-                    <span class="game-copy"><strong>Pong Retro</strong><small>Sobreviví a cada rebote</small><em data-record="pong">Récord: 0</em></span>
+                <button type="button" class="boton-juego" data-secure-action="game-neon">
+                    <span class="game-art art-neon" aria-hidden="true">🟣</span>
+                    <span class="game-copy"><strong>Neon Jump</strong><small>Subí, acertá saltos perfectos y no caigas</small><em data-record="neon">Récord: 0</em></span>
                 </button>
-                <button type="button" class="boton-juego" onclick="abrirJuegoBreakout()">
+                <button type="button" class="boton-juego" data-secure-action="game-breakout">
                     <span class="game-art art-breakout" aria-hidden="true">🧱</span>
-                    <span class="game-copy"><strong>Rompeladrillos</strong><small>Buscá los bloques x2 y x3</small><em data-record="breakout">Récord: 0</em></span>
+                    <span class="game-copy"><strong>Rompeladrillos</strong><small>Niveles infinitos, blindados y multibola</small><em data-record="breakout">Récord: 0</em></span>
                 </button>
-                <button type="button" class="boton-juego" onclick="abrirJuegoCohete()">
+                <button type="button" class="boton-juego" data-secure-action="game-cohete">
                     <span class="game-art art-cohete" aria-hidden="true">🚀</span>
                     <span class="game-copy"><strong>Cohete Espacial</strong><small>Esquivá la lluvia de asteroides</small><em data-record="cohete">Récord: 0</em></span>
                 </button>
-                <button type="button" class="boton-juego" onclick="abrirJuegoPenalty()">
+                <button type="button" class="boton-juego" data-secure-action="game-penalty">
                     <span class="game-art art-penalty" aria-hidden="true">⚽</span>
-                    <span class="game-copy"><strong>Penalty Master</strong><small>Cinco tiros para ser campeón</small><em data-record="penalty">Récord: 0</em></span>
+                    <span class="game-copy"><strong>Penalty Master</strong><small>Tandas por niveles y puntos acumulados</small><em data-record="penalty">Récord: 0</em></span>
                 </button>
             </div>
 
-            <button type="button" class="boton-cerrar" onclick="cerrarMenuLibro()">Cerrar</button>
+            <button type="button" class="boton-cerrar" data-secure-action="close-library">Cerrar</button>
         </div>
     </div>
 
     <!-- VENTANA EMERGENTE DEL JUEGO -->
+    <div class="account-modal" id="account-modal" hidden>
+        <button type="button" class="account-modal-backdrop" data-account-close aria-label="Cerrar"></button>
+        <section class="account-dialog" role="dialog" aria-modal="true" aria-labelledby="account-dialog-title">
+            <div class="account-dialog-head">
+                <div><p class="eyebrow">RAYITO HUB ⚡</p><h2 id="account-dialog-title">Cuenta</h2></div>
+                <button type="button" class="account-close" data-account-close aria-label="Cerrar">×</button>
+            </div>
+
+            <div class="account-view" data-account-view="menu">
+                <div class="account-status-panel">
+                    <span class="account-status-icon" id="account-status-icon">👤</span>
+                    <div><small id="account-status-label">MODO INVITADO</small><strong id="account-status-value">Entraste sin cuenta</strong><p id="account-status-detail">Podés explorar y jugar. Para competir y guardar tu progreso necesitás una cuenta.</p></div>
+                </div>
+                <div class="account-menu-actions" id="account-menu-guest">
+                    <button type="button" class="account-primary" data-account-action="signup">Crear cuenta</button>
+                    <button type="button" class="account-secondary" data-account-action="login">Iniciar sesión</button>
+                    <button type="button" class="account-link" data-account-action="recover">¿Olvidaste tu contraseña?</button>
+                </div>
+                <div class="account-menu-actions" id="account-menu-user" hidden>
+                    <div class="account-cloud-ok">☁️ Tu progreso se sincroniza automáticamente con esta cuenta.</div>
+                    <button type="button" class="account-secondary" data-account-action="sync">Sincronizar ahora</button>
+                    <button type="button" class="account-danger" data-account-action="logout">Cerrar sesión</button>
+                </div>
+            </div>
+
+            <form class="account-view account-form" data-account-view="signup" hidden>
+                <button type="button" class="account-back-link" data-account-action="menu">← Volver</button>
+                <h3>Crear cuenta</h3>
+                <p>Primero verificamos tu correo. Después elegís una contraseña. Tu usuario invitado se convierte en cuenta sin cambiar de UUID, así conservás tu progreso y tus datos.</p>
+                <label>Correo electrónico<input type="email" id="signup-email" autocomplete="email" maxlength="120" required placeholder="tu@email.com"></label>
+                <button type="submit" class="account-primary">Verificar mi correo</button>
+                <p class="account-form-status" id="signup-status" aria-live="polite"></p>
+            </form>
+
+            <form class="account-view account-form" data-account-view="login" hidden>
+                <button type="button" class="account-back-link" data-account-action="menu">← Volver</button>
+                <h3>Iniciar sesión</h3>
+                <p>Entrá desde cualquier navegador y recuperá tu progreso guardado.</p>
+                <label>Correo electrónico<input type="email" id="login-email" autocomplete="email" maxlength="120" required placeholder="tu@email.com"></label>
+                <label>Contraseña<input type="password" id="login-password" autocomplete="current-password" minlength="8" maxlength="72" required placeholder="Tu contraseña"></label>
+                <button type="submit" class="account-primary">Entrar a mi cuenta</button>
+                <button type="button" class="account-link" data-account-action="recover">¿Olvidaste tu contraseña?</button>
+                <p class="account-form-status" id="login-status" aria-live="polite"></p>
+            </form>
+
+            <form class="account-view account-form" data-account-view="recover" hidden>
+                <button type="button" class="account-back-link" data-account-action="menu">← Volver</button>
+                <h3>Restablecer contraseña</h3>
+                <p>Te enviaremos un enlace por correo para elegir una contraseña nueva.</p>
+                <label>Correo electrónico<input type="email" id="recover-email" autocomplete="email" maxlength="120" required placeholder="tu@email.com"></label>
+                <button type="submit" class="account-primary">Enviar enlace</button>
+                <p class="account-form-status" id="recover-status" aria-live="polite"></p>
+            </form>
+
+            <form class="account-view account-form" data-account-view="new-password" hidden>
+                <h3 id="new-password-title">Nueva contraseña</h3>
+                <p id="new-password-copy">Escribí la nueva contraseña de tu cuenta.</p>
+                <label>Nueva contraseña<input type="password" id="new-password" autocomplete="new-password" minlength="8" maxlength="72" required></label>
+                <label>Repetir contraseña<input type="password" id="new-password-confirm" autocomplete="new-password" minlength="8" maxlength="72" required></label>
+                <button type="submit" class="account-primary">Guardar contraseña</button>
+                <p class="account-form-status" id="new-password-status" aria-live="polite"></p>
+            </form>
+        </section>
+    </div>
+
+    <div class="public-profile-modal" id="public-profile-modal" hidden>
+        <button type="button" class="public-profile-backdrop" data-close-public-profile aria-label="Cerrar perfil"></button>
+        <section class="public-profile-dialog glass-card" role="dialog" aria-modal="true" aria-labelledby="public-profile-title">
+            <div class="public-profile-dialog-head">
+                <div><p class="eyebrow">COMUNIDAD RAYITO ⚡</p><h2 id="public-profile-title">Perfil público</h2></div>
+                <button type="button" class="public-profile-close" data-close-public-profile aria-label="Cerrar">×</button>
+            </div>
+            <div id="public-profile-content" class="public-profile-content"></div>
+        </section>
+    </div>
+
     <div id="modal-juego" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(15px); z-index:3100; justify-content:center; align-items:center; flex-direction:column;" role="dialog" aria-modal="true" aria-labelledby="titulo-juego-modal">
         <div class="panel-juego" style="background:rgba(255,255,255,0.1); padding:20px; border-radius:20px; border:1px solid rgba(255,255,255,0.3); text-align:center; box-shadow:0 0 30px rgba(0,0,0,0.5); width: auto;">
             <h2 id="titulo-juego-modal" style="color:white; margin-top:0; font-family:'Segoe UI', sans-serif;">Minijuego</h2>
             <p id="desc-juego-modal" style="color:#ccc; font-size:13px; margin-bottom:10px;">Diviértete un rato.</p>
             <div id="penalty-scoreboard" hidden aria-live="polite">
+                <span>NIVEL <strong id="penalty-nivel">1</strong></span>
                 <span>TIROS <strong id="penalty-tiros">0 / 5</strong></span>
                 <span>GOLES <strong id="penalty-goles">0</strong></span>
                 <span>PUNTOS <strong id="penalty-puntos">0</strong></span>
@@ -168,16 +685,16 @@
             </div>
             <div class="game-toolbar">
                 <label>Dificultad
-                    <select id="dificultad-juego" onchange="cambiarDificultad(this.value)">
+                    <select id="dificultad-juego" data-secure-change="difficulty">
                         <option value="facil">Fácil</option>
                         <option value="normal" selected>Normal</option>
                         <option value="dificil">Difícil</option>
                     </select>
                 </label>
                 <span class="record-actual">🏆 Récord <strong id="record-juego">0</strong></span>
-                <button type="button" id="btn-sonido-juego" onclick="toggleSonidoJuego()" aria-label="Activar o desactivar efectos de sonido">🔊 Sonido</button>
-                <button type="button" id="btn-pausa" onclick="togglePausaJuego()">⏸ Pausa</button>
-                <button type="button" onclick="reiniciarJuegoActual()">↻ Reiniciar</button>
+                <button type="button" id="btn-sonido-juego" data-secure-action="game-sound" aria-label="Activar o desactivar efectos de sonido">🔊 Sonido</button>
+                <button type="button" id="btn-pausa" data-secure-action="game-pause">⏸ Pausa</button>
+                <button type="button" data-secure-action="game-restart">↻ Reiniciar</button>
             </div>
             <div class="canvas-wrap">
                 <canvas id="areaJuego" width="950" height="600" tabindex="0" aria-label="Área interactiva del minijuego" style="border:2px solid rgba(255,255,255,0.4); border-radius:10px; background:#111; cursor:crosshair;"></canvas>
@@ -195,1976 +712,28 @@
                         <h3 id="resultado-titulo">¡Buen juego!</h3>
                         <p id="resultado-texto"></p>
                         <div class="resultado-acciones">
-                            <button type="button" onclick="reiniciarJuegoActual()">Jugar otra vez</button>
-                            <button type="button" onclick="cerrarTodoJuego()">Elegir juego</button>
+                            <button type="button" data-secure-action="game-restart">Jugar otra vez</button>
+                            <button type="button" data-secure-action="game-close">Elegir juego</button>
                         </div>
                     </div>
                 </div>
                 <div id="pausa-overlay" hidden><span>⏸</span><strong>Juego en pausa</strong></div>
             </div>
             <div id="controles-moviles" role="group" aria-label="Controles de dirección para Snake">
-                <button type="button" class="control-serpiente control-arriba" onclick="cambiarDireccionSnake('UP')" aria-label="Mover arriba">▲</button>
-                <button type="button" class="control-serpiente control-izquierda" onclick="cambiarDireccionSnake('LEFT')" aria-label="Mover a la izquierda">◀</button>
-                <button type="button" class="control-serpiente control-abajo" onclick="cambiarDireccionSnake('DOWN')" aria-label="Mover abajo">▼</button>
-                <button type="button" class="control-serpiente control-derecha" onclick="cambiarDireccionSnake('RIGHT')" aria-label="Mover a la derecha">▶</button>
+                <button type="button" class="control-serpiente control-arriba" data-secure-action="snake-up" aria-label="Mover arriba">▲</button>
+                <button type="button" class="control-serpiente control-izquierda" data-secure-action="snake-left" aria-label="Mover a la izquierda">◀</button>
+                <button type="button" class="control-serpiente control-abajo" data-secure-action="snake-down" aria-label="Mover abajo">▼</button>
+                <button type="button" class="control-serpiente control-derecha" data-secure-action="snake-right" aria-label="Mover a la derecha">▶</button>
             </div>
-            <button type="button" class="boton-volver" onclick="cerrarTodoJuego()">Volver al Menú</button>
+            <button type="button" class="boton-volver" data-secure-action="game-close">Volver al Menú</button>
         </div>
     </div>
     
-    <script>
-        const audio = document.getElementById('mi-musica');
-        const barra = document.getElementById('progreso-actual');
-        const playIcon = document.getElementById('icon-play');
-        const pauseIcon = document.getElementById('icon-pause');
-        const videoFondo = document.getElementById('video-fondo');
-        const CLAVE_RECORDS = 'rayito-records-v2';
-        const factoresDificultad = { facil: 0.76, normal: 1, dificil: 1.32 };
 
-        let dificultadActual = localStorage.getItem('rayito-dificultad') || 'normal';
-        let juegoPausado = false;
-        let inicioPausaJuego = 0;
-        let sonidoJuegoActivo = localStorage.getItem('rayito-sonido-juego') !== 'off';
-        let contextoAudioJuego = null;
-        let toastTimeout = null;
-        let recursosCargados = new Set();
-        let cargaCompletada = false;
-        let records = {};
-
-        try {
-            records = JSON.parse(localStorage.getItem(CLAVE_RECORDS) || '{}');
-        } catch {
-            records = {};
-        }
-
-        function cambiarTema(tema, guardar = true) {
-            const temas = ['rayito', 'neon', 'fuego', 'noche'];
-            const coloresTema = {
-                rayito: '#ffd700',
-                neon: '#00f5d4',
-                fuego: '#ff6b35',
-                noche: '#8ea8ff'
-            };
-            const elegido = temas.includes(tema) ? tema : 'rayito';
-            document.body.dataset.theme = elegido;
-            document.getElementById('selector-tema').value = elegido;
-            document.querySelector('meta[name="theme-color"]').content = coloresTema[elegido];
-            if (guardar) localStorage.setItem('rayito-tema', elegido);
-        }
-
-        function mostrarToast(mensaje) {
-            const toast = document.getElementById('toast');
-            toast.textContent = mensaje;
-            toast.classList.add('is-visible');
-            clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => toast.classList.remove('is-visible'), 2400);
-        }
-
-        async function copiarEnlace() {
-            try {
-                await navigator.clipboard.writeText(location.href);
-                mostrarToast('Enlace copiado');
-            } catch {
-                mostrarToast('Copiá la dirección desde el navegador');
-            }
-        }
-
-        async function compartirSitio() {
-            const datos = {
-                title: document.title,
-                text: 'Entrá al mundo de Rayito ⚡️',
-                url: location.href
-            };
-            if (navigator.share) {
-                try {
-                    await navigator.share(datos);
-                    return;
-                } catch (error) {
-                    if (error.name === 'AbortError') return;
-                }
-            }
-            copiarEnlace();
-        }
-
-        function actualizarCarga(nombre) {
-            recursosCargados.add(nombre);
-            const total = 4;
-            const porcentaje = Math.min(100, Math.round((recursosCargados.size / total) * 100));
-            document.getElementById('progreso-carga').style.width = `${porcentaje}%`;
-            document.getElementById('texto-carga').textContent = porcentaje < 100
-                ? `Preparando todo… ${porcentaje}%`
-                : 'Video, música y juegos listos';
-
-            if (porcentaje >= 100 && !cargaCompletada) {
-                cargaCompletada = true;
-                const boton = document.getElementById('btn-entrar');
-                boton.disabled = false;
-                boton.textContent = 'Entrar';
-                document.getElementById('indicacion-entrada').hidden = false;
-            }
-        }
-
-        function iniciarCarga() {
-            const avatar = document.getElementById('avatar-principal');
-            if (avatar.complete) actualizarCarga('avatar');
-            else avatar.addEventListener('load', () => actualizarCarga('avatar'), { once: true });
-
-            if (videoFondo.readyState >= 3) actualizarCarga('video');
-            else videoFondo.addEventListener('canplay', () => actualizarCarga('video'), { once: true });
-
-            if (audio.readyState >= 1) actualizarCarga('audio');
-            else audio.addEventListener('loadedmetadata', () => actualizarCarga('audio'), { once: true });
-
-            if (document.readyState === 'complete') actualizarCarga('pagina');
-            else window.addEventListener('load', () => actualizarCarga('pagina'), { once: true });
-
-            setTimeout(() => {
-                ['avatar', 'video', 'audio', 'pagina'].forEach(actualizarCarga);
-            }, 5500);
-        }
-
-        function actualizarRecordsUI() {
-            document.querySelectorAll('[data-record]').forEach(elemento => {
-                const juego = elemento.dataset.record;
-                elemento.textContent = `Récord: ${records[juego] || 0}`;
-            });
-            if (currentGame) {
-                document.getElementById('record-juego').textContent = records[currentGame] || 0;
-            }
-        }
-
-        function guardarRecord(juego, puntaje) {
-            const valor = Math.max(0, Math.round(puntaje || 0));
-            if (valor > (records[juego] || 0)) {
-                records[juego] = valor;
-                localStorage.setItem(CLAVE_RECORDS, JSON.stringify(records));
-                actualizarRecordsUI();
-                mostrarToast(`¡Nuevo récord: ${valor}!`);
-                feedbackJuego('record');
-                return true;
-            }
-            return false;
-        }
-
-        function factorDificultad() {
-            return factoresDificultad[dificultadActual] || 1;
-        }
-
-        function cambiarDificultad(valor) {
-            dificultadActual = factoresDificultad[valor] ? valor : 'normal';
-            localStorage.setItem('rayito-dificultad', dificultadActual);
-            if (currentGame) reiniciarJuegoActual();
-        }
-
-        function toggleSonidoJuego() {
-            sonidoJuegoActivo = !sonidoJuegoActivo;
-            localStorage.setItem('rayito-sonido-juego', sonidoJuegoActivo ? 'on' : 'off');
-            document.getElementById('btn-sonido-juego').textContent = sonidoJuegoActivo ? '🔊 Sonido' : '🔇 Sonido';
-            if (sonidoJuegoActivo) feedbackJuego('punto');
-        }
-
-        function feedbackJuego(tipo = 'punto') {
-            if (navigator.vibrate) {
-                const patrones = { punto: 20, gol: [25, 30, 45], fin: [80, 40, 100], record: [30, 25, 30, 25, 80] };
-                navigator.vibrate(patrones[tipo] || 20);
-            }
-            if (!sonidoJuegoActivo) return;
-
-            try {
-                contextoAudioJuego ??= new (window.AudioContext || window.webkitAudioContext)();
-                const oscilador = contextoAudioJuego.createOscillator();
-                const ganancia = contextoAudioJuego.createGain();
-                const frecuencias = { punto: 560, gol: 780, fin: 170, record: 980 };
-                oscilador.frequency.value = frecuencias[tipo] || 560;
-                oscilador.type = tipo === 'fin' ? 'sawtooth' : 'sine';
-                ganancia.gain.setValueAtTime(0.06, contextoAudioJuego.currentTime);
-                ganancia.gain.exponentialRampToValueAtTime(0.001, contextoAudioJuego.currentTime + 0.12);
-                oscilador.connect(ganancia);
-                ganancia.connect(contextoAudioJuego.destination);
-                oscilador.start();
-                oscilador.stop(contextoAudioJuego.currentTime + 0.12);
-            } catch {}
-        }
-
-        function prepararEstadoJuego() {
-            juegoPausado = false;
-            document.getElementById('pausa-overlay').hidden = true;
-            document.getElementById('game-result-overlay').hidden = true;
-            document.getElementById('survivor-upgrade-overlay').hidden = true;
-            document.getElementById('penalty-scoreboard').hidden = currentGame !== 'penalty';
-            document.getElementById('btn-pausa').textContent = '⏸ Pausa';
-            document.getElementById('btn-sonido-juego').textContent = sonidoJuegoActivo ? '🔊 Sonido' : '🔇 Sonido';
-            document.getElementById('dificultad-juego').value = dificultadActual;
-            actualizarRecordsUI();
-        }
-
-        function togglePausaJuego() {
-            if (!currentGame || !juegoActivo) return;
-            if (currentGame === 'survivor' && survivorSeleccionandoMejora) return;
-            juegoPausado = !juegoPausado;
-            if (juegoPausado) {
-                inicioPausaJuego = performance.now();
-            } else if (currentGame === 'cohete' && inicioPausaJuego) {
-                inicioCohete += performance.now() - inicioPausaJuego;
-                inicioPausaJuego = 0;
-            } else if (currentGame === 'survivor' && inicioPausaJuego) {
-                const pausa = performance.now() - inicioPausaJuego;
-                inicioSurvivor += pausa;
-                ultimoSpawnSurvivor += pausa;
-                ultimoDisparoSurvivor += pausa;
-                ultimoTiempoSurvivor = performance.now();
-                inicioPausaJuego = 0;
-            }
-            document.getElementById('pausa-overlay').hidden = !juegoPausado;
-            document.getElementById('btn-pausa').textContent = juegoPausado ? '▶ Continuar' : '⏸ Pausa';
-        }
-
-        function mostrarResultado(titulo, texto, puntaje, icono = '🏆') {
-            juegoActivo = false;
-            juegoPausado = false;
-            clearInterval(intervaloSnake);
-            guardarRecord(currentGame, puntaje);
-            document.getElementById('resultado-icono').textContent = icono;
-            document.getElementById('resultado-titulo').textContent = titulo;
-            document.getElementById('resultado-texto').textContent = `${texto} · ${Math.round(puntaje || 0)} puntos`;
-            document.getElementById('game-result-overlay').hidden = false;
-            document.getElementById('survivor-upgrade-overlay').hidden = true;
-            document.getElementById('pausa-overlay').hidden = true;
-            feedbackJuego(titulo.includes('GANASTE') ? 'gol' : 'fin');
-        }
-
-        function reiniciarJuegoActual() {
-            const juego = currentGame;
-            document.getElementById('game-result-overlay').hidden = true;
-            const aperturas = {
-                survivor: abrirJuegoSurvivor,
-                snake: abrirJuegoSnake,
-                pong: abrirJuegoPong,
-                breakout: abrirJuegoBreakout,
-                cohete: abrirJuegoCohete,
-                penalty: abrirJuegoPenalty
-            };
-            if (aperturas[juego]) aperturas[juego]();
-        }
-
-        function entrar() {
-            if (!cargaCompletada) return;
-            document.getElementById('pantalla-entrada').style.display = 'none';
-            audio.play().then(() => {
-                playIcon.style.display = 'none';
-                pauseIcon.style.display = 'block';
-            }).catch(() => {
-                playIcon.style.display = 'block';
-                pauseIcon.style.display = 'none';
-            });
-        }
-
-        function togglePlay() {
-            if (audio.paused) {
-                audio.play().then(() => {
-                    playIcon.style.display = 'none';
-                    pauseIcon.style.display = 'block';
-                }).catch(() => {});
-            } else {
-                audio.pause();
-                playIcon.style.display = 'block';
-                pauseIcon.style.display = 'none';
-            }
-        }
-
-        function ajustarVolumen(valor) {
-            audio.volume = valor;
-            const iconSound = document.getElementById('icon-sound');
-            const iconMute = document.getElementById('icon-mute');
-            if (valor == 0) { iconSound.style.display = 'none'; iconMute.style.display = 'block'; }
-            else { iconSound.style.display = 'block'; iconMute.style.display = 'none'; }
-        }
-
-        function toggleMute() {
-            audio.muted = !audio.muted;
-            const iconSound = document.getElementById('icon-sound');
-            const iconMute = document.getElementById('icon-mute');
-            iconSound.style.display = audio.muted ? 'none' : 'block';
-            iconMute.style.display = audio.muted ? 'block' : 'none';
-        }
-
-        audio.addEventListener('timeupdate', () => {
-            let porcentaje = Number.isFinite(audio.duration) ? (audio.currentTime / audio.duration) * 100 : 0;
-            barra.style.width = porcentaje + "%";
-            let m = Math.floor(audio.currentTime / 60);
-            let s = Math.floor(audio.currentTime % 60);
-            document.getElementById('tiempo-actual').innerText = m + ":" + (s < 10 ? "0" + s : s);
-        });
-
-        audio.addEventListener('loadedmetadata', () => {
-            const m = Math.floor(audio.duration / 60);
-            const s = Math.floor(audio.duration % 60);
-            document.getElementById('duracion').innerText = m + ":" + (s < 10 ? "0" + s : s);
-        });
-
-        function setPos(event) {
-            if (!Number.isFinite(audio.duration)) return;
-            const rect = event.currentTarget.getBoundingClientRect();
-            const proporcion = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-            audio.currentTime = proporcion * audio.duration;
-        }
-
-        function abrirMenuLibro() {
-            const modal = document.getElementById('modal-libro');
-            const caja = document.getElementById('caja-libro');
-            actualizarRecordsUI();
-            modal.style.display = 'block';
-            setTimeout(() => {
-                caja.classList.add('is-open');
-                const primerBoton = caja.querySelector('button');
-                if (primerBoton) primerBoton.focus({ preventScroll: true });
-            }, 10);
-        }
-
-        function cerrarMenuLibro() {
-            const modal = document.getElementById('modal-libro');
-            const caja = document.getElementById('caja-libro');
-            caja.classList.remove('is-open');
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 400);
-        }
-
-        function cerrarTodoJuego() {
-            juegoActivo = false;
-            juegoPausado = false;
-            currentGame = null;
-            clearInterval(intervaloSnake);
-            if (idAnimacionSurvivor) { cancelAnimationFrame(idAnimacionSurvivor); idAnimacionSurvivor = null; }
-            if (idAnimacionPong) { cancelAnimationFrame(idAnimacionPong); idAnimacionPong = null; }
-            if (idAnimacionBreakout) { cancelAnimationFrame(idAnimacionBreakout); idAnimacionBreakout = null; }
-            if (idAnimacionCohete) { cancelAnimationFrame(idAnimacionCohete); idAnimacionCohete = null; }
-            if (idAnimacionPenalty) { cancelAnimationFrame(idAnimacionPenalty); idAnimacionPenalty = null; }
-            if (timeoutPenalty) { clearTimeout(timeoutPenalty); timeoutPenalty = null; }
-            if (canvas) {
-                canvas.onmousemove = null;
-                canvas.onclick = null;
-                canvas.onpointermove = null;
-                canvas.onpointerdown = null;
-            }
-            document.getElementById('controles-moviles').classList.remove('is-active');
-            document.getElementById('penalty-scoreboard').hidden = true;
-            document.getElementById('survivor-upgrade-overlay').hidden = true;
-            document.getElementById('game-result-overlay').hidden = true;
-            document.getElementById('pausa-overlay').hidden = true;
-            document.getElementById('modal-juego').style.display = 'none';
-            abrirMenuLibro();
-        }
-
-        let juegoActivo = false;
-        let currentGame = null;
-        let canvas, ctx;
-
-        function posicionEnCanvas(event) {
-            const rect = canvas.getBoundingClientRect();
-            return {
-                x: (event.clientX - rect.left) * canvas.width / rect.width,
-                y: (event.clientY - rect.top) * canvas.height / rect.height
-            };
-        }
-
-        function manejarPunteroJuego(event) {
-            if (!juegoActivo || !canvas) return;
-            event.preventDefault();
-            const p = posicionEnCanvas(event);
-
-            if (currentGame === 'survivor') {
-                objetivoSurvivor.x = Math.max(26, Math.min(canvas.width - 26, p.x));
-                objetivoSurvivor.y = Math.max(26, Math.min(canvas.height - 26, p.y));
-            } else if (currentGame === 'pong') {
-                yPala1 = Math.max(0, Math.min(canvas.height - 80, p.y - 40));
-            } else if (currentGame === 'breakout') {
-                xPaleta = Math.max(0, Math.min(canvas.width - 100, p.x - 50));
-            } else if (currentGame === 'cohete') {
-                coheteY = Math.max(20, Math.min(canvas.height - 20, p.y));
-            }
-        }
-
-        function configurarControlesJuego() {
-            const controles = document.getElementById('controles-moviles');
-            prepararEstadoJuego();
-            controles.classList.toggle('is-active', currentGame === 'snake');
-            canvas.onpointermove = manejarPunteroJuego;
-            canvas.onpointerdown = event => {
-                if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
-                manejarPunteroJuego(event);
-            };
-            canvas.focus({ preventScroll: true });
-        }
-
-        // ================= 1. ARENA SURVIVOR =================
-        let jugadorSurvivor = {};
-        let objetivoSurvivor = { x: 475, y: 300 };
-        let enemigosSurvivor = [];
-        let proyectilesSurvivor = [];
-        let orbesSurvivor = [];
-        let particulasSurvivor = [];
-        let lucesSurvivor = [];
-        let teclasSurvivor = new Set();
-        let scoreSurvivor = 0;
-        let puntosCombateSurvivor = 0;
-        let bajasSurvivor = 0;
-        let nivelSurvivor = 1;
-        let experienciaSurvivor = 0;
-        let experienciaSiguienteSurvivor = 4;
-        let oleadaSurvivor = 1;
-        let inicioSurvivor = 0;
-        let ultimoTiempoSurvivor = 0;
-        let ultimoSpawnSurvivor = 0;
-        let ultimoDisparoSurvivor = 0;
-        let oleadasJefeSurvivor = new Set();
-        let survivorSeleccionandoMejora = false;
-        let inicioSeleccionMejoraSurvivor = 0;
-        let mejorasSurvivorDisponibles = [];
-        let idAnimacionSurvivor = null;
-
-        function abrirJuegoSurvivor() {
-            if (idAnimacionSurvivor) cancelAnimationFrame(idAnimacionSurvivor);
-            cerrarMenuLibro();
-            document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Arena Survivor ⚡";
-            document.getElementById('desc-juego-modal').innerText = "Movete con el mouse, el dedo o WASD. El disparo es automático: sobreviví, subí de nivel y derrotá a los jefes.";
-            canvas = document.getElementById('areaJuego');
-            ctx = canvas.getContext('2d');
-
-            jugadorSurvivor = {
-                x: canvas.width / 2,
-                y: canvas.height / 2,
-                radio: 21,
-                vida: 100,
-                vidaMaxima: 100,
-                velocidad: 225,
-                dano: 20,
-                cadencia: 500,
-                disparos: 1,
-                iman: 165,
-                escudos: 0,
-                invulnerableHasta: 0
-            };
-            objetivoSurvivor = { x: jugadorSurvivor.x, y: jugadorSurvivor.y };
-            enemigosSurvivor = [];
-            proyectilesSurvivor = [];
-            orbesSurvivor = [];
-            particulasSurvivor = [];
-            lucesSurvivor = Array.from({ length: 22 }, () => ({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                radio: 12 + Math.random() * 38,
-                fase: Math.random() * Math.PI * 2,
-                velocidad: 0.25 + Math.random() * 0.45
-            }));
-            teclasSurvivor.clear();
-            scoreSurvivor = 0;
-            puntosCombateSurvivor = 0;
-            bajasSurvivor = 0;
-            nivelSurvivor = 1;
-            experienciaSurvivor = 0;
-            experienciaSiguienteSurvivor = 4;
-            oleadaSurvivor = 1;
-            survivorSeleccionandoMejora = false;
-            inicioSeleccionMejoraSurvivor = 0;
-            mejorasSurvivorDisponibles = [];
-            oleadasJefeSurvivor = new Set();
-            inicioSurvivor = performance.now();
-            ultimoTiempoSurvivor = inicioSurvivor;
-            ultimoSpawnSurvivor = inicioSurvivor - 1000;
-            ultimoDisparoSurvivor = inicioSurvivor;
-
-            juegoActivo = true;
-            currentGame = 'survivor';
-            configurarControlesJuego();
-            bucleSurvivor(inicioSurvivor);
-        }
-
-        function crearEnemigoSurvivor(tipoForzado = null) {
-            const margen = 55;
-            const lado = Math.floor(Math.random() * 4);
-            let x;
-            let y;
-            if (lado === 0) { x = -margen; y = Math.random() * canvas.height; }
-            else if (lado === 1) { x = canvas.width + margen; y = Math.random() * canvas.height; }
-            else if (lado === 2) { x = Math.random() * canvas.width; y = -margen; }
-            else { x = Math.random() * canvas.width; y = canvas.height + margen; }
-
-            let tipo = tipoForzado;
-            if (!tipo) {
-                const azar = Math.random();
-                tipo = oleadaSurvivor >= 3 && azar < 0.17
-                    ? 'tanque'
-                    : oleadaSurvivor >= 2 && azar < 0.4
-                        ? 'rapido'
-                        : 'normal';
-            }
-
-            const configuraciones = {
-                normal: { radio: 20, vida: 36, velocidad: 58, color: '#ff4d8d', nucleo: '#ffb3d1', xp: 1, puntos: 22 },
-                rapido: { radio: 14, vida: 24, velocidad: 98, color: '#31d7ff', nucleo: '#d3f8ff', xp: 1, puntos: 28 },
-                tanque: { radio: 29, vida: 105, velocidad: 39, color: '#8b6cff', nucleo: '#d6caff', xp: 3, puntos: 55 },
-                jefe: { radio: 48, vida: 620, velocidad: 32, color: '#ff7a18', nucleo: '#fff0a8', xp: 18, puntos: 450 }
-            };
-            const base = configuraciones[tipo];
-            const escalaOleada = 1 + (oleadaSurvivor - 1) * 0.12;
-            enemigosSurvivor.push({
-                x,
-                y,
-                tipo,
-                radio: base.radio,
-                vida: base.vida * escalaOleada * factorDificultad(),
-                vidaMaxima: base.vida * escalaOleada * factorDificultad(),
-                velocidad: base.velocidad * factorDificultad(),
-                color: base.color,
-                nucleo: base.nucleo,
-                xp: base.xp,
-                puntos: base.puntos,
-                fase: Math.random() * Math.PI * 2,
-                rotacion: Math.random() * Math.PI * 2
-            });
-        }
-
-        function dispararSurvivor(tiempo) {
-            if (!enemigosSurvivor.length || tiempo - ultimoDisparoSurvivor < jugadorSurvivor.cadencia) return;
-            let objetivo = enemigosSurvivor[0];
-            let distanciaObjetivo = Infinity;
-            enemigosSurvivor.forEach(enemigo => {
-                const distancia = Math.hypot(enemigo.x - jugadorSurvivor.x, enemigo.y - jugadorSurvivor.y);
-                if (distancia < distanciaObjetivo) {
-                    distanciaObjetivo = distancia;
-                    objetivo = enemigo;
-                }
-            });
-
-            const anguloBase = Math.atan2(objetivo.y - jugadorSurvivor.y, objetivo.x - jugadorSurvivor.x);
-            const cantidad = jugadorSurvivor.disparos;
-            for (let i = 0; i < cantidad; i++) {
-                const separacion = cantidad === 1 ? 0 : (i - (cantidad - 1) / 2) * 0.16;
-                const angulo = anguloBase + separacion;
-                proyectilesSurvivor.push({
-                    x: jugadorSurvivor.x,
-                    y: jugadorSurvivor.y,
-                    vx: Math.cos(angulo) * 540,
-                    vy: Math.sin(angulo) * 540,
-                    radio: 5.5,
-                    dano: jugadorSurvivor.dano,
-                    vida: 1.35
-                });
-            }
-            ultimoDisparoSurvivor = tiempo;
-        }
-
-        function crearParticulasSurvivor(x, y, color, cantidad = 10, fuerza = 130) {
-            for (let i = 0; i < cantidad; i++) {
-                const angulo = Math.random() * Math.PI * 2;
-                const velocidad = 35 + Math.random() * fuerza;
-                particulasSurvivor.push({
-                    x,
-                    y,
-                    vx: Math.cos(angulo) * velocidad,
-                    vy: Math.sin(angulo) * velocidad,
-                    radio: 1.5 + Math.random() * 3.5,
-                    vida: 0.35 + Math.random() * 0.55,
-                    vidaMaxima: 0.9,
-                    color
-                });
-            }
-            if (particulasSurvivor.length > 260) {
-                particulasSurvivor.splice(0, particulasSurvivor.length - 260);
-            }
-        }
-
-        function eliminarEnemigoSurvivor(enemigo, indice) {
-            enemigosSurvivor.splice(indice, 1);
-            bajasSurvivor++;
-            puntosCombateSurvivor += enemigo.puntos;
-            experienciaSurvivor += Math.max(1, Math.round(enemigo.xp / 2));
-            crearParticulasSurvivor(enemigo.x, enemigo.y, enemigo.color, enemigo.tipo === 'jefe' ? 38 : 14, 190);
-            const cantidadOrbes = enemigo.tipo === 'jefe' ? 8 : enemigo.xp;
-            for (let i = 0; i < cantidadOrbes; i++) {
-                orbesSurvivor.push({
-                    x: enemigo.x + (Math.random() - 0.5) * enemigo.radio,
-                    y: enemigo.y + (Math.random() - 0.5) * enemigo.radio,
-                    radio: enemigo.tipo === 'jefe' ? 8 : 6,
-                    valor: enemigo.tipo === 'jefe' ? 3 : 1,
-                    fase: Math.random() * Math.PI * 2
-                });
-            }
-            feedbackJuego(enemigo.tipo === 'jefe' ? 'gol' : 'punto');
-        }
-
-        function verificarNivelSurvivor() {
-            if (survivorSeleccionandoMejora || experienciaSurvivor < experienciaSiguienteSurvivor) return;
-            experienciaSurvivor -= experienciaSiguienteSurvivor;
-            nivelSurvivor++;
-            experienciaSiguienteSurvivor = Math.round(experienciaSiguienteSurvivor * 1.32 + 1);
-            survivorSeleccionandoMejora = true;
-            inicioSeleccionMejoraSurvivor = performance.now();
-            mostrarMejorasSurvivor();
-        }
-
-        function mostrarMejorasSurvivor() {
-            const catalogo = [
-                { icono: '⚡', titulo: 'Rayo potente', detalle: '+7 de daño por disparo', aplicar: () => jugadorSurvivor.dano += 7 },
-                { icono: '🔥', titulo: 'Fuego rápido', detalle: 'Dispara 17% más rápido', aplicar: () => jugadorSurvivor.cadencia = Math.max(145, jugadorSurvivor.cadencia * 0.83) },
-                { icono: '✦', titulo: 'Multidisparo', detalle: 'Agrega un proyectil adicional', aplicar: () => jugadorSurvivor.disparos = Math.min(5, jugadorSurvivor.disparos + 1) },
-                { icono: '💨', titulo: 'Impulso', detalle: '+35 de velocidad de movimiento', aplicar: () => jugadorSurvivor.velocidad += 35 },
-                { icono: '❤', titulo: 'Núcleo vital', detalle: '+25 de vida máxima y curación', aplicar: () => { jugadorSurvivor.vidaMaxima += 25; jugadorSurvivor.vida = Math.min(jugadorSurvivor.vidaMaxima, jugadorSurvivor.vida + 35); } },
-                { icono: '🛡', titulo: 'Escudo orbital', detalle: 'Bloquea los próximos 2 golpes', aplicar: () => jugadorSurvivor.escudos += 2 },
-                { icono: '◉', titulo: 'Imán de energía', detalle: 'Atrae experiencia desde más lejos', aplicar: () => jugadorSurvivor.iman += 55 }
-            ];
-            mejorasSurvivorDisponibles = [...catalogo]
-                .sort(() => Math.random() - 0.5)
-                .slice(0, 3);
-
-            document.getElementById('survivor-upgrade-title').textContent = `Nivel ${nivelSurvivor}: elegí una mejora`;
-            const contenedor = document.getElementById('survivor-upgrade-options');
-            contenedor.replaceChildren(...mejorasSurvivorDisponibles.map((mejora, indice) => {
-                const boton = document.createElement('button');
-                boton.type = 'button';
-                boton.className = 'survivor-upgrade-option';
-                const icono = document.createElement('span');
-                icono.textContent = mejora.icono;
-                const titulo = document.createElement('strong');
-                titulo.textContent = mejora.titulo;
-                const detalle = document.createElement('small');
-                detalle.textContent = mejora.detalle;
-                boton.append(icono, titulo, detalle);
-                boton.addEventListener('click', () => elegirMejoraSurvivor(indice));
-                return boton;
-            }));
-            document.getElementById('survivor-upgrade-overlay').hidden = false;
-        }
-
-        function elegirMejoraSurvivor(indice) {
-            const mejora = mejorasSurvivorDisponibles[indice];
-            if (!survivorSeleccionandoMejora || !mejora) return;
-            mejora.aplicar();
-            const tiempoActual = performance.now();
-            const pausaMejora = Math.max(0, tiempoActual - inicioSeleccionMejoraSurvivor);
-            inicioSurvivor += pausaMejora;
-            ultimoSpawnSurvivor += pausaMejora;
-            ultimoDisparoSurvivor += pausaMejora;
-            survivorSeleccionandoMejora = false;
-            inicioSeleccionMejoraSurvivor = 0;
-            document.getElementById('survivor-upgrade-overlay').hidden = true;
-            ultimoTiempoSurvivor = tiempoActual;
-            crearParticulasSurvivor(jugadorSurvivor.x, jugadorSurvivor.y, '#ffd60a', 28, 180);
-            feedbackJuego('record');
-            verificarNivelSurvivor();
-        }
-
-        function moverJugadorSurvivor(delta) {
-            const izquierda = teclasSurvivor.has('a') || teclasSurvivor.has('arrowleft');
-            const derecha = teclasSurvivor.has('d') || teclasSurvivor.has('arrowright');
-            const arriba = teclasSurvivor.has('w') || teclasSurvivor.has('arrowup');
-            const abajo = teclasSurvivor.has('s') || teclasSurvivor.has('arrowdown');
-            let dx = Number(derecha) - Number(izquierda);
-            let dy = Number(abajo) - Number(arriba);
-
-            if (dx || dy) {
-                const longitud = Math.hypot(dx, dy) || 1;
-                jugadorSurvivor.x += dx / longitud * jugadorSurvivor.velocidad * delta;
-                jugadorSurvivor.y += dy / longitud * jugadorSurvivor.velocidad * delta;
-                objetivoSurvivor.x = jugadorSurvivor.x;
-                objetivoSurvivor.y = jugadorSurvivor.y;
-            } else {
-                dx = objetivoSurvivor.x - jugadorSurvivor.x;
-                dy = objetivoSurvivor.y - jugadorSurvivor.y;
-                const distancia = Math.hypot(dx, dy);
-                if (distancia > 3) {
-                    const paso = Math.min(distancia, jugadorSurvivor.velocidad * delta);
-                    jugadorSurvivor.x += dx / distancia * paso;
-                    jugadorSurvivor.y += dy / distancia * paso;
-                }
-            }
-
-            jugadorSurvivor.x = Math.max(jugadorSurvivor.radio, Math.min(canvas.width - jugadorSurvivor.radio, jugadorSurvivor.x));
-            jugadorSurvivor.y = Math.max(jugadorSurvivor.radio, Math.min(canvas.height - jugadorSurvivor.radio, jugadorSurvivor.y));
-        }
-
-        function actualizarSurvivor(delta, tiempo) {
-            const segundos = Math.max(0, (tiempo - inicioSurvivor) / 1000);
-            oleadaSurvivor = Math.floor(segundos / 16) + 1;
-            scoreSurvivor = puntosCombateSurvivor + Math.floor(segundos * 3);
-
-            const intervaloSpawn = Math.max(260, (920 - oleadaSurvivor * 55) / factorDificultad());
-            if (tiempo - ultimoSpawnSurvivor >= intervaloSpawn) {
-                crearEnemigoSurvivor();
-                ultimoSpawnSurvivor = tiempo;
-            }
-            if (oleadaSurvivor % 3 === 0 && !oleadasJefeSurvivor.has(oleadaSurvivor)) {
-                oleadasJefeSurvivor.add(oleadaSurvivor);
-                crearEnemigoSurvivor('jefe');
-                mostrarToast(`⚠ Jefe de la oleada ${oleadaSurvivor}`);
-            }
-
-            moverJugadorSurvivor(delta);
-            dispararSurvivor(tiempo);
-
-            for (let i = proyectilesSurvivor.length - 1; i >= 0; i--) {
-                const proyectil = proyectilesSurvivor[i];
-                proyectil.x += proyectil.vx * delta;
-                proyectil.y += proyectil.vy * delta;
-                proyectil.vida -= delta;
-                let impacto = false;
-                for (let j = enemigosSurvivor.length - 1; j >= 0; j--) {
-                    const enemigo = enemigosSurvivor[j];
-                    if (Math.hypot(proyectil.x - enemigo.x, proyectil.y - enemigo.y) < proyectil.radio + enemigo.radio) {
-                        enemigo.vida -= proyectil.dano;
-                        crearParticulasSurvivor(proyectil.x, proyectil.y, '#fff1a8', 5, 80);
-                        impacto = true;
-                        if (enemigo.vida <= 0) eliminarEnemigoSurvivor(enemigo, j);
-                        break;
-                    }
-                }
-                if (impacto || proyectil.vida <= 0 || proyectil.x < -30 || proyectil.x > canvas.width + 30 || proyectil.y < -30 || proyectil.y > canvas.height + 30) {
-                    proyectilesSurvivor.splice(i, 1);
-                }
-            }
-
-            enemigosSurvivor.forEach(enemigo => {
-                const dx = jugadorSurvivor.x - enemigo.x;
-                const dy = jugadorSurvivor.y - enemigo.y;
-                const distancia = Math.hypot(dx, dy) || 1;
-                enemigo.x += dx / distancia * enemigo.velocidad * delta;
-                enemigo.y += dy / distancia * enemigo.velocidad * delta;
-                enemigo.rotacion += delta * (enemigo.tipo === 'rapido' ? 3 : 1.2);
-
-                if (distancia < jugadorSurvivor.radio + enemigo.radio && tiempo > jugadorSurvivor.invulnerableHasta) {
-                    if (jugadorSurvivor.escudos > 0) {
-                        jugadorSurvivor.escudos--;
-                    } else {
-                        jugadorSurvivor.vida -= enemigo.tipo === 'jefe' ? 34 : enemigo.tipo === 'tanque' ? 26 : 19;
-                    }
-                    jugadorSurvivor.invulnerableHasta = tiempo + 850;
-                    enemigo.x -= dx / distancia * 35;
-                    enemigo.y -= dy / distancia * 35;
-                    crearParticulasSurvivor(jugadorSurvivor.x, jugadorSurvivor.y, '#ff4d6d', 20, 160);
-                    feedbackJuego('fin');
-                }
-            });
-
-            for (let i = orbesSurvivor.length - 1; i >= 0; i--) {
-                const orbe = orbesSurvivor[i];
-                const dx = jugadorSurvivor.x - orbe.x;
-                const dy = jugadorSurvivor.y - orbe.y;
-                const distancia = Math.hypot(dx, dy) || 1;
-                if (distancia < jugadorSurvivor.iman) {
-                    const velocidad = 180 + (jugadorSurvivor.iman - distancia) * 3;
-                    orbe.x += dx / distancia * velocidad * delta;
-                    orbe.y += dy / distancia * velocidad * delta;
-                }
-                orbe.fase += delta * 4;
-                if (distancia < jugadorSurvivor.radio + orbe.radio + 5) {
-                    experienciaSurvivor += orbe.valor;
-                    orbesSurvivor.splice(i, 1);
-                    feedbackJuego('punto');
-                }
-            }
-
-            particulasSurvivor.forEach(particula => {
-                particula.x += particula.vx * delta;
-                particula.y += particula.vy * delta;
-                particula.vx *= 0.97;
-                particula.vy *= 0.97;
-                particula.vida -= delta;
-            });
-            particulasSurvivor = particulasSurvivor.filter(particula => particula.vida > 0);
-
-            verificarNivelSurvivor();
-            if (jugadorSurvivor.vida <= 0) {
-                idAnimacionSurvivor = null;
-                const tiempoSobrevivido = Math.floor(segundos);
-                mostrarResultado(
-                    'ARENA TERMINADA',
-                    `Nivel ${nivelSurvivor} · Oleada ${oleadaSurvivor} · ${bajasSurvivor} enemigos · ${tiempoSobrevivido}s`,
-                    scoreSurvivor,
-                    '⚡'
-                );
-            }
-        }
-
-        function dibujarFondoSurvivor(tiempo) {
-            const fondo = ctx.createRadialGradient(canvas.width * 0.5, canvas.height * 0.4, 30, canvas.width * 0.5, canvas.height * 0.5, canvas.width * 0.72);
-            fondo.addColorStop(0, '#182251');
-            fondo.addColorStop(0.52, '#0b1130');
-            fondo.addColorStop(1, '#040611');
-            ctx.fillStyle = fondo;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            lucesSurvivor.forEach(luz => {
-                const pulso = 0.75 + Math.sin(tiempo / 1000 * luz.velocidad + luz.fase) * 0.25;
-                ctx.beginPath();
-                ctx.arc(luz.x, luz.y, luz.radio * pulso, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(111, 91, 255, ${0.025 + pulso * 0.025})`;
-                ctx.fill();
-            });
-
-            ctx.strokeStyle = 'rgba(124, 144, 255, 0.07)';
-            ctx.lineWidth = 1;
-            for (let radio = 90; radio < 500; radio += 85) {
-                ctx.beginPath();
-                ctx.arc(canvas.width / 2, canvas.height / 2, radio, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-        }
-
-        function dibujarEnemigoSurvivor(enemigo, tiempo) {
-            ctx.save();
-            ctx.translate(enemigo.x, enemigo.y);
-            ctx.rotate(enemigo.rotacion);
-            const pulso = 1 + Math.sin(tiempo / 180 + enemigo.fase) * 0.04;
-            const gradiente = ctx.createRadialGradient(-enemigo.radio * 0.3, -enemigo.radio * 0.35, 2, 0, 0, enemigo.radio * pulso);
-            gradiente.addColorStop(0, enemigo.nucleo);
-            gradiente.addColorStop(0.32, enemigo.color);
-            gradiente.addColorStop(1, '#17122f');
-            ctx.shadowColor = enemigo.color;
-            ctx.shadowBlur = enemigo.tipo === 'jefe' ? 28 : 14;
-            ctx.beginPath();
-            ctx.arc(0, 0, enemigo.radio * pulso, 0, Math.PI * 2);
-            ctx.fillStyle = gradiente;
-            ctx.fill();
-            ctx.lineWidth = enemigo.tipo === 'jefe' ? 4 : 2;
-            ctx.strokeStyle = 'rgba(255,255,255,.42)';
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-
-            ctx.fillStyle = 'rgba(5,7,20,.78)';
-            ctx.beginPath();
-            ctx.arc(-enemigo.radio * 0.28, -2, Math.max(2.5, enemigo.radio * 0.1), 0, Math.PI * 2);
-            ctx.arc(enemigo.radio * 0.28, -2, Math.max(2.5, enemigo.radio * 0.1), 0, Math.PI * 2);
-            ctx.fill();
-            if (enemigo.tipo === 'jefe') {
-                ctx.rotate(-enemigo.rotacion);
-                ctx.fillStyle = '#ffd60a';
-                ctx.font = '900 22px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('♛', 0, -enemigo.radio - 12);
-                ctx.textAlign = 'left';
-            }
-            ctx.restore();
-
-            if (enemigo.tipo === 'tanque' || enemigo.tipo === 'jefe') {
-                const ancho = enemigo.tipo === 'jefe' ? 92 : 58;
-                const proporcion = Math.max(0, enemigo.vida / enemigo.vidaMaxima);
-                ctx.fillStyle = 'rgba(0,0,0,.55)';
-                ctx.beginPath();
-                ctx.roundRect(enemigo.x - ancho / 2, enemigo.y + enemigo.radio + 10, ancho, 7, 4);
-                ctx.fill();
-                ctx.fillStyle = enemigo.tipo === 'jefe' ? '#ffd60a' : '#9f8cff';
-                ctx.beginPath();
-                ctx.roundRect(enemigo.x - ancho / 2, enemigo.y + enemigo.radio + 10, ancho * proporcion, 7, 4);
-                ctx.fill();
-            }
-        }
-
-        function dibujarJugadorSurvivor(tiempo) {
-            const parpadeo = tiempo < jugadorSurvivor.invulnerableHasta && Math.floor(tiempo / 80) % 2 === 0;
-            ctx.save();
-            ctx.globalAlpha = parpadeo ? 0.38 : 1;
-            ctx.translate(jugadorSurvivor.x, jugadorSurvivor.y);
-            const pulso = 1 + Math.sin(tiempo / 170) * 0.07;
-            ctx.shadowColor = '#ffd60a';
-            ctx.shadowBlur = 30;
-            const gradiente = ctx.createRadialGradient(-7, -8, 2, 0, 0, jugadorSurvivor.radio * pulso);
-            gradiente.addColorStop(0, '#fffbd0');
-            gradiente.addColorStop(0.35, '#ffd60a');
-            gradiente.addColorStop(1, '#ff8c1a');
-            ctx.beginPath();
-            ctx.arc(0, 0, jugadorSurvivor.radio * pulso, 0, Math.PI * 2);
-            ctx.fillStyle = gradiente;
-            ctx.fill();
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = 'rgba(255,255,255,.9)';
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = '#15172c';
-            ctx.beginPath();
-            ctx.moveTo(4, -14);
-            ctx.lineTo(-7, 2);
-            ctx.lineTo(1, 2);
-            ctx.lineTo(-4, 15);
-            ctx.lineTo(11, -4);
-            ctx.lineTo(3, -4);
-            ctx.closePath();
-            ctx.fill();
-
-            if (jugadorSurvivor.escudos > 0) {
-                ctx.strokeStyle = 'rgba(66, 231, 255, .82)';
-                ctx.lineWidth = 3;
-                ctx.setLineDash([8, 7]);
-                ctx.beginPath();
-                ctx.arc(0, 0, jugadorSurvivor.radio + 12 + Math.sin(tiempo / 180) * 2, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-            ctx.restore();
-        }
-
-        function dibujarHudSurvivor(tiempo) {
-            const segundos = Math.max(0, (tiempo - inicioSurvivor) / 1000);
-            ctx.fillStyle = 'rgba(5, 8, 25, .82)';
-            ctx.beginPath();
-            ctx.roundRect(18, 16, 330, 72, 17);
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(140, 126, 255, .34)';
-            ctx.stroke();
-
-            ctx.fillStyle = '#fff';
-            ctx.font = '800 16px Segoe UI, sans-serif';
-            ctx.fillText(`⚡ ${scoreSurvivor} PTS`, 34, 43);
-            ctx.fillStyle = '#b8c5ff';
-            ctx.font = '700 13px Segoe UI, sans-serif';
-            ctx.fillText(`OLEADA ${oleadaSurvivor}  ·  NIVEL ${nivelSurvivor}  ·  ${bajasSurvivor} BAJAS`, 34, 68);
-
-            const vida = Math.max(0, jugadorSurvivor.vida / jugadorSurvivor.vidaMaxima);
-            ctx.fillStyle = 'rgba(5, 8, 25, .82)';
-            ctx.beginPath();
-            ctx.roundRect(canvas.width - 252, 16, 234, 72, 17);
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.font = '800 12px Segoe UI, sans-serif';
-            ctx.fillText(`VIDA ${Math.ceil(Math.max(0, jugadorSurvivor.vida))}/${jugadorSurvivor.vidaMaxima}`, canvas.width - 234, 40);
-            ctx.fillText(`${segundos.toFixed(1)}s`, canvas.width - 67, 40);
-            ctx.fillStyle = 'rgba(255,255,255,.1)';
-            ctx.beginPath();
-            ctx.roundRect(canvas.width - 234, 52, 198, 13, 7);
-            ctx.fill();
-            const vidaGradiente = ctx.createLinearGradient(canvas.width - 234, 0, canvas.width - 36, 0);
-            vidaGradiente.addColorStop(0, '#ff4d6d');
-            vidaGradiente.addColorStop(1, '#42f587');
-            ctx.fillStyle = vidaGradiente;
-            ctx.beginPath();
-            ctx.roundRect(canvas.width - 234, 52, 198 * vida, 13, 7);
-            ctx.fill();
-
-            const progresoXp = Math.min(1, experienciaSurvivor / experienciaSiguienteSurvivor);
-            ctx.fillStyle = 'rgba(5, 8, 25, .78)';
-            ctx.beginPath();
-            ctx.roundRect(170, canvas.height - 34, canvas.width - 340, 16, 8);
-            ctx.fill();
-            const xpGradiente = ctx.createLinearGradient(170, 0, canvas.width - 170, 0);
-            xpGradiente.addColorStop(0, '#6c5cff');
-            xpGradiente.addColorStop(0.55, '#31d7ff');
-            xpGradiente.addColorStop(1, '#ffd60a');
-            ctx.fillStyle = xpGradiente;
-            ctx.beginPath();
-            ctx.roundRect(170, canvas.height - 34, (canvas.width - 340) * progresoXp, 16, 8);
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.font = '800 10px Segoe UI, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(`ENERGÍA ${experienciaSurvivor} / ${experienciaSiguienteSurvivor}`, canvas.width / 2, canvas.height - 22);
-            ctx.textAlign = 'left';
-        }
-
-        function dibujarSurvivor(tiempo) {
-            dibujarFondoSurvivor(tiempo);
-
-            orbesSurvivor.forEach(orbe => {
-                const pulso = 1 + Math.sin(orbe.fase) * 0.18;
-                ctx.shadowColor = '#42f5d7';
-                ctx.shadowBlur = 15;
-                ctx.beginPath();
-                ctx.arc(orbe.x, orbe.y, orbe.radio * pulso, 0, Math.PI * 2);
-                ctx.fillStyle = '#60f5de';
-                ctx.fill();
-                ctx.shadowBlur = 0;
-                ctx.beginPath();
-                ctx.arc(orbe.x - 2, orbe.y - 2, orbe.radio * 0.35, 0, Math.PI * 2);
-                ctx.fillStyle = '#e4fff9';
-                ctx.fill();
-            });
-
-            enemigosSurvivor.forEach(enemigo => dibujarEnemigoSurvivor(enemigo, tiempo));
-
-            proyectilesSurvivor.forEach(proyectil => {
-                ctx.shadowColor = '#fff4a0';
-                ctx.shadowBlur = 18;
-                ctx.beginPath();
-                ctx.arc(proyectil.x, proyectil.y, proyectil.radio, 0, Math.PI * 2);
-                ctx.fillStyle = '#fff7bf';
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            });
-
-            particulasSurvivor.forEach(particula => {
-                ctx.globalAlpha = Math.max(0, particula.vida / particula.vidaMaxima);
-                ctx.beginPath();
-                ctx.arc(particula.x, particula.y, particula.radio, 0, Math.PI * 2);
-                ctx.fillStyle = particula.color;
-                ctx.fill();
-            });
-            ctx.globalAlpha = 1;
-
-            dibujarJugadorSurvivor(tiempo);
-            dibujarHudSurvivor(tiempo);
-        }
-
-        function bucleSurvivor(tiempo = performance.now()) {
-            if (!juegoActivo || currentGame !== 'survivor') return;
-            const delta = Math.min(0.034, Math.max(0, (tiempo - ultimoTiempoSurvivor) / 1000));
-            ultimoTiempoSurvivor = tiempo;
-
-            if (!juegoPausado && !survivorSeleccionandoMejora) {
-                actualizarSurvivor(delta, tiempo);
-            }
-            dibujarSurvivor(tiempo);
-
-            if (juegoActivo && currentGame === 'survivor') {
-                idAnimacionSurvivor = requestAnimationFrame(bucleSurvivor);
-            }
-        }
-
-        // ================= 2. SNAKE =================
-        let snake = [], comidaSnake = {}, dirSnake = 'RIGHT', scoreSnake = 0, intervaloSnake;
-        const tileSize = 20;
-
-        function abrirJuegoSnake() {
-            cerrarMenuLibro();
-            document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Snake (Serpiente)";
-            document.getElementById('desc-juego-modal').innerText = "Usá las flechas del teclado o los botones para moverte y comer.";
-            canvas = document.getElementById('areaJuego');
-            ctx = canvas.getContext('2d');
-            
-            snake = [{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}];
-            dirSnake = 'RIGHT';
-            scoreSnake = 0;
-            generarComidaSnake();
-            juegoActivo = true;
-            currentGame = 'snake';
-            
-            clearInterval(intervaloSnake);
-            configurarControlesJuego();
-            intervaloSnake = setInterval(bucleSnake, Math.round(105 / factorDificultad()));
-        }
-
-        function cambiarDireccionSnake(nuevaDireccion) {
-            if (!juegoActivo || currentGame !== 'snake') return;
-            const opuestas = { RIGHT: 'LEFT', LEFT: 'RIGHT', UP: 'DOWN', DOWN: 'UP' };
-            if (opuestas[dirSnake] !== nuevaDireccion) dirSnake = nuevaDireccion;
-        }
-
-        function generarComidaSnake() {
-            const cols = canvas.width / tileSize;
-            const rows = canvas.height / tileSize;
-            comidaSnake = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
-        }
-
-        function bucleSnake() {
-            if (!juegoActivo || currentGame !== 'snake') return;
-            if (juegoPausado) return;
-            let cabeza = { ...snake[0] };
-            if (dirSnake === 'RIGHT') cabeza.x++;
-            if (dirSnake === 'LEFT') cabeza.x--;
-            if (dirSnake === 'UP') cabeza.y--;
-            if (dirSnake === 'DOWN') cabeza.y++;
-
-            const cols = canvas.width / tileSize;
-            const rows = canvas.height / tileSize;
-
-            if (cabeza.x < 0 || cabeza.x >= cols || cabeza.y < 0 || cabeza.y >= rows || snake.some(s => s.x === cabeza.x && s.y === cabeza.y)) {
-                mostrarResultado('GAME OVER', 'La serpiente chocó', scoreSnake, '🐍');
-                return;
-            }
-
-            snake.unshift(cabeza);
-            if (cabeza.x === comidaSnake.x && cabeza.y === comidaSnake.y) {
-                scoreSnake += 10;
-                feedbackJuego('punto');
-                generarComidaSnake();
-            } else {
-                snake.pop();
-            }
-
-            ctx.fillStyle = '#111'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#FF5733'; ctx.fillRect(comidaSnake.x * tileSize, comidaSnake.y * tileSize, tileSize - 2, tileSize - 2);
-            ctx.fillStyle = '#00FF66';
-            snake.forEach(s => ctx.fillRect(s.x * tileSize, s.y * tileSize, tileSize - 2, tileSize - 2));
-            ctx.fillStyle = '#fff'; ctx.font = '16px sans-serif'; ctx.fillText("Puntos: " + scoreSnake, 20, 30);
-        }
-
-        // ================= 3. PONG RETRO =================
-        let yPala1 = 250, yPala2 = 250, bolaPong = {x: 475, y: 300, dx: 4, dy: 4, radio: 8};
-        let scorePong = 0;
-        let idAnimacionPong = null;
-        function abrirJuegoPong() {
-            if (idAnimacionPong) cancelAnimationFrame(idAnimacionPong);
-            cerrarMenuLibro();
-            document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Pong Retro";
-            document.getElementById('desc-juego-modal').innerText = "Mové el mouse o deslizá el dedo arriba y abajo para rebotar la pelota.";
-            canvas = document.getElementById('areaJuego');
-            ctx = canvas.getContext('2d');
-            const velocidad = factorDificultad();
-            bolaPong = {x: 475, y: 300, dx: 5 * velocidad, dy: 3 * velocidad, radio: 8};
-            yPala1 = yPala2 = 250;
-            scorePong = 0;
-            juegoActivo = true;
-            currentGame = 'pong';
-            configurarControlesJuego();
-            buclePong();
-        }
-        function buclePong() {
-            if (!juegoActivo || currentGame !== 'pong') return;
-            if (juegoPausado) {
-                idAnimacionPong = requestAnimationFrame(buclePong);
-                return;
-            }
-            bolaPong.x += bolaPong.dx;
-            bolaPong.y += bolaPong.dy;
-            if (bolaPong.y < 0 || bolaPong.y > canvas.height) bolaPong.dy *= -1;
-            const velocidadIA = 2.6 * factorDificultad();
-            if (yPala2 + 40 < bolaPong.y) yPala2 += velocidadIA; else yPala2 -= velocidadIA;
-
-            if (bolaPong.x <= 30 && bolaPong.y >= yPala1 && bolaPong.y <= yPala1 + 80) {
-                bolaPong.dx = Math.abs(bolaPong.dx) * 1.015;
-                scorePong++;
-                feedbackJuego('punto');
-            }
-            if (bolaPong.x >= canvas.width - 30 && bolaPong.y >= yPala2 && bolaPong.y <= yPala2 + 80) bolaPong.dx *= -1;
-            if (bolaPong.x < 0) {
-                mostrarResultado('GAME OVER', 'La pelota pasó tu defensa', scorePong, '🏓');
-                return;
-            }
-            if (bolaPong.x > canvas.width) {
-                scorePong += 5;
-                feedbackJuego('gol');
-                bolaPong.x = canvas.width / 2;
-                bolaPong.y = canvas.height / 2;
-                bolaPong.dx = -Math.abs(bolaPong.dx);
-            }
-
-            ctx.fillStyle = '#111'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(20, yPala1, 10, 80);
-            ctx.fillRect(canvas.width - 30, yPala2, 10, 80);
-            ctx.beginPath(); ctx.arc(bolaPong.x, bolaPong.y, bolaPong.radio, 0, Math.PI * 2); ctx.fill(); ctx.closePath();
-            ctx.font = '700 18px sans-serif'; ctx.fillText(`Rebotes: ${scorePong}`, 20, 30);
-            idAnimacionPong = requestAnimationFrame(buclePong);
-        }
-
-        // ================= 4. ROMPELADRILLOS =================
-        let xPaleta = 400, pelotasBreakout = [], ladrillosBreakout = [];
-        let scoreBreakout = 0;
-        let idAnimacionBreakout = null;
-
-        function abrirJuegoBreakout() {
-            if (idAnimacionBreakout) cancelAnimationFrame(idAnimacionBreakout);
-            cerrarMenuLibro();
-            document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Rompeladrillos";
-            document.getElementById('desc-juego-modal').innerText = "Mové el mouse o deslizá el dedo para controlar la paleta. ¡Atrapá los bloques x2 y x3!";
-            canvas = document.getElementById('areaJuego');
-            ctx = canvas.getContext('2d');
-            xPaleta = canvas.width / 2 - 50;
-            scoreBreakout = 0;
-            const velocidad = factorDificultad();
-            pelotasBreakout = [{ x: canvas.width / 2, y: 300, dx: 3 * velocidad, dy: -3 * velocidad, radio: 8 }];
-            ladrillosBreakout = [];
-            for (let c = 0; c < 8; c++) {
-                for (let r = 0; r < 4; r++) {
-                    let tipo = 1, color = '#00D2FF', texto = '';
-                    let rand = Math.random() * 100; 
-                    if (rand < 6) { tipo = 2; color = '#FFD700'; texto = 'x2'; } 
-                    else if (rand < 10) { tipo = 3; color = '#FF5733'; texto = 'x3'; }
-                    ladrillosBreakout.push({ x: c * 110 + 45, y: r * 30 + 40, w: 100, h: 20, estado: 1, tipo: tipo, color: color, texto: texto });
-                }
-            }
-            juegoActivo = true;
-            currentGame = 'breakout';
-            configurarControlesJuego();
-            bucleBreakout();
-        }
-
-        function bucleBreakout() {
-            if (!juegoActivo || currentGame !== 'breakout') return;
-            if (juegoPausado) {
-                idAnimacionBreakout = requestAnimationFrame(bucleBreakout);
-                return;
-            }
-            ctx.fillStyle = '#111'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            for (let i = pelotasBreakout.length - 1; i >= 0; i--) {
-                let p = pelotasBreakout[i];
-                p.x += p.dx; p.y += p.dy;
-                if (p.x < p.radio || p.x > canvas.width - p.radio) p.dx *= -1;
-                if (p.y < p.radio) p.dy *= -1;
-                if (p.y + p.radio >= canvas.height - 20 && p.y <= canvas.height - 8 && p.x >= xPaleta && p.x <= xPaleta + 100) {
-                    p.dy *= -1;
-                    p.dx = (p.x - (xPaleta + 50)) * 0.15;
-                }
-                if (p.y > canvas.height + 20) { pelotasBreakout.splice(i, 1); continue; }
-
-                ladrillosBreakout.forEach(l => {
-                    if (l.estado === 1 && p.x > l.x && p.x < l.x + l.w && p.y > l.y && p.y < l.y + l.h) {
-                        const velocidad = factorDificultad();
-                        p.dy *= -1; l.estado = 0; scoreBreakout += 10;
-                        feedbackJuego('punto');
-                        if (l.tipo === 2) {
-                            pelotasBreakout.push({ x: l.x, y: l.y, dx: -2.5 * velocidad, dy: -3 * velocidad, radio: 8 });
-                            pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 2.5 * velocidad, dy: -3 * velocidad, radio: 8 });
-                        } else if (l.tipo === 3) {
-                            pelotasBreakout.push({ x: l.x, y: l.y, dx: -3 * velocidad, dy: -3 * velocidad, radio: 8 });
-                            pelotasBreakout.push({ x: l.x + (l.w / 2), y: l.y, dx: 0, dy: -3.5 * velocidad, radio: 8 });
-                            pelotasBreakout.push({ x: l.x + l.w, y: l.y, dx: 3 * velocidad, dy: -3 * velocidad, radio: 8 });
-                        }
-                    }
-                });
-            }
-
-            let totalVivos = ladrillosBreakout.filter(l => l.estado === 1).length;
-            if (ladrillosBreakout.length > 0 && totalVivos === 0) {
-                mostrarResultado('¡GANASTE!', 'Rompiste todos los ladrillos', scoreBreakout, '🏆');
-                return;
-            }
-            if (pelotasBreakout.length === 0) {
-                mostrarResultado('GAME OVER', 'Te quedaste sin pelotas', scoreBreakout, '🧱');
-                return;
-            }
-
-            ladrillosBreakout.forEach(l => {
-                if (l.estado === 1) {
-                    ctx.fillStyle = l.color; ctx.fillRect(l.x, l.y, l.w, l.h);
-                    if (l.texto !== '') {
-                        ctx.fillStyle = '#000'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
-                        ctx.fillText(l.texto, l.x + l.w / 2, l.y + 15); ctx.textAlign = 'left';
-                    }
-                }
-            });
-
-            ctx.fillStyle = '#fff'; ctx.fillRect(xPaleta, canvas.height - 20, 100, 12);
-            pelotasBreakout.forEach(p => {
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.radio, 0, Math.PI * 2); ctx.fillStyle = '#FF5733'; ctx.fill(); ctx.closePath();
-            });
-            ctx.fillStyle = '#fff'; ctx.font = '16px sans-serif'; ctx.fillText("Puntos: " + scoreBreakout + " | Pelotas: " + pelotasBreakout.length, 20, 30);
-            idAnimacionBreakout = requestAnimationFrame(bucleBreakout);
-        }
-
-        // ================= 5. COHETE ESPACIAL =================
-        let coheteY = 300;
-        let idAnimacionCohete = null;
-        let estrellasCohete = [];
-        let obstaculosCohete = [];
-        let scoreCohete = 0;
-        let inicioCohete = 0;
-        let asteroidesSuperados = 0;
-        let velocidadCoheteActual = 4;
-        let multiplicadorCohete = 1;
-
-        function abrirJuegoCohete() {
-            if (idAnimacionCohete) { 
-                cancelAnimationFrame(idAnimacionCohete); 
-                idAnimacionCohete = null;
-            }
-
-            cerrarMenuLibro();
-            document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Cohete Espacial";
-            document.getElementById('desc-juego-modal').innerText = "Esquivá los asteroides: cuanto más sobrevivas, más rápido se vuelve el juego.";
-            canvas = document.getElementById('areaJuego');
-            ctx = canvas.getContext('2d');
-            coheteY = canvas.height / 2;
-            scoreCohete = 0;
-            asteroidesSuperados = 0;
-            multiplicadorCohete = 1;
-            velocidadCoheteActual = 4 * factorDificultad();
-            inicioCohete = performance.now();
-            
-            estrellasCohete = [];
-            for (let i = 0; i < 60; i++) {
-                estrellasCohete.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2 + 1, speed: Math.random() * 2 + 1 });
-            }
-            
-            obstaculosCohete = [{
-                x: canvas.width,
-                y: Math.random() * 400 + 100,
-                radio: 25,
-                velocidadBase: 0.95 + Math.random() * 0.12
-            }];
-
-            juegoActivo = true;
-            currentGame = 'cohete';
-            configurarControlesJuego();
-            bucleCohete();
-        }
-
-        function bucleCohete(tiempoActual = performance.now()) {
-            if (!juegoActivo || currentGame !== 'cohete') return;
-            if (juegoPausado) {
-                idAnimacionCohete = requestAnimationFrame(bucleCohete);
-                return;
-            }
-            const segundosSobrevividos = Math.max(0, (tiempoActual - inicioCohete) / 1000);
-            multiplicadorCohete = 1 + segundosSobrevividos * 0.035;
-            velocidadCoheteActual = 4 * factorDificultad() * multiplicadorCohete;
-            scoreCohete = Math.floor(segundosSobrevividos * 3) + asteroidesSuperados * 25;
-
-            ctx.fillStyle = '#050515';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = '#ffffff';
-            estrellasCohete.forEach(s => {
-                ctx.fillRect(s.x, s.y, s.size, s.size);
-                s.x -= s.speed * Math.min(multiplicadorCohete, 3);
-                if (s.x < 0) s.x = canvas.width;
-            });
-
-            let cx = 120, cy = coheteY;
-            ctx.save();
-            ctx.translate(cx, cy);
-
-            ctx.beginPath();
-            ctx.moveTo(-25, 0);
-            ctx.lineTo(-45 - Math.random() * 10, -5);
-            ctx.lineTo(-30, 0);
-            ctx.lineTo(-45 - Math.random() * 10, 5);
-            ctx.fillStyle = '#FF4500';
-            ctx.fill();
-            ctx.closePath();
-
-            ctx.beginPath();
-            ctx.moveTo(25, 0); 
-            ctx.lineTo(-15, -12); 
-            ctx.lineTo(-20, -5);
-            ctx.lineTo(-25, -5);
-            ctx.lineTo(-25, 5);
-            ctx.lineTo(-20, 5);
-            ctx.lineTo(-15, 12); 
-            ctx.closePath();
-            ctx.fillStyle = '#E0E0E0';
-            ctx.fill();
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(25, 0);
-            ctx.lineTo(10, -5);
-            ctx.lineTo(10, 5);
-            ctx.closePath();
-            ctx.fillStyle = '#FF3333';
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(2, -1, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#00D2FF';
-            ctx.fill();
-            ctx.strokeStyle = '#FFF';
-            ctx.stroke();
-
-            ctx.restore();
-
-            let ultimoObs = obstaculosCohete[obstaculosCohete.length - 1];
-            if (ultimoObs && ultimoObs.x < canvas.width - (300 / factorDificultad())) {
-                obstaculosCohete.push({
-                    x: canvas.width,
-                    y: Math.random() * (canvas.height - 150) + 75,
-                    radio: Math.random() * 15 + 20,
-                    velocidadBase: 0.95 + Math.random() * 0.15
-                });
-            }
-
-            let choque = false;
-            for (let index = obstaculosCohete.length - 1; index >= 0; index--) {
-                const obs = obstaculosCohete[index];
-                obs.x -= velocidadCoheteActual * obs.velocidadBase;
-
-                ctx.beginPath();
-                ctx.arc(obs.x, obs.y, obs.radio, 0, Math.PI * 2);
-                ctx.fillStyle = '#666';
-                ctx.fill();
-                ctx.strokeStyle = '#444';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-                ctx.closePath();
-
-                if (obs.x < -50) {
-                    obstaculosCohete.splice(index, 1);
-                    asteroidesSuperados++;
-                    feedbackJuego('punto');
-                    continue;
-                }
-
-                let distancia = Math.hypot(cx - obs.x, cy - obs.y);
-                if (distancia < obs.radio + 15) {
-                    choque = true;
-                }
-            }
-
-            if (choque) {
-                idAnimacionCohete = null;
-                mostrarResultado('¡IMPACTO!', 'Un asteroide alcanzó el cohete', scoreCohete, '💥');
-                return;
-            }
-
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 18px sans-serif';
-            ctx.fillText("🚀 PUNTOS: " + scoreCohete, 25, 35);
-            ctx.fillStyle = multiplicadorCohete >= 2 ? '#ff6b35' : '#ffd60a';
-            ctx.fillText(`⚡ VELOCIDAD: x${multiplicadorCohete.toFixed(1)}`, 25, 62);
-            ctx.fillStyle = 'rgba(255,255,255,.72)';
-            ctx.font = '600 14px sans-serif';
-            ctx.fillText(`Tiempo: ${segundosSobrevividos.toFixed(1)} s`, 25, 86);
-
-            idAnimacionCohete = requestAnimationFrame(bucleCohete);
-        }
-
-        // ================= 6. PENALTY MASTER =================
-        const MAX_TIROS_PENALTY = 5;
-        let golesPenalty = 0;
-        let tirosPenalty = 0;
-        let puntosPenalty = 0;
-        let rachaPenalty = 0;
-        let potenciaPenalty = 0.55;
-        let direccionPotencia = 1;
-        let estadoBalon = 'esperando';
-        let objetivoPenalty = { x: 475, y: 170 };
-        let balon = { x: 475, y: 520, radio: 13, inicioX: 475, inicioY: 520, destinoX: 475, destinoY: 170, progreso: 0, duracion: 52 };
-        let mensajeResultado = "";
-        let subtituloResultado = "";
-        let tiempoMensaje = 0;
-        let resultadosPenalty = [];
-        let particulasPenalty = [];
-        let idAnimacionPenalty = null;
-        let timeoutPenalty = null;
-        let portero = {
-            x: 475,
-            y: 172,
-            objetivoX: 475,
-            objetivoY: 172,
-            inclinacion: 0,
-            inclinacionObjetivo: 0,
-            reaccion: 0,
-            velocidad: 0.1,
-            decidio: false,
-            vaAAtajar: false
-        };
-
-        function calcularProbabilidadAtajadaPenalty(x, y, potencia, dificultad = dificultadActual) {
-            const baseDificultad = { facil: 0.16, normal: 0.3, dificil: 0.44 };
-            const centralidad = Math.max(0, 1 - Math.abs(x - 475) / 145);
-            const alturaAlcanzable = Math.max(0, 1 - Math.abs(y - 172) / 75);
-            const tiroAEsquina = Math.abs(x - 475) > 105 || y < 132;
-            const probabilidad = (baseDificultad[dificultad] || 0.3)
-                + centralidad * 0.3
-                + alturaAlcanzable * 0.08
-                - potencia * 0.14
-                - (tiroAEsquina ? 0.16 : 0);
-            return Math.max(0.08, Math.min(0.82, probabilidad));
-        }
-
-        function actualizarMarcadorPenalty(estado = 'Apuntá y pateá') {
-            document.getElementById('penalty-tiros').textContent = `${tirosPenalty} / ${MAX_TIROS_PENALTY}`;
-            document.getElementById('penalty-goles').textContent = golesPenalty;
-            document.getElementById('penalty-puntos').textContent = puntosPenalty;
-            document.getElementById('penalty-estado').textContent = estado;
-        }
-
-        function abrirJuegoPenalty() {
-            if (idAnimacionPenalty) cancelAnimationFrame(idAnimacionPenalty);
-            if (timeoutPenalty) clearTimeout(timeoutPenalty);
-
-            cerrarMenuLibro();
-            document.getElementById('modal-juego').style.display = 'flex';
-            document.getElementById('titulo-juego-modal').innerText = "Penalty Master ⚽";
-            document.getElementById('desc-juego-modal').innerText = "Mové la mira y tocá para patear. Al centro el arquero tiene ventaja; las esquinas dan más puntos.";
-            canvas = document.getElementById('areaJuego');
-            ctx = canvas.getContext('2d');
-
-            golesPenalty = 0;
-            tirosPenalty = 0;
-            puntosPenalty = 0;
-            rachaPenalty = 0;
-            resultadosPenalty = [];
-            particulasPenalty = [];
-            juegoActivo = true;
-            currentGame = 'penalty';
-            prepararEstadoJuego();
-            actualizarMarcadorPenalty();
-            reiniciarTiroPenalty();
-
-            document.getElementById('controles-moviles').classList.remove('is-active');
-            canvas.onpointermove = apuntarPenalty;
-            canvas.onpointerdown = patearPenalty;
-            canvas.onclick = null;
-            canvas.focus({ preventScroll: true });
-            buclePenalty();
-        }
-
-        function posicionCanvasPenalty(e) {
-            return posicionEnCanvas(e);
-        }
-
-        function apuntarPenalty(e) {
-            if (!juegoActivo || juegoPausado || currentGame !== 'penalty' || estadoBalon !== 'esperando') return;
-            e.preventDefault();
-            const p = posicionCanvasPenalty(e);
-            objetivoPenalty.x = Math.max(320, Math.min(630, p.x));
-            objetivoPenalty.y = Math.max(105, Math.min(255, p.y));
-        }
-
-        function patearPenalty(e) {
-            if (!juegoActivo || juegoPausado || currentGame !== 'penalty') return;
-            e.preventDefault();
-            if (estadoBalon === 'final') {
-                abrirJuegoPenalty();
-                return;
-            }
-            if (estadoBalon !== 'esperando') return;
-
-            apuntarPenalty(e);
-            balon.inicioX = balon.x;
-            balon.inicioY = balon.y;
-            balon.destinoX = objetivoPenalty.x;
-            balon.destinoY = objetivoPenalty.y;
-            balon.progreso = 0;
-            balon.duracion = 68 - potenciaPenalty * 30;
-            estadoBalon = 'disparando';
-            tirosPenalty++;
-
-            const probabilidadAtajada = calcularProbabilidadAtajadaPenalty(
-                balon.destinoX,
-                balon.destinoY,
-                potenciaPenalty
-            );
-            portero.vaAAtajar = Math.random() < probabilidadAtajada;
-            if (portero.vaAAtajar) {
-                portero.objetivoX = balon.destinoX + (Math.random() - 0.5) * 18;
-                portero.objetivoY = Math.max(135, Math.min(205, balon.destinoY + 12));
-            } else {
-                const ladoEquivocado = balon.destinoX < 475 ? 1 : -1;
-                portero.objetivoX = 475 + ladoEquivocado * (75 + Math.random() * 80);
-                portero.objetivoY = 165 + (Math.random() - 0.5) * 40;
-            }
-            portero.inclinacionObjetivo = Math.max(-0.92, Math.min(0.92, (portero.objetivoX - 475) / 115));
-            portero.reaccion = Math.max(4, (16 - tirosPenalty * 0.8 - potenciaPenalty * 3) / factorDificultad());
-            portero.velocidad = (portero.vaAAtajar ? 0.12 : 0.095) * factorDificultad();
-            portero.decidio = true;
-            actualizarMarcadorPenalty('¡Tiro en camino!');
-        }
-
-        function reiniciarTiroPenalty() {
-            if (!juegoActivo || currentGame !== 'penalty') return;
-            balon.x = canvas.width / 2;
-            balon.y = canvas.height - 72;
-            balon.progreso = 0;
-            objetivoPenalty.x = canvas.width / 2;
-            objetivoPenalty.y = 170;
-            potenciaPenalty = 0.45;
-            direccionPotencia = 1;
-            portero.x = canvas.width / 2;
-            portero.y = 172;
-            portero.objetivoX = portero.x;
-            portero.objetivoY = portero.y;
-            portero.inclinacion = 0;
-            portero.inclinacionObjetivo = 0;
-            portero.decidio = false;
-            portero.vaAAtajar = false;
-            estadoBalon = 'esperando';
-            actualizarMarcadorPenalty(tirosPenalty === 0 ? 'Apuntá y pateá' : 'Prepará el próximo tiro');
-        }
-
-        function resolverTiroPenalty() {
-            const enArco = balon.destinoX >= 335 && balon.destinoX <= 615 && balon.destinoY >= 105 && balon.destinoY <= 222;
-            const distanciaArquero = Math.abs(balon.destinoX - portero.x);
-            const alcanceVertical = Math.abs(balon.destinoY - portero.y);
-            const atajada = enArco
-                && portero.vaAAtajar
-                && distanciaArquero < 86
-                && alcanceVertical < 90;
-
-            if (!enArco) {
-                rachaPenalty = 0;
-                mensajeResultado = "¡AFUERA!";
-                subtituloResultado = balon.destinoY < 105 ? "Se fue por arriba" : "Rozó el palo";
-                estadoBalon = 'fuera';
-                resultadosPenalty.push('fuera');
-                actualizarMarcadorPenalty('Tiro afuera · +0 puntos');
-                feedbackJuego('fin');
-            } else if (atajada) {
-                rachaPenalty = 0;
-                mensajeResultado = "¡ATAJÓ!";
-                subtituloResultado = "El arquero se tiró y llegó a la pelota";
-                estadoBalon = 'atajado';
-                resultadosPenalty.push('atajado');
-                actualizarMarcadorPenalty('Atajó el arquero · +0 puntos');
-                feedbackJuego('fin');
-            } else {
-                golesPenalty++;
-                rachaPenalty++;
-                const esquina = Math.abs(balon.destinoX - 475) > 105 || balon.destinoY < 135;
-                const bonusEsquina = esquina ? 150 : 0;
-                const bonusPotencia = Math.round(potenciaPenalty * 100);
-                const bonusRacha = Math.max(0, rachaPenalty - 1) * 50;
-                const puntosGanados = 100 + bonusEsquina + bonusPotencia + bonusRacha;
-                puntosPenalty += puntosGanados;
-                mensajeResultado = esquina ? "¡GOLAZO!" : "¡GOOOL!";
-                subtituloResultado = `+${puntosGanados} puntos · Total ${puntosPenalty}`;
-                estadoBalon = 'gol';
-                resultadosPenalty.push('gol');
-                actualizarMarcadorPenalty(`¡Gol! +${puntosGanados} puntos`);
-                crearParticulasPenalty(balon.destinoX, balon.destinoY);
-                feedbackJuego('gol');
-            }
-
-            tiempoMensaje = 80;
-            timeoutPenalty = setTimeout(() => {
-                if (!juegoActivo || currentGame !== 'penalty') return;
-                if (tirosPenalty >= MAX_TIROS_PENALTY) {
-                    estadoBalon = 'final';
-                    guardarRecord('penalty', puntosPenalty);
-                    actualizarMarcadorPenalty(`Tanda terminada: ${golesPenalty} goles y ${puntosPenalty} puntos`);
-                    if (golesPenalty >= 4) feedbackJuego('record');
-                } else {
-                    reiniciarTiroPenalty();
-                }
-            }, 1350);
-        }
-
-        function crearParticulasPenalty(x, y) {
-            const colores = ['#ffd60a', '#ffffff', '#42f5a7', '#40c9ff'];
-            for (let i = 0; i < 42; i++) {
-                particulasPenalty.push({
-                    x, y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.8) * 9,
-                    vida: 55 + Math.random() * 25,
-                    color: colores[Math.floor(Math.random() * colores.length)]
-                });
-            }
-        }
-
-        function actualizarPenalty() {
-            if (estadoBalon === 'esperando') {
-                potenciaPenalty += 0.012 * factorDificultad() * direccionPotencia;
-                if (potenciaPenalty >= 1 || potenciaPenalty <= 0.2) direccionPotencia *= -1;
-                portero.x = 475 + Math.sin(performance.now() / 520) * 28;
-            } else if (estadoBalon === 'disparando') {
-                balon.progreso += 1 / balon.duracion;
-                const t = Math.min(1, balon.progreso);
-                const suave = 1 - Math.pow(1 - t, 2.2);
-                balon.x = balon.inicioX + (balon.destinoX - balon.inicioX) * suave;
-                balon.y = balon.inicioY + (balon.destinoY - balon.inicioY) * suave - Math.sin(t * Math.PI) * 48 * potenciaPenalty;
-
-                if (portero.decidio && balon.progreso > portero.reaccion / balon.duracion) {
-                    const dx = portero.objetivoX - portero.x;
-                    const dy = portero.objetivoY - portero.y;
-                    portero.x += dx * portero.velocidad;
-                    portero.y += dy * portero.velocidad;
-                    portero.inclinacion += (portero.inclinacionObjetivo - portero.inclinacion) * 0.14;
-                }
-                if (t >= 1) resolverTiroPenalty();
-            }
-
-            particulasPenalty.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.18;
-                p.vida--;
-            });
-            particulasPenalty = particulasPenalty.filter(p => p.vida > 0);
-        }
-
-        function dibujarEstadioPenalty() {
-            const gradiente = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradiente.addColorStop(0, '#071a2d');
-            gradiente.addColorStop(0.31, '#12304a');
-            gradiente.addColorStop(0.32, '#18834b');
-            gradiente.addColorStop(1, '#075c35');
-            ctx.fillStyle = gradiente;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = 'rgba(255,255,255,.08)';
-            for (let x = 15; x < canvas.width; x += 30) {
-                ctx.beginPath();
-                ctx.arc(x, 88 + Math.sin(x) * 7, 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            for (let y = 265; y < canvas.height; y += 54) {
-                ctx.fillStyle = y % 108 ? 'rgba(255,255,255,.025)' : 'rgba(0,0,0,.035)';
-                ctx.fillRect(0, y, canvas.width, 54);
-            }
-
-            ctx.strokeStyle = 'rgba(255,255,255,.78)';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(245, 218, 460, 205);
-            ctx.beginPath();
-            ctx.arc(475, 420, 75, Math.PI, 0);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(475, 505, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#fff';
-            ctx.fill();
-
-            ctx.fillStyle = 'rgba(0,0,0,.32)';
-            ctx.fillRect(330, 102, 290, 120);
-            ctx.strokeStyle = 'rgba(255,255,255,.2)';
-            ctx.lineWidth = 1;
-            for (let x = 335; x <= 615; x += 18) {
-                ctx.beginPath(); ctx.moveTo(x, 105); ctx.lineTo(x, 222); ctx.stroke();
-            }
-            for (let y = 108; y <= 218; y += 15) {
-                ctx.beginPath(); ctx.moveTo(335, y); ctx.lineTo(615, y); ctx.stroke();
-            }
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 9;
-            ctx.lineJoin = 'round';
-            ctx.beginPath();
-            ctx.moveTo(330, 222); ctx.lineTo(330, 100); ctx.lineTo(620, 100); ctx.lineTo(620, 222);
-            ctx.stroke();
-        }
-
-        function dibujarPorteroPenalty() {
-            ctx.save();
-            ctx.translate(portero.x, portero.y);
-            ctx.rotate(portero.inclinacion);
-            ctx.strokeStyle = '#ff9f1c';
-            ctx.lineWidth = 12;
-            ctx.lineCap = 'round';
-            ctx.beginPath();
-            ctx.moveTo(-23, -2); ctx.lineTo(-57, 10);
-            ctx.moveTo(23, -2); ctx.lineTo(57, 10);
-            ctx.stroke();
-            ctx.strokeStyle = '#eaf4ff';
-            ctx.lineWidth = 14;
-            ctx.beginPath();
-            ctx.moveTo(-56, 10); ctx.lineTo(-66, 12);
-            ctx.moveTo(56, 10); ctx.lineTo(66, 12);
-            ctx.stroke();
-            ctx.fillStyle = '#ff7b00';
-            ctx.roundRect(-28, -13, 56, 47, 10);
-            ctx.fill();
-            ctx.fillStyle = '#10243b';
-            ctx.fillRect(-25, 27, 50, 12);
-            ctx.strokeStyle = '#10243b';
-            ctx.lineWidth = 11;
-            ctx.beginPath();
-            ctx.moveTo(-15, 35); ctx.lineTo(-28, 57);
-            ctx.moveTo(15, 35); ctx.lineTo(28, 57);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(0, -27, 13, 0, Math.PI * 2);
-            ctx.fillStyle = '#d89b71';
-            ctx.fill();
-            ctx.restore();
-        }
-
-        function dibujarBalonPenalty() {
-            const escala = 0.52 + (balon.y / canvas.height) * 0.75;
-            const radio = balon.radio * escala;
-            ctx.save();
-            ctx.shadowColor = 'rgba(0,0,0,.5)';
-            ctx.shadowBlur = 8;
-            ctx.beginPath();
-            ctx.arc(balon.x, balon.y, radio, 0, Math.PI * 2);
-            ctx.fillStyle = '#fff';
-            ctx.fill();
-            ctx.strokeStyle = '#172033';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-            ctx.beginPath();
-            ctx.arc(balon.x, balon.y, radio * .36, 0, Math.PI * 2);
-            ctx.fillStyle = '#172033';
-            ctx.fill();
-            ctx.restore();
-        }
-
-        function dibujarHudPenalty() {
-            ctx.fillStyle = 'rgba(4,12,24,.82)';
-            ctx.roundRect(20, 18, 285, 65, 15);
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.font = '700 17px Segoe UI, sans-serif';
-            const tiroMostrado = estadoBalon === 'esperando'
-                ? Math.min(tirosPenalty + 1, MAX_TIROS_PENALTY)
-                : Math.min(tirosPenalty, MAX_TIROS_PENALTY);
-            ctx.fillText(`TIRO ${tiroMostrado} / ${MAX_TIROS_PENALTY}`, 38, 45);
-            ctx.fillStyle = '#ffd60a';
-            ctx.font = '800 19px Segoe UI, sans-serif';
-            ctx.fillText(`${puntosPenalty} PTS`, 38, 70);
-            ctx.fillStyle = '#fff';
-            ctx.font = '700 15px Segoe UI, sans-serif';
-            ctx.fillText(`GOLES ${golesPenalty}`, 188, 69);
-
-            const inicio = 790;
-            for (let i = 0; i < MAX_TIROS_PENALTY; i++) {
-                ctx.beginPath();
-                ctx.arc(inicio + i * 30, 48, 10, 0, Math.PI * 2);
-                const resultado = resultadosPenalty[i];
-                ctx.fillStyle = resultado === 'gol'
-                    ? '#42f587'
-                    : resultado === 'atajado'
-                        ? '#40c9ff'
-                        : resultado === 'fuera'
-                            ? '#ff4d6d'
-                            : 'rgba(255,255,255,.22)';
-                ctx.fill();
-            }
-
-            if (estadoBalon === 'esperando') {
-                ctx.setLineDash([8, 8]);
-                ctx.strokeStyle = 'rgba(255,255,255,.7)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(balon.x, balon.y - 15);
-                ctx.quadraticCurveTo((balon.x + objetivoPenalty.x) / 2, objetivoPenalty.y + 110, objetivoPenalty.x, objetivoPenalty.y);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                ctx.strokeStyle = '#ffd60a';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(objetivoPenalty.x, objetivoPenalty.y, 18, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(objetivoPenalty.x - 25, objetivoPenalty.y);
-                ctx.lineTo(objetivoPenalty.x + 25, objetivoPenalty.y);
-                ctx.moveTo(objetivoPenalty.x, objetivoPenalty.y - 25);
-                ctx.lineTo(objetivoPenalty.x, objetivoPenalty.y + 25);
-                ctx.stroke();
-
-                ctx.fillStyle = 'rgba(4,12,24,.78)';
-                ctx.roundRect(335, 555, 280, 25, 12);
-                ctx.fill();
-                const barraW = 266 * potenciaPenalty;
-                const color = potenciaPenalty > .82 ? '#ff4d6d' : potenciaPenalty > .55 ? '#ffd60a' : '#42f587';
-                ctx.fillStyle = color;
-                ctx.roundRect(342, 562, barraW, 11, 5);
-                ctx.fill();
-                ctx.fillStyle = '#fff';
-                ctx.font = '700 12px Segoe UI, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('POTENCIA', 475, 548);
-                ctx.textAlign = 'left';
-            }
-        }
-
-        function dibujarMensajesPenalty() {
-            if (tiempoMensaje > 0 && estadoBalon !== 'final') {
-                tiempoMensaje--;
-                ctx.fillStyle = 'rgba(3,10,20,.86)';
-                ctx.roundRect(300, 274, 350, 92, 18);
-                ctx.fill();
-                ctx.textAlign = 'center';
-                ctx.fillStyle = estadoBalon === 'gol' ? '#ffd60a' : '#fff';
-                ctx.font = '900 31px Segoe UI, sans-serif';
-                ctx.fillText(mensajeResultado, 475, 314);
-                ctx.fillStyle = '#cbd7e6';
-                ctx.font = '600 15px Segoe UI, sans-serif';
-                ctx.fillText(subtituloResultado, 475, 343);
-                ctx.textAlign = 'left';
-            }
-
-            if (estadoBalon === 'final') {
-                ctx.fillStyle = 'rgba(3,10,20,.9)';
-                ctx.roundRect(260, 190, 430, 235, 24);
-                ctx.fill();
-                ctx.strokeStyle = '#ffd60a';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#ffd60a';
-                ctx.font = '900 32px Segoe UI, sans-serif';
-                ctx.fillText(golesPenalty >= 4 ? '¡CAMPEÓN!' : golesPenalty >= 2 ? '¡BUENA TANDA!' : '¡A ENTRENAR!', 475, 245);
-                ctx.fillStyle = '#fff';
-                ctx.font = '800 24px Segoe UI, sans-serif';
-                ctx.fillText(`${golesPenalty} goles · ${puntosPenalty} puntos`, 475, 292);
-                ctx.fillStyle = '#cbd7e6';
-                ctx.font = '500 15px Segoe UI, sans-serif';
-                ctx.fillText('Cada tiro vuelve al arquero más rápido', 475, 326);
-                ctx.fillStyle = '#ffd60a';
-                ctx.roundRect(342, 354, 266, 44, 12);
-                ctx.fill();
-                ctx.fillStyle = '#102033';
-                ctx.font = '800 16px Segoe UI, sans-serif';
-                ctx.fillText('TOCÁ PARA LA REVANCHA', 475, 382);
-                ctx.textAlign = 'left';
-            }
-        }
-
-        function buclePenalty() {
-            if (!juegoActivo || currentGame !== 'penalty') return;
-            if (juegoPausado) {
-                idAnimacionPenalty = requestAnimationFrame(buclePenalty);
-                return;
-            }
-            actualizarPenalty();
-            dibujarEstadioPenalty();
-            dibujarPorteroPenalty();
-            particulasPenalty.forEach(p => {
-                ctx.globalAlpha = Math.max(0, p.vida / 70);
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, 5, 5);
-            });
-            ctx.globalAlpha = 1;
-            dibujarBalonPenalty();
-            dibujarHudPenalty();
-            dibujarMensajesPenalty();
-            idAnimacionPenalty = requestAnimationFrame(buclePenalty);
-        }
-
-        cambiarTema(localStorage.getItem('rayito-tema') || 'rayito', false);
-        document.getElementById('dificultad-juego').value = dificultadActual;
-        actualizarRecordsUI();
-        iniciarCarga();
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden && currentGame && juegoActivo && !juegoPausado) {
-                togglePausaJuego();
-            }
-        });
-
-        document.addEventListener('keydown', event => {
-            const direcciones = {
-                ArrowUp: 'UP',
-                ArrowDown: 'DOWN',
-                ArrowLeft: 'LEFT',
-                ArrowRight: 'RIGHT'
-            };
-            const tecla = event.key.toLowerCase();
-
-            if (currentGame === 'survivor' && ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(tecla)) {
-                teclasSurvivor.add(tecla);
-                event.preventDefault();
-            }
-
-            if (currentGame === 'snake' && direcciones[event.key]) {
-                event.preventDefault();
-                cambiarDireccionSnake(direcciones[event.key]);
-            }
-
-            if (currentGame && tecla === 'p') {
-                event.preventDefault();
-                togglePausaJuego();
-            }
-
-            if (currentGame && tecla === 'r') {
-                event.preventDefault();
-                reiniciarJuegoActual();
-            }
-
-            if (event.key === 'Escape') {
-                if (document.getElementById('modal-juego').style.display === 'flex') {
-                    cerrarTodoJuego();
-                } else if (document.getElementById('modal-libro').style.display === 'block') {
-                    cerrarMenuLibro();
-                }
-            }
-        });
-
-        document.addEventListener('keyup', event => {
-            teclasSurvivor.delete(event.key.toLowerCase());
-        });
-
-        window.addEventListener('blur', () => {
-            teclasSurvivor.clear();
-        });
-    </script>
+    <script src="config.js?v=10.0.0"></script>
+    <script src="playlist.js?v=10.0.0"></script>
+    <script src="legacy.js?v=10.1.0"></script>
+    <script src="app.js?v=10.3.0"></script>
+    <script src="security-bindings.js?v=10.0.0"></script>
 </body>
 </html>

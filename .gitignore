@@ -1,0 +1,24 @@
+# Secrets / local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*service-role*
+*service_role*
+*secret*.json
+
+# Supabase local runtime
+.supabase/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local backups / archives
+*.rar
+*.7z
